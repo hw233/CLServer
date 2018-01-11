@@ -1,4 +1,5 @@
 do
+    require("cmd4user")
     require("BioUtl")
 
     NetProto = {}
@@ -7,6 +8,7 @@ do
     -- public toMap
     NetProto._toMap = function(stName, m)
         local ret = {}
+        if m == nil then return ret end
         for k,v in pairs(m) do
             ret[k] = NetProto[stName].toMap(v)
         end
@@ -15,6 +17,7 @@ do
     -- public toList
     NetProto._toList = function(stName, m)
         local ret = {}
+        if m == nil then return ret end
         for i,v in ipairs(m) do
             table.insert(ret, NetProto[stName].toMap(v))
         end
@@ -23,6 +26,7 @@ do
     -- public parse
     NetProto._parseMap = function(stName, m)
         local ret = {}
+        if m == nil then return ret end
         for k,v in pairs(m) do
             ret[k] = NetProto[stName].parse(v)
         end
@@ -31,6 +35,7 @@ do
     -- public parse
     NetProto._parseList = function(stName, m)
         local ret = {}
+        if m == nil then return ret end
         for i,v in ipairs(m) do
             table.insert(ret, NetProto[stName].parse(v))
         end
@@ -42,12 +47,14 @@ do
     NetProto.ST_retInfor = {
         toMap = function(m)
             local r = {}
+            if m == nil then return r end
             r[10] = m.msg  -- 返回消息 string
             r[11] =  BioUtl.int2bio(m.code)  -- 返回值 int
             return r;
         end,
         parse = function(m)
             local r = {}
+            if m == nil then return r end
             r.msg = m[10] --  string
             r.code = m[11] --  int
             return r;
@@ -57,6 +64,7 @@ do
     NetProto.ST_userInfor = {
         toMap = function(m)
             local r = {}
+            if m == nil then return r end
             r[12] = m.id  --   string
             r[13] =  BioUtl.int2bio(m.ver)  -- 服务数据版本号 int
             r[14] = m.name  -- 名字 string
@@ -65,6 +73,7 @@ do
         end,
         parse = function(m)
             local r = {}
+            if m == nil then return r end
             r.id = m[12] --  string
             r.ver = m[13] --  int
             r.name = m[14] --  string
@@ -126,8 +135,29 @@ do
     end,
     }
     --==============================
-    NetProto.dispatch[16]={onReceive = NetProto.recive.logout, send = NetProto.send.logout}
-    NetProto.dispatch[17]={onReceive = NetProto.recive.login, send = NetProto.send.login}
-    NetProto.dispatch[22]={onReceive = NetProto.recive.syndata, send = NetProto.send.syndata}
+    NetProto.dispatch[16]={onReceive = NetProto.recive.logout, send = NetProto.send.logout, logic = cmd4user}
+    NetProto.dispatch[17]={onReceive = NetProto.recive.login, send = NetProto.send.login, logic = cmd4user}
+    NetProto.dispatch[22]={onReceive = NetProto.recive.syndata, send = NetProto.send.syndata, logic = cmd4user}
+    --==============================
+    function NetProto.dispatcher(map)
+        local cmd = map[0]
+        if cmd == nil then
+            skynet.error("get cmd is nil")
+            return nil;
+        end
+        local dis = NetProto.dispatch[cmd]
+        if dis == nil then
+            skynet.error("get protocol cfg is nil")
+            return nil;
+        end
+        local m = dis.onReceive(map)
+        local logicCMD = assert(dis.logic.CMD)
+        local f = assert(logicCMD[m.cmd])
+        if f then
+            return f(m)
+        end
+        return nil;
+    end
+    --==============================
     return NetProto
 end

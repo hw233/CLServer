@@ -114,6 +114,7 @@ do
         add(ret, "    -- public toMap")
         add(ret, "    ".. defProtocol.name .."._toMap = function(stName, m)");
         add(ret, "        local ret = {}");
+        add(ret, "        if m == nil then return ret end");
         add(ret, "        for k,v in pairs(m) do");
         add(ret, "            ret[k] = ".. defProtocol.name .."[stName].toMap(v)");
         add(ret, "        end");
@@ -123,6 +124,7 @@ do
         add(ret, "    -- public toList")
         add(ret, "    ".. defProtocol.name .."._toList = function(stName, m)");
         add(ret, "        local ret = {}");
+        add(ret, "        if m == nil then return ret end");
         add(ret, "        for i,v in ipairs(m) do");
         add(ret, "            table.insert(ret, ".. defProtocol.name .."[stName].toMap(v))");
         add(ret, "        end");
@@ -133,6 +135,7 @@ do
         add(ret, "    -- public parse")
         add(ret, "    ".. defProtocol.name .."._parseMap = function(stName, m)");
         add(ret, "        local ret = {}");
+        add(ret, "        if m == nil then return ret end");
         add(ret, "        for k,v in pairs(m) do");
         add(ret, "            ret[k] = ".. defProtocol.name .."[stName].parse(v)");
         add(ret, "        end");
@@ -142,6 +145,7 @@ do
         add(ret, "    -- public parse")
         add(ret, "    ".. defProtocol.name .."._parseList = function(stName, m)");
         add(ret, "        local ret = {}");
+        add(ret, "        if m == nil then return ret end");
         add(ret, "        for i,v in ipairs(m) do");
         add(ret, "            table.insert(ret, ".. defProtocol.name .."[stName].parse(v))");
         add(ret, "        end");
@@ -155,6 +159,7 @@ do
             add(ret, "    ".. getStName(name) .. " = {");
             add(ret, "        toMap = function(m)")
             add(ret, "            local r = {}")
+            add(ret, "            if m == nil then return r end");
             local typeName = ""
             for k, v in pairs(val[2]) do
                 typeName = type(v[1])
@@ -207,6 +212,7 @@ do
 
             add(ret, "        parse = function(m)")
             add(ret, "            local r = {}")
+            add(ret, "            if m == nil then return r end");
             for k, v in pairs(val[2]) do
                 typeName = type(v[1])
                 if typeName =="table" then
@@ -276,12 +282,16 @@ do
         add(strsClient, "    --==============================");
         add(strsServer, "    --==============================");
         local dispatch = {}
+        local requires = {}
+        local dispatchserver = {}
         local clientSend = {}
         local serverSend = {}
         local clientRecive = {}
         local serverRecive = {}
         for cmd, cfg in pairs(defProtocol.cmds) do
-            add(dispatch, "    ".. defProtocol.name ..".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = ".. defProtocol.name ..".recive." .. cmd .. ", send = ".. defProtocol.name ..".send." .. cmd .."}")
+            requires[cfg.logic] = true;
+            add(dispatch,       "    ".. defProtocol.name ..".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = ".. defProtocol.name ..".recive." .. cmd .. ", send = ".. defProtocol.name ..".send." .. cmd .."}")
+            add(dispatchserver, "    ".. defProtocol.name ..".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = ".. defProtocol.name ..".recive." .. cmd .. ", send = ".. defProtocol.name ..".send." .. cmd ..", logic = " .. cfg.logic .. "}")
             if cfg.desc then
                 add(clientSend, "    -- " .. cfg.desc);
                 add(serverRecive, "    -- " .. cfg.desc);
@@ -420,12 +430,38 @@ do
         add(strsServer, "    --==============================");
         -- dispatch
         add(strsClient, table.concat(dispatch, "\n"));
-        add(strsServer, table.concat(dispatch, "\n"));
+        add(strsServer, table.concat(dispatchserver, "\n"));
+
+        add(strsServer, "    --==============================");
+        add(strsServer, "    function NetProto.dispatcher(map)")
+        add(strsServer, "        local cmd = map[0]")
+        add(strsServer, "        if cmd == nil then")
+        add(strsServer, "            skynet.error(\"get cmd is nil\")")
+        add(strsServer, "            return nil;")
+        add(strsServer, "        end")
+        add(strsServer, "        local dis = NetProto.dispatch[cmd]")
+        add(strsServer, "        if dis == nil then")
+        add(strsServer, "            skynet.error(\"get protocol cfg is nil\")")
+        add(strsServer, "            return nil;")
+        add(strsServer, "        end")
+        add(strsServer, "        local m = dis.onReceive(map)")
+        add(strsServer, "        local logicCMD = assert(dis.logic.CMD)")
+        add(strsServer, "        local f = assert(logicCMD[m.cmd])")
+        add(strsServer, "        if f then")
+        add(strsServer, "            return f(m)")
+        add(strsServer, "        end")
+        add(strsServer, "        return nil;")
+        add(strsServer, "    end")
+        add(strsServer, "    --==============================");
 
         add(strsClient, "    return ".. defProtocol.name .."");
         add(strsServer, "    return ".. defProtocol.name .."");
         add(strsClient, "end");
         add(strsServer, "end");
+
+        for k,v in pairs(requires) do
+            table.insert(strsServer, 2, "    local " .. k .. " = require(\"".. k .. "\")")
+        end
 
         --==================
         local strs = "";
@@ -461,8 +497,8 @@ do
         return
     end
 
-    keyCodeProtocolFile = combinePath(arg[2] , "KeyCodeProtocol.lua");
-    clientFilePath = combinePath(arg[2] , defProtocol.name .. "Client.lua");
-    serverFilePath = combinePath(arg[2] , defProtocol.name .. "Server.lua");
+    keyCodeProtocolFile = CLUtl.combinePath(arg[2] , "KeyCodeProtocol.lua");
+    clientFilePath = CLUtl.combinePath(arg[2] , defProtocol.name .. "Client.lua");
+    serverFilePath = CLUtl.combinePath(arg[2] , defProtocol.name .. "Server.lua");
     main();
 end

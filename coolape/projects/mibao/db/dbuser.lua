@@ -1,4 +1,5 @@
 require("class")
+local skynet = require "skynet"
 
 -- 用户表
 dbuser = class("dbuser")
@@ -24,15 +25,14 @@ function dbuser:init(data)
 end
 
 function dbuser:insertSql()
-    local sql = "INSERT INTO `user` (
-    `uid`,`password`,`crtTime`,`lastEnTime`,`statu`
-    ) VALUES ("..
-    "'" .. (self.uid and self.uid or "") .. "'" .. ","
+    local sql = "INSERT INTO `user` (`uid`,`password`,`crtTime`,`lastEnTime`,`statu`)"
+    .. " VALUES ("
+    .. "'" .. (self.uid and self.uid or "") .. "'" .. ","
     .. "'" .. (self.password and self.password or "") .. "'" .. ","
     .. "'" .. (self.crtTime and self.crtTime or "") .. "'" .. ","
     .. "'" .. (self.lastEnTime and self.lastEnTime or "") .. "'" .. ","
     .. (self.statu and self.statu or 0)
-    ..");"
+    .. ");"
     return sql
 end
 
@@ -60,11 +60,11 @@ function dbuser:toSql()
     end
 end
 
-function dbuser.querySql(uid,password)
+function dbuser.querySql(uid, password)
     return "SELECT * FROM user WHERE " .. "`uid`='" .. (uid and uid or "") .. "'" .. " AND " .. "`password`='" .. (password and password or "") .. "'" .. ";"
 end
 
-function dbuser.instanse(uid,password)
+function dbuser.instanse(uid, password)
     local key = uid .. "_" .. password
     if key == "" then
         error("the key is null", 0)
@@ -74,7 +74,7 @@ function dbuser.instanse(uid,password)
     if obj == nil then
         local d = skynet.call("CLMySQL", "lua", "exesql", dbuser.querySql(uid,password))
         obj = dbuser.new()
-        if d then
+        if d and #d > 0 then
             -- 取得mysql表里的数据
             obj:init(d)
             obj.__isNew__ = false

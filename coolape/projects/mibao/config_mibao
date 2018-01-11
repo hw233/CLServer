@@ -19,6 +19,7 @@ lua_path = skynetRoot .. "lualib/?.lua;"
     ..projectPath .. "?.lua;"
     ..projectPath .. "protocol/?.lua;"
     ..projectPath .. "db/?.lua;"
+    ..projectPath .. "logic/?.lua;"
 
 lua_cpath = skynetRoot .. "luaclib/?.so"
 -- snax = root.."examples/?.lua;"..root.."test/?.lua"

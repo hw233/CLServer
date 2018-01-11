@@ -167,7 +167,7 @@ function genDB.genTables()
         table.insert(sqlStr, genDB.genSql(t));
         genDB.genLuaFile(outPath, t);
     end
-    local outSqlFile = combinePath(outPath, sqlDumpFile)
+    local outSqlFile = CLUtl.combinePath(outPath, sqlDumpFile)
     writeFile(outSqlFile, table.concat(sqlStr, "\n"));
     print("success：SQL outfiles==" .. outSqlFile)
 end
@@ -190,7 +190,7 @@ function genDB.genSql(tableCfg)
             table.insert(primaryKey, "`" .. pk .. "`");
         end
     end
-    table.insert(columns, "  PRIMARY KEY (" .. table.concat(primaryKey, ",") .. ")")
+    table.insert(columns, "  PRIMARY KEY (" .. table.concat(primaryKey, ", ") .. ")")
     table.insert(str, table.concat(columns, ",\n"));
     table.insert(str, ") ENGINE=InnoDB DEFAULT CHARSET=utf8;")
 
@@ -270,6 +270,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     end
     -----------------------------------
     table.insert(str, "require(\"class\")")
+    table.insert(str, "local skynet = require \"skynet\"")
     table.insert(str, "")
     table.insert(str, "-- " .. tableCfg.desc)
     table.insert(str, name .. " = class(\"" .. name .. "\")")
@@ -289,11 +290,10 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "")
 
     table.insert(str, "function " .. name .. ":insertSql()")
-    table.insert(str, "    local sql = \"INSERT INTO `" .. tableCfg.name .. "` (")
-    table.insert(str, "    " .. table.concat(columns, ","))
-    table.insert(str, "    ) VALUES (\"..")
-    table.insert(str, "    " .. table.concat(dataInsert, " .. \",\"\n    .. "))
-    table.insert(str, "    ..\");\"")
+    table.insert(str, "    local sql = \"INSERT INTO `" .. tableCfg.name .. "` (" .. table.concat(columns, ",") .. ")\"")
+    table.insert(str, "    .. \" VALUES (\"")
+    table.insert(str, "    .. " .. table.concat(dataInsert, " .. \",\"\n    .. "))
+    table.insert(str, "    .. \");\"")
     table.insert(str, "    return sql")
     table.insert(str, "end")
     table.insert(str, "")
@@ -322,7 +322,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "")
 
     if tableCfg.primaryKey then
-        table.insert(str, "function " .. name .. ".querySql(" .. table.concat(tableCfg.primaryKey, ",") .. ")")
+        table.insert(str, "function " .. name .. ".querySql(" .. table.concat(tableCfg.primaryKey, ", ") .. ")")
     else
         table.insert(str, "function " .. name .. ".querySql()")
     end
@@ -331,7 +331,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "")
 
     if tableCfg.primaryKey then
-        table.insert(str, "function " .. name .. ".instanse(" .. table.concat(tableCfg.primaryKey, ",") .. ")")
+        table.insert(str, "function " .. name .. ".instanse(" .. table.concat(tableCfg.primaryKey, ", ") .. ")")
     else
         table.insert(str, "function " .. name .. ".instanse()")
     end
@@ -346,7 +346,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "    if obj == nil then")
     table.insert(str, "        local d = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", " .. name .. ".querySql(" .. table.concat(tableCfg.primaryKey, ",") .. "))")
     table.insert(str, "        obj = dbuser.new()");
-    table.insert(str, "        if d then")
+    table.insert(str, "        if d and #d > 0 then")
     table.insert(str, "            -- 取得mysql表里的数据")
     table.insert(str, "            obj:init(d)")
     table.insert(str, "            obj.__isNew__ = false")
@@ -367,7 +367,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "return " .. name)
     table.insert(str, "")
 
-    local outFile = combinePath(outPath, name .. ".lua")
+    local outFile = CLUtl.combinePath(outPath, name .. ".lua")
     writeFile(outFile, table.concat(str, "\n"))
     print("out lua file==" .. outFile)
 end

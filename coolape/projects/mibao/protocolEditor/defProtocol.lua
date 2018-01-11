@@ -78,6 +78,7 @@ defProtocol.cmds = {
         inputDesc = {"用户名","密码"};     -- 入参说明
         output = { structs.retInfor, structs.userInfor, "sysTime" };        -- 出参
         outputDesc = {"返回信息","用户信息","系统时间"};  -- 出参说明
+        logic = "cmd4user";     -- 处理的接口的lua
     };
     --]]
     login = {
@@ -86,12 +87,14 @@ defProtocol.cmds = {
         inputDesc = {"用户名", "密码"}; -- 入参说明
         output = { structs.retInfor, structs.userInfor, "sysTime" }; -- 出参
         outputDesc = {"返回信息","用户信息","系统时间"}; -- 出参说明
+        logic = "cmd4user";
     };
 
     logout = {
         desc = "退出",
         output = { structs.retInfor }, -- 出参
         outputDesc = {"返回信息"}, -- 出参说明
+        logic = "cmd4user";
     };
 
     syndata = {
@@ -100,6 +103,7 @@ defProtocol.cmds = {
         inputDesc = {"版本号", "数据信息"},
         output = { structs.retInfor, "newVer", "newData" },
         outputDesc = {"返回信息", "新版本号","新数据"},
+        logic = "cmd4user";
     };
 
 }

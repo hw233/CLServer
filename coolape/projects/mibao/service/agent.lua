@@ -1,8 +1,8 @@
 local skynet = require "skynet"
 local socket = require "skynet.socket"
-require("BioUtl")
-require("NetProtoServer")
-require("CLUtl")
+local BioUtl = require("BioUtl")
+local NetProto =  require("NetProtoServer")
+local CLUtl = require("CLUtl")
 
 local WATCHDOG
 
@@ -46,40 +46,11 @@ local function send_package(pack)
     end
 end
 
-local function doProcCmd(map)
-    for k, v in pairs(map) do
-        --print(k, v)
-    end
-    local cmd = map[0]
-    if cmd == nil then
-        skynet.error("get cmd is nil");
-        return nil;
-    end
-    local cmdInfor = NetProto.dispatch[cmd]
-    if cmdInfor == nil then
-        skynet.error("get protocol cfg is nil");
-        return nil;
-    end
-
-    local m = cmdInfor.onReceive(map)
-    local retInfor = { code = 0, msg = "" }
-    local city = { id = 1, name = "city" }
-    local userInfor = { id = 12, name = "大又", isNew = true, ver = 12}
-
-    local sql = "INSERT INTO `user` (`idx`, `uid`, `password`) VALUES "
-    .. " (0, '1', '11231');";
-    skynet.call(mysql, "lua", "save", sql)
-    local sql = "INSERT INTO `user` (`idx`, `uid`, `password`) VALUES "
-    .. " (0, '12', '11232');";
-    skynet.call(mysql, "lua", "save", sql)
-    --skynet.call("CLMySQL", "lua", "flushall")
-
-    m = NetProto.send.login(retInfor, userInfor, 9080)
-    return m;
-end
-
 local function procCmd(map)
-    local ok, result = pcall( doProcCmd, map)
+    --for k, v in pairs(map) do
+    --    print(k, v)
+    --end
+    local ok, result = pcall(NetProto.dispatcher, map)
     if ok then
         if result then
             send_package(result)
@@ -94,7 +65,7 @@ local function isSubPackage(m)
     if m[0] then --判断有没有cmd
         return false
     end
-    if Utl.isArray(m) then
+    if CLUtl.isArray(m) then
         return true;
     end
     return false

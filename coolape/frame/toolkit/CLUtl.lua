@@ -1,7 +1,7 @@
 ﻿-- 工具
 do
-    Utl = {}
-    function Utl.strSplit(inputstr, sep)
+    CLUtl = {}
+    function CLUtl.strSplit(inputstr, sep)
         if sep == nil then
             sep = "%s"
         end
@@ -14,7 +14,7 @@ do
         return t;
     end
 
-    function Utl.isArray(t)
+    function CLUtl.isArray(t)
         if t == nil then
             return false;
         end
@@ -33,7 +33,8 @@ do
         return ret;
     end
 
-    function combinePath(p1, p2)
+    -- 拼接两个路径
+    function CLUtl.combinePath(p1, p2)
         if p1 == nil then
             return p2
         end
@@ -53,5 +54,56 @@ do
         end
     end
 
-    return Utl;
+    function CLUtl.isNilOrEmpty(s)
+        if s == nil or s == "" then
+            return true
+        end
+        return false
+    end
+
+
+    function CLUtl.dump(obj)
+        local getIndent, quoteStr, wrapKey, wrapVal, dumpObj
+        getIndent = function(level)
+            return string.rep("\t", level)
+        end
+        quoteStr = function(str)
+            return '"' .. string.gsub(str, '"', '\\"') .. '"'
+        end
+        wrapKey = function(val)
+            if type(val) == "number" then
+                return "[" .. val .. "]"
+            elseif type(val) == "string" then
+                return "[" .. quoteStr(val) .. "]"
+            else
+                return "[" .. tostring(val) .. "]"
+            end
+        end
+        wrapVal = function(val, level)
+            if type(val) == "table" then
+                return dumpObj(val, level)
+            elseif type(val) == "number" then
+                return val
+            elseif type(val) == "string" then
+                return quoteStr(val)
+            else
+                return tostring(val)
+            end
+        end
+        dumpObj = function(obj, level)
+            if type(obj) ~= "table" then
+                return wrapVal(obj)
+            end
+            level = level + 1
+            local tokens = {}
+            tokens[#tokens + 1] = "{"
+            for k, v in pairs(obj) do
+                tokens[#tokens + 1] = getIndent(level) .. wrapKey(k) .. " = " .. wrapVal(v, level) .. ","
+            end
+            tokens[#tokens + 1] = getIndent(level - 1) .. "}"
+            return table.concat(tokens, "\n")
+        end
+        return dumpObj(obj, 0)
+    end
+    return CLUtl;
 end
