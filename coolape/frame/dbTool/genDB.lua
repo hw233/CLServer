@@ -1,15 +1,17 @@
 ﻿-- 数据库 工具
 --[[ run cmd
-./3rd/lua/lua coolape/frame/dbTool/dbEditor.lua [输入目录] [输出目录]
-./3rd/lua/lua coolape/frame/dbTool/dbEditor.lua ./coolape/projects/mibao/dbEditor ./coolape/projects/mibao/db
+./3rd/lua/lua coolape/frame/dbTool/genDB.lua [输入目录] [输出目录]
+./3rd/lua/lua coolape/frame/dbTool/genDB.lua ./coolape/projects/mibao/genDB ./coolape/projects/mibao/db
 --]]
 package.cpath = "luaclib/?.so"
-package.path = "lualib/?.lua;" .. "coolape/frame/dbTool/?.lua;"
+package.path = "lualib/?.lua;" .. "./coolape/frame/toolkit/?.lua"
 
-dbEditor = {}
+require("CLUtl")
+
+genDB = {}
 local sqlDumpFile = "tables.sql";
 
-function dbEditor.getFiles()
+function genDB.getFiles()
     local cmd = arg[1]
     if cmd then
         cmd = "ls " .. cmd
@@ -60,7 +62,7 @@ function stripextension(filename)
 end
 
 -- 序列
-function dbEditor.createSequence()
+function genDB.createSequence()
     local str = [[
 #--DROP TABLE IF EXISTS sequence;
 CREATE TABLE IF NOT EXISTS sequence (
@@ -140,8 +142,8 @@ DELIMITER ;
     return str;
 end
 
-function dbEditor.genTables()
-    local files = dbEditor.getFiles()
+function genDB.genTables()
+    local files = genDB.getFiles()
     if #files == 0 then
         return "";
     end
@@ -156,20 +158,21 @@ function dbEditor.genTables()
     end
 
     --建序列
-    table.insert(sqlStr, dbEditor.createSequence());
+    table.insert(sqlStr, genDB.createSequence());
 
     --建表
     local t;
     for i, v in ipairs(files) do
         t = dofile(rootPath .. "/" .. v );
-        table.insert(sqlStr, dbEditor.genSql(t));
-        dbEditor.genLuaFile(outPath, t);
+        table.insert(sqlStr, genDB.genSql(t));
+        genDB.genLuaFile(outPath, t);
     end
-    writeFile(outPath .. "/" .. sqlDumpFile, table.concat(sqlStr, "\n"));
-    print("success：SQL outfiles==" .. outPath .. "/" .. sqlDumpFile)
+    local outSqlFile = combinePath(outPath, sqlDumpFile)
+    writeFile(outSqlFile, table.concat(sqlStr, "\n"));
+    print("success：SQL outfiles==" .. outSqlFile)
 end
 
-function dbEditor.genSql(tableCfg)
+function genDB.genSql(tableCfg)
     local str = {};
     local columns = {}
     local primaryKey = {}
@@ -219,7 +222,7 @@ function dbEditor.genSql(tableCfg)
     return table.concat(str, "\n")
 end
 
-function dbEditor.genLuaFile(outPath, tableCfg)
+function genDB.genLuaFile(outPath, tableCfg)
     local str = {}
     local name = "db" .. tableCfg.name
 
@@ -364,7 +367,7 @@ function dbEditor.genLuaFile(outPath, tableCfg)
     table.insert(str, "return " .. name)
     table.insert(str, "")
 
-    local outFile = outPath .. "/" .. name .. ".lua"
+    local outFile = combinePath(outPath, name .. ".lua")
     writeFile(outFile, table.concat(str, "\n"))
     print("out lua file==" .. outFile)
 end
@@ -373,6 +376,6 @@ if #arg < 2 then
     print("err:参数错误！！第一个参数是表配置目录，第二个参数是相关lua文件输出目录。")
     return
 end
-dbEditor.genTables();
+genDB.genTables();
 --------------------------------------------
-return dbEditor;
+return genDB;

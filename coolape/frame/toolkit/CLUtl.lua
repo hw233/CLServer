@@ -7,7 +7,7 @@ do
         end
         local t = {}
         local i = 1
-        for str in string.gmatch(inputstr, "([^".. sep.. "]+)") do
+        for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
             t[i] = str
             i = i + 1
         end
@@ -32,5 +32,26 @@ do
         end
         return ret;
     end
+
+    function combinePath(p1, p2)
+        if p1 == nil then
+            return p2
+        end
+        if p2 == nil then
+            return p1
+        end
+        local last = string.sub(p1, string.len(p1))
+        local first = string.sub(p2, 1)
+        if (last == "/" and first ~= "/") or (last ~= "/" and first == "/") then
+            return p1 .. p2
+        elseif last == "/" and first == "/" then
+            return string.sub(p1, 1, string.len(p1) - 1) .. p2
+        elseif last ~= "/" and first ~= "/" then
+            return p1 .. "/" .. p2
+        else
+            return p1 .. p2
+        end
+    end
+
     return Utl;
 end

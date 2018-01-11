@@ -1,7 +1,8 @@
 do
-    require("BioUtl")
+    require("bio.BioUtl")
 
     NetProto = {}
+    NetProto.__sessionID = 0; -- 会话ID
     NetProto.dispatch = {}
     --==============================
     -- public toMap
@@ -43,7 +44,7 @@ do
         toMap = function(m)
             local r = {}
             r[10] = m.msg  -- 返回消息 string
-            r[11] =  BioUtl.int2bio(m.code)  -- 返回值 int
+            r[11] = m.code  -- 返回值 int
             return r;
         end,
         parse = function(m)
@@ -58,9 +59,9 @@ do
         toMap = function(m)
             local r = {}
             r[12] = m.id  --   string
-            r[13] =  BioUtl.int2bio(m.ver)  -- 服务数据版本号 int
+            r[13] = m.ver  -- 服务数据版本号 int
             r[14] = m.name  -- 名字 string
-            r[15] =  BioUtl.int2bio(m.lev)  -- 等级 int
+            r[15] = m.lev  -- 等级 int
             return r;
         end,
         parse = function(m)
@@ -73,55 +74,55 @@ do
         end,
     }
     --==============================
-    NetProto.recive = {
+    NetProto.send = {
     -- 退出
-    logout = function(map)
+    logout = function()
         local ret = {}
-        ret.cmd = "logout"
-        ret.__session__ = map[-1]
+        ret[0] = 16
+        ret[1] = NetProto.__sessionID
         return ret
     end,
     -- 登陆
-    login = function(map)
+    login = function(userId, password)
         local ret = {}
-        ret.cmd = "login"
-        ret.__session__ = map[-1]
-        ret.userId = map[18]-- 用户名
-        ret.password = map[19]-- 密码
+        ret[0] = 17
+        ret[1] = NetProto.__sessionID
+        ret[18] = userId; -- 用户名
+        ret[19] = password; -- 密码
         return ret
     end,
     -- 数据同步
-    syndata = function(map)
+    syndata = function(ver, data)
         local ret = {}
-        ret.cmd = "syndata"
-        ret.__session__ = map[-1]
-        ret.ver = map[13]-- 版本号
-        ret.data = map[23]-- 数据信息
+        ret[0] = 22
+        ret[1] = NetProto.__sessionID
+        ret[13] = ver; -- 版本号
+        ret[23] = data; -- 数据信息
         return ret
     end,
     }
     --==============================
-    NetProto.send = {
-    logout = function(retInfor)
+    NetProto.recive = {
+    logout = function(map)
         local ret = {}
-        ret[0] = 16
-        ret[1] = NetProto.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret.cmd = "logout"
+        ret.retInfor = NetProto.ST_retInfor.parse(map[2]) -- 返回信息
         return ret
     end,
-    login = function(retInfor, userInfor, sysTime)
+    login = function(map)
         local ret = {}
-        ret[0] = 17
-        ret[1] = NetProto.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[20] = NetProto.ST_userInfor.toMap(userInfor); -- 用户信息
-        ret[21] = sysTime; -- 系统时间
+        ret.cmd = "login"
+        ret.retInfor = NetProto.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.userInfor = NetProto.ST_userInfor.parse(map[20]) -- 用户信息
+        ret.sysTime = map[21]-- 系统时间
         return ret
     end,
-    syndata = function(retInfor, newVer, newData)
+    syndata = function(map)
         local ret = {}
-        ret[0] = 22
-        ret[1] = NetProto.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[24] = newVer; -- 新版本号
-        ret[25] = newData; -- 新数据
+        ret.cmd = "syndata"
+        ret.retInfor = NetProto.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.newVer = map[24]-- 新版本号
+        ret.newData = map[25]-- 新数据
         return ret
     end,
     }

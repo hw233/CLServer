@@ -3,17 +3,18 @@ do
     ./3rd/lua/lua coolape/frame/protoTool/genProtocol.lua
     --]]
     package.cpath = "luaclib/?.so"
-    package.path = "lualib/?.lua;" .. "coolape/frame/protoTool/?.lua;"
+    package.path = "lualib/?.lua;" .. "./coolape/frame/toolkit/?.lua"
 
-    require("defProtocol")
+    require("CLUtl")
     local add = table.insert
     local KeyCodeProtocol;
     local getKeyCode;
+    local defProtocol;
     --===================================================
     --===================================================
-    local keyCodeProtocolFile = "coolape/frame/protoTool/gen/KeyCodeProtocol.lua";
-    local clientFilePath = "coolape/frame/protoTool/gen/".. defProtocol.name .. "Client.lua";
-    local serverFilePath = "coolape/frame/protoTool/gen/".. defProtocol.name .. "Server.lua";
+    local keyCodeProtocolFile = "";
+    local clientFilePath = "";
+    local serverFilePath = "";
     local StructHead = "ST_"
     --===================================================
     --===================================================
@@ -450,5 +451,18 @@ do
     end
     --===================================================
     --===================================================
+    if #arg < 2 then
+        print("err:参数错误！！第一个参数是配置协议的lua文件，第二个参数是文件输出目录。")
+        return
+    end
+    defProtocol = dofile(arg[1])
+    if defProtocol == nil then
+        print("err:加载配置协议的lua文件失败！")
+        return
+    end
+
+    keyCodeProtocolFile = combinePath(arg[2] , "KeyCodeProtocol.lua");
+    clientFilePath = combinePath(arg[2] , defProtocol.name .. "Client.lua");
+    serverFilePath = combinePath(arg[2] , defProtocol.name .. "Server.lua");
     main();
 end
