@@ -1,4 +1,4 @@
-local _user = {
+local user = {
     name = "user",
     desc = "用户表",
     columns = {
@@ -13,4 +13,4 @@ local _user = {
     defaultData = {}, -- 初始数据
 }
 
-return _user
+return user

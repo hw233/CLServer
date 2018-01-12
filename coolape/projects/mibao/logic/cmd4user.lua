@@ -11,21 +11,28 @@ cmd4user.CMD = {
         print(m.userId, m.password)
         ---@type dbuser
         local u = dbuser.instanse(m.userId, m.password)
-        if CLUtl.isNilOrEmpty(u.uid) then
+        if CLUtl.isNilOrEmpty(u:getuid()) then
             -- 说明是没有数据
             local ret = {}
             ret.msg = "plese regist first";
             ret.code = errcode.needregist
             return NetProto.send.login(ret, nil, 0)
         else
+            u:setstatu(520)
+            local u2 = dbuser.instanse(u:getuid(), u:getpassword())
+            print("==============" .. u2:getstatu())
+            
             local ret = {}
             ret.msg = nil;
             ret.code = errcode.ok
             local user = {}
-            user.id = u.uid --  string
+            user.id = u:getuid() --  string
             user.ver = 0 --  int
             user.name = "user" --  string
             user.lev = 1 --  int
+            print(skynet.call("CLDB", "lua", "getInsertSql", u.__name__, u.__data__))
+            print(skynet.call("CLDB", "lua", "getUpdateSql", u.__name__, u.__data__))
+            print(skynet.call("CLDB", "lua", "getdeleteSql", u.__name__, u.__data__))
             return NetProto.send.login(ret, user, skynet.time())
         end
     end,

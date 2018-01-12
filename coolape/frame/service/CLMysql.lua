@@ -17,7 +17,7 @@ local synchrotime -- 数据同步时间
 -- 数据入库
 local function storeData(db)
     local i = 1
-    local sql = {}
+    local sql = nil
     while true do
         if db and (not sqlQueue:isEmpty()) then
             sql = {}

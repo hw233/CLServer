@@ -16,7 +16,6 @@ local function init()
     local tablesdesign = {}
     local path = assert(skynet.getenv("projectPath"))
     path = path .. "dbDesign/"
-    print(path)
     local tables = CLUtl.getFiles(path, "lua")
     for i, v in ipairs(tables) do
         local t = dofile(path .. v );
@@ -73,5 +72,5 @@ skynet.start(function()
         end
     end)
 
-    skynet.register "cfgattr"
+    skynet.register "CLCfg"
 end)

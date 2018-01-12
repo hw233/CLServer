@@ -9,67 +9,61 @@ dbuser.name = "user"
 function dbuser:ctor(v)
     self.__name__ = "user"    -- 表名
     self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-    self.uid = ""    -- 用户id
-    self.password = ""    -- 用户密码
-    self.crtTime = ""    -- 创建时间
-    self.lastEnTime = ""    -- 最后登陆时间
-    self.statu = 0    -- 状态
+    self.__key__ = nil --- 缓存数据的key
 end
 
 function dbuser:init(data)
-    self.uid = data.uid    -- 用户id
-    self.password = data.password    -- 用户密码
-    self.crtTime = data.crtTime    -- 创建时间
-    self.lastEnTime = data.lastEnTime    -- 最后登陆时间
-    self.statu = data.statu    -- 状态
+    self.__key__ = data.uid .. "_" .. data.password
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
 end
 
-function dbuser:insertSql()
-    local sql = "INSERT INTO `user` (`uid`,`password`,`crtTime`,`lastEnTime`,`statu`)"
-    .. " VALUES ("
-    .. "'" .. (self.uid and self.uid or "") .. "'" .. ","
-    .. "'" .. (self.password and self.password or "") .. "'" .. ","
-    .. "'" .. (self.crtTime and self.crtTime or "") .. "'" .. ","
-    .. "'" .. (self.lastEnTime and self.lastEnTime or "") .. "'" .. ","
-    .. (self.statu and self.statu or 0)
-    .. ");"
-    return sql
+function dbuser:setuid(v)
+    -- 用户id
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uid", v)
+end
+function dbuser:getuid()
+    -- 用户id
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "uid")
 end
 
-function dbuser:updateSql()
-    local sql = "UPDATE user SET "..
-    "`uid`='" .. (self.uid and self.uid or "") .. "'" .. ","
-    .. "`password`='" .. (self.password and self.password or "") .. "'" .. ","
-    .. "`crtTime`='" .. (self.crtTime and self.crtTime or "") .. "'" .. ","
-    .. "`lastEnTime`='" .. (self.lastEnTime and self.lastEnTime or "") .. "'" .. ","
-    .. "`statu`=" .. (self.statu and self.statu or 0)
-    .. "WHERE " .. "`uid`='" .. (self.uid and self.uid or "") .. "'" .. " AND " .. "`password`='" .. (self.password and self.password or "") .. "'" .. ";"
-    return sql
+function dbuser:setpassword(v)
+    -- 用户密码
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "password", v)
+end
+function dbuser:getpassword()
+    -- 用户密码
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "password")
 end
 
-function dbuser:delSql()
-    local sql = "DELETE FROM user WHERE ".. "`uid`='" .. (self.uid and self.uid or "") .. "'" .. " AND " .. "`password`='" .. (self.password and self.password or "") .. "'" .. ";"
-    return sql
+function dbuser:setcrtTime(v)
+    -- 创建时间
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "crtTime", v)
+end
+function dbuser:getcrtTime()
+    -- 创建时间
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "crtTime")
 end
 
-function dbuser:toSql()
-    if self.__isNew__ then
-        return self:insertSql()
-    else
-        return self:updateSql()
-    end
+function dbuser:setlastEnTime(v)
+    -- 最后登陆时间
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lastEnTime", v)
+end
+function dbuser:getlastEnTime()
+    -- 最后登陆时间
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lastEnTime")
 end
 
-function dbuser:toMap()
-    local m = {}
-    m.name = dbuser.name;
-    m.data = {}
-    m.design = user;
-
+function dbuser:setstatu(v)
+    -- 状态
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "statu", v)
+end
+function dbuser:getstatu()
+    -- 状态
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "statu")
 end
 
 function dbuser.querySql(uid, password)
-    return "SELECT * FROM user WHERE " .. "`uid`='" .. (uid and uid or "") .. "'" .. " AND " .. "`password`='" .. (password and password or "") .. "'" .. ";"
+    return "SELECT * FROM user WHERE " .. "`uid`=" .. (uid and "'" .. uid .."'" or "") .. " AND " .. "`password`=" .. (password and "'" .. password .."'" or "") .. ";"
 end
 
 function dbuser.instanse(uid, password)
@@ -78,25 +72,26 @@ function dbuser.instanse(uid, password)
         error("the key is null", 0)
     end
     ---@type dbuser
-    local obj = skynet.call("CLDB", "lua", "get", dbuser.name, key)
-    if obj == nil then
-        local d = skynet.call("CLMySQL", "lua", "exesql", dbuser.querySql(uid,password))
-        obj = dbuser.new()
+    local obj = dbuser.new()
+    local d = skynet.call("CLDB", "lua", "get", dbuser.name, key)
+    if d == nil then
+        d = skynet.call("CLMySQL", "lua", "exesql", dbuser.querySql(uid,password))
         if d and #d > 0 then
             if #d == 1 then
                 d = d[1]
             else
-                error("get data is more than one! count==" .. #d .. "lua==dbuser")
+                error("get data is more than one! count==" .. #d .. ", lua==dbuser")
             end
             -- 取得mysql表里的数据
             obj:init(d)
             obj.__isNew__ = false
-            skynet.call("CLDB", "lua", "set", dbuser.name, key, obj)
+            skynet.call("CLDB", "lua", "set", dbuser.name, key, d)
         else
             -- 没有数据
             obj.__isNew__ = true
         end
     else
+        obj:init(d)
         obj.__isNew__ = false
         skynet.call("CLDB", "lua", "removetimeout", dbuser.name, key)
     end

@@ -12,7 +12,7 @@ function()
     skynet.newservice("debug_console", 8000)
 
     -- 配制数据
-    skynet.uniqueservice("cfgattr")
+    skynet.uniqueservice("CLCfg")
 
     -- 连接mysql
     local mysql = skynet.uniqueservice("CLMysql")
