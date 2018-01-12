@@ -8,6 +8,17 @@ local dbTimeout = {}
 local command = {}
 local timeoutsec = 30 * 60;   -- 数据超时时间（秒）
 
+-- 生成更新的sql
+local function getUpdateSql(tableName, data)
+    local tableCfg = skynet.call("cfgattr", "lua", "GETTABLESCFG", tableName)
+    if tableCfg == nil then
+        skynet.error("[getUpdateSql],get tabel config is nil==" .. tableName)
+        return nil
+    end
+
+    -- TODO:
+end
+
 -- 处理超时的数据，把数据写入mysql
 local function checktimeout(db, dbTimeout)
     local now = skynet.time();
@@ -18,7 +29,8 @@ local function checktimeout(db, dbTimeout)
                 -- 超时数据
                 local val = command.GET(tName, key)
                 if val then
-                    skynet.call("CLMySQL", "lua", "save", val:toSql())
+                    local sql = getUpdateSql(tName, val)
+                    skynet.call("CLMySQL", "lua", "save", sql)
                     timoutList[key] = nil;
                     command.REMOVE(tName, key)
                     hasTimeout = true;
@@ -32,6 +44,7 @@ local function checktimeout(db, dbTimeout)
     end
 end
 
+-- ============================================================
 -- 取得数据
 function command.GET(tableName, key)
     local t = db[tableName]
@@ -91,10 +104,11 @@ end
 function command.FLUSH(tableName, key, immd)
     local val = command.GET(tableName, key)
     if val then
+        local sql = getUpdateSql(tableName, val)
         if immd then
-            skynet.call("CLMySQL", "lua", "exeSql", val:toSql())
+            skynet.call("CLMySQL", "lua", "exeSql", sql)
         else
-            skynet.call("CLMySQL", "lua", "save", val:toSql())
+            skynet.call("CLMySQL", "lua", "save", sql)
         end
         command.REMOVE(tableName, key)
         command.REMOVETIMEOUT(tableName, key)
@@ -108,7 +122,7 @@ function command.FLUSHALL(immd)
             -- 超时数据
             local val = command.GET(tName, key)
             if val then
-                skynet.call("CLMySQL", "lua", "save", val:toSql())
+                skynet.call("CLMySQL", "lua", "save", getUpdateSql(tName, val))
                 timoutList[key] = nil;
                 command.REMOVE(tName, key)
             end
