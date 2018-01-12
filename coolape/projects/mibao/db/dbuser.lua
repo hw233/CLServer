@@ -60,6 +60,14 @@ function dbuser:toSql()
     end
 end
 
+function dbuser:toMap()
+    local m = {}
+    m.name = dbuser.name;
+    m.data = {}
+    m.design = user;
+
+end
+
 function dbuser.querySql(uid, password)
     return "SELECT * FROM user WHERE " .. "`uid`='" .. (uid and uid or "") .. "'" .. " AND " .. "`password`='" .. (password and password or "") .. "'" .. ";"
 end
@@ -75,6 +83,11 @@ function dbuser.instanse(uid, password)
         local d = skynet.call("CLMySQL", "lua", "exesql", dbuser.querySql(uid,password))
         obj = dbuser.new()
         if d and #d > 0 then
+            if #d == 1 then
+                d = d[1]
+            else
+                error("get data is more than one! count==" .. #d .. "lua==dbuser")
+            end
             -- 取得mysql表里的数据
             obj:init(d)
             obj.__isNew__ = false

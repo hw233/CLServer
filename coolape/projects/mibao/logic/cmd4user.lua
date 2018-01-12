@@ -1,4 +1,4 @@
-
+local skynet = require("skynet")
 require("dbuser")
 require("errcode")
 ---@type CLUtl

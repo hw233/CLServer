@@ -11,6 +11,9 @@ function()
 
     skynet.newservice("debug_console", 8000)
 
+    -- 配制数据
+    skynet.uniqueservice("cfgattr")
+
     -- 连接mysql
     local mysql = skynet.uniqueservice("CLMysql")
     skynet.call(mysql, "lua", "connect", {
@@ -20,7 +23,7 @@ function()
         user = "root",
         password = "123.",
         max_packet_size = 1024 * 1024,
-        synchrotime = 5*60*100,      -- 同步数据时间间隔 100=1秒
+        synchrotime = 0.5*60*100,      -- 同步数据时间间隔 100=1秒
     })
 
     -- 简单缓存数据库

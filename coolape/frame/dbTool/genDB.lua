@@ -12,31 +12,7 @@ genDB = {}
 local sqlDumpFile = "tables.sql";
 
 function genDB.getFiles()
-    local cmd = arg[1]
-    if cmd then
-        cmd = "ls " .. cmd
-    else
-        cmd = "ls"
-    end
-    local ret = {}
-    --io.popen 返回的是一个FILE，跟c里面的popen一样
-    local s = io.popen(cmd)
-    local fileLists = s:read("*all")
-    --print(fileLists)
-
-    local start_pos = 1
-    local end_pos, line
-
-    while true do
-        --从文件列表里一行一行的获取文件名
-        _, end_pos, line = string.find(fileLists, "([^\n\r]+.lua)", start_pos)
-        if not end_pos then
-            break
-        end
-        table.insert(ret, line)
-        start_pos = end_pos + 1
-    end
-    return ret;
+    return CLUtl.getFiles(arg[1], "lua")
 end
 
 function getFile(file_name)
@@ -347,6 +323,11 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "        local d = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", " .. name .. ".querySql(" .. table.concat(tableCfg.primaryKey, ",") .. "))")
     table.insert(str, "        obj = dbuser.new()");
     table.insert(str, "        if d and #d > 0 then")
+    table.insert(str, "            if #d == 0 then")
+    table.insert(str, "                d = d[1]")
+    table.insert(str, "            else")
+    table.insert(str, "                error(\"get data is more than one! count==\" .. #d .. \"lua==" .. name .. "\")")
+    table.insert(str, "            end")
     table.insert(str, "            -- 取得mysql表里的数据")
     table.insert(str, "            obj:init(d)")
     table.insert(str, "            obj.__isNew__ = false")

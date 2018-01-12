@@ -1,5 +1,8 @@
+-- cache db
 local skynet = require "skynet"
+local sharedata = require "skynet.sharedata"
 require "skynet.manager"    -- import skynet.register
+local tablesdesign = "tablesdesign"
 local db = {}
 local dbTimeout = {}
 local command = {}
