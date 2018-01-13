@@ -47,7 +47,10 @@ function command.GET(tableName, key, ...)
     if t == nil then
         return nil
     end
-
+    t = t[key]
+    if t == nil then
+        return nil
+    end
     local params = { ... }
     if #params > 0 then
         for i, k in ipairs(params) do
@@ -57,7 +60,7 @@ function command.GET(tableName, key, ...)
             end
         end
     end
-    return t[key]
+    return t;
 end
 
 --[[
@@ -78,15 +81,20 @@ function command.SET(tableName, key, ...)
     end
     local count = #params
     local val = params[count]
-    local subt = nil;
-    for i = 1, count -1 do
-        if t[params[i]] == nil then
-            t[params[i]] = {}
-        end
-        t = t[params[i]]
-    end
     local last = t[key]
-    t[key] = val
+    if count > 1 then
+        local subt = nil;
+        for i = 1, count - 1 do
+            subt = last
+            if subt == nil then
+                subt = {}
+            end
+            last = subt[params[i]]
+        end
+        subt[params[count - 1]] = val
+    else
+        t[key] = val
+    end
     return last
 end
 
@@ -201,7 +209,7 @@ function command.GETUPDATESQL(tableName, data)
         if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
             insert(dataUpdate, "`" .. v[1] .. "`=" .. (data[v[1]] and data[v[1]] or 0));
         else
-            insert(dataUpdate, "`" .. v[1] .. "`=" .. (data[v[1]] and "'" ..data[v[1]] .. "'" or "NULL"));
+            insert(dataUpdate, "`" .. v[1] .. "`=" .. (data[v[1]] and "'" .. data[v[1]] .. "'" or "NULL"));
         end
     end
 
@@ -218,7 +226,7 @@ function command.GETUPDATESQL(tableName, data)
             if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
                 insert(where, "`" .. pkey .. "`=" .. (data[pkey] and data[pkey] or 0));
             else
-                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and "'".. data[pkey] .. "'" or "NULL"));
+                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and "'" .. data[pkey] .. "'" or "NULL"));
             end
         end
     end
@@ -253,7 +261,7 @@ function command.GETDELETESQL(tableName, data)
             if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
                 insert(where, "`" .. pkey .. "`=" .. (data[pkey] and data[pkey] or 0));
             else
-                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and "'".. data[pkey] .. "'" or "NULL"));
+                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and "'" .. data[pkey] .. "'" or "NULL"));
             end
         end
     end

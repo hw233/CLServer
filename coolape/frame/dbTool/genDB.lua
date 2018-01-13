@@ -278,11 +278,30 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "function " .. name .. ":init(data)")
     --table.insert(str, table.concat(dataSet, "\n"))
     table.insert(str, "    self.__key__ = " .. table.concat(shardataKey, " .. \"_\" .. "))
-    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"set\", self.__name__, self.__key__, data)")
+    --table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"set\", self.__name__, self.__key__, data)")
+    table.insert(str, "end")
+    table.insert(str, "")
+    table.insert(str, "function " .. name .. ":tablename() -- 取得表名")
+    table.insert(str, "    return self.__name__")
+    table.insert(str, "end")
+    table.insert(str, "")
+    table.insert(str, "function " .. name .. ":value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set")
+    table.insert(str, "    return skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__)")
     table.insert(str, "end")
     table.insert(str, "")
 
     table.insert(str, table.concat(getsetFunc, "\n"))
+
+    table.insert(str, "-- 把数据flush到mysql里， immd=true 立即生效")
+    table.insert(str, "function " .. name .. ":flush(immd)")
+    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"flush\", self.__name__, self.__key__, immd)")
+    table.insert(str, "end")
+    table.insert(str, "")
+    table.insert(str, "function " .. name .. ":release()")
+    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"SETTIMEOUT\", self.__name__, self.__key__)")
+    table.insert(str, "end")
+    table.insert(str, "")
+
 
     --table.insert(str, "function " .. name .. ":insertSql()")
     --table.insert(str, "    local sql = \"INSERT INTO `" .. tableCfg.name .. "` (" .. table.concat(columns, ",") .. ")\"")
@@ -336,8 +355,8 @@ function genDB.genLuaFile(outPath, tableCfg)
     --table.insert(str, "        return ")
     table.insert(str, "    end")
 
-    table.insert(str, "    ---@type dbuser")
-    table.insert(str, "    local obj = dbuser.new()");
+    table.insert(str, "    ---@type " .. name)
+    table.insert(str, "    local obj = " .. name .. ".new()");
     table.insert(str, "    local d = skynet.call(\"CLDB\", \"lua\", \"get\", " .. name .. ".name, key)");
     table.insert(str, "    if d == nil then")
     table.insert(str, "        d = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", " .. name .. ".querySql(" .. table.concat(tableCfg.primaryKey, ",") .. "))")

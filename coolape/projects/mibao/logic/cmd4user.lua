@@ -21,7 +21,6 @@ cmd4user.CMD = {
             u:setstatu(520)
             local u2 = dbuser.instanse(u:getuid(), u:getpassword())
             print("==============" .. u2:getstatu())
-            
             local ret = {}
             ret.msg = nil;
             ret.code = errcode.ok
@@ -30,11 +29,16 @@ cmd4user.CMD = {
             user.ver = 0 --  int
             user.name = "user" --  string
             user.lev = 1 --  int
-            print(skynet.call("CLDB", "lua", "getInsertSql", u.__name__, u.__data__))
-            print(skynet.call("CLDB", "lua", "getUpdateSql", u.__name__, u.__data__))
-            print(skynet.call("CLDB", "lua", "getdeleteSql", u.__name__, u.__data__))
+            --print(skynet.call("CLDB", "lua", "getInsertSql", u:name(), u:value()))
+            --print(skynet.call("CLDB", "lua", "getUpdateSql", u:name(), u:value()))
+            --print(skynet.call("CLDB", "lua", "getdeleteSql", u:name(), u:value()))
             return NetProto.send.login(ret, user, skynet.time())
         end
+    end,
+
+    regist = function(m)
+        -- 注册
+
     end,
 }
 

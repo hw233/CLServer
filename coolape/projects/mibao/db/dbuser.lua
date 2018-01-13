@@ -14,7 +14,14 @@ end
 
 function dbuser:init(data)
     self.__key__ = data.uid .. "_" .. data.password
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
+end
+
+function dbuser:tablename() -- 取得表名
+    return self.__name__
+end
+
+function dbuser:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
 end
 
 function dbuser:setuid(v)
@@ -60,6 +67,15 @@ end
 function dbuser:getstatu()
     -- 状态
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "statu")
+end
+
+-- 把数据flush到mysql里， immd=true 立即生效
+function dbuser:flush(immd)
+    skynet.call("CLDB", "lua", "flush", self.__name__, self.__key__, immd)
+end
+
+function dbuser:release()
+    skynet.call("CLDB", "lua", "SETTIMEOUT", self.__name__, self.__key__)
 end
 
 function dbuser.querySql(uid, password)
