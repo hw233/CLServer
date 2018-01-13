@@ -7,6 +7,7 @@ local skynet = require "skynet"
 require "skynet.manager"    -- import skynet.register
 local mysql = require "skynet.db.mysql"
 require("CLLQueue")
+require("CLUtl")
 
 local CMD = {}
 local db;
@@ -28,10 +29,7 @@ local function storeData(db)
             end
             local sqlstr = table.concat(sql, "\n")
             if sqlstr then
-                local ret = db:query(sqlstr)
-                if not ret then
-                    skynet.error(dump(ret) .. "[" .. sqlstr .. "]")
-                end
+                CMD.EXESQL(sqlstr)
             end
             sql = {}
         end
@@ -80,7 +78,11 @@ end
 -- 执行sql
 function CMD.EXESQL(sql)
     if db and sql then
-        return db:query(sql)
+        local ret = db:query(sql)
+        if ret and ret.errno then
+            skynet.error(CLUtl.dump(ret) .. ", sql=【" .. sql .. "】")
+        end
+        return ret;
     end
     return nil;
 end
@@ -88,7 +90,7 @@ end
 -- 保数据
 function CMD.SAVE(sql, immediately)
     if immediately then
-        CMD.EXESQL(sql)
+        return CMD.EXESQL(sql)
     else
         sqlQueue:enQueue(sql)
     end

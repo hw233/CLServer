@@ -15,7 +15,7 @@ function()
     skynet.uniqueservice("CLCfg")
 
     -- 连接mysql
-    local mysql = skynet.uniqueservice("CLMysql")
+    local mysql = skynet.uniqueservice("CLMySQL")
     skynet.call(mysql, "lua", "connect", {
         host = "127.0.0.1",
         port = 3306,

@@ -9,7 +9,7 @@ local user = {
         { "lastEnTime", "datetime", "最后登陆时间" },
         { "statu", "int(11)", "状态" },
     },
-    primaryKey = { "uid", "password" },
+    primaryKey = { "uid"},
     defaultData = {}, -- 初始数据
 }
 

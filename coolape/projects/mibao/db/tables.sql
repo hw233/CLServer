@@ -82,5 +82,5 @@ CREATE TABLE `user` (
   `crtTime` datetime,
   `lastEnTime` datetime,
   `statu` int(11),
-  PRIMARY KEY (`uid`, `password`)
+  PRIMARY KEY (`uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
