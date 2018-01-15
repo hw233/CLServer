@@ -23,21 +23,28 @@ function()
         user = "root",
         password = "123.",
         max_packet_size = 1024 * 1024,
-        synchrotime = 0.5*60*100,      -- 同步数据时间间隔 100=1秒
+        synchrotime = 0.5*60*100, -- 同步数据时间间隔 100=1秒
     })
 
     -- 简单缓存数据库
     skynet.uniqueservice("CLDB")
 
-    --
+    -- 监听socket
     local watchdog = skynet.uniqueservice("watchdog")
     skynet.call(watchdog, "lua", "start", {
-        port = 2018,
+        port = 2018, -- socket port
         maxclient = max_client,
         nodelay = true,
         mysql = mysql,
     })
-    skynet.error("Watchdog listen on", 8888)
+    skynet.error("Watchdog listen on", 2018)
+
+    -- http server
+    skynet.newservice("myweb",
+        8081, -- http port
+        20 -- 代理个数
+    )
+
     skynet.exit()
 end
 )
