@@ -30,7 +30,7 @@ function()
     skynet.uniqueservice("CLDB")
 
     --
-    local watchdog = skynet.newservice("watchdog")
+    local watchdog = skynet.uniqueservice("watchdog")
     skynet.call(watchdog, "lua", "start", {
         port = 2018,
         maxclient = max_client,

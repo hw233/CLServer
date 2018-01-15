@@ -102,6 +102,10 @@ function dbuser.querySql(uid)
 end
 
 function dbuser.instanse(uid)
+    if uid == nil then
+        skynet.error("[dbuser.instanse] uid == nil")
+        return nil
+    end
     local key = uid
     if key == "" then
         error("the key is null", 0)

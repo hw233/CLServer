@@ -43,6 +43,7 @@ defProtocol.structs.BB = {
 }
 
 --]]
+---@class structs
 defProtocol.structs = {}
 defProtocol.structs.retInfor = {
     "返回信息",
@@ -52,23 +53,13 @@ defProtocol.structs.retInfor = {
     }
 }
 
-defProtocol.structs.city = {
-    "城池",
-    {
-        id = { 0 },
-        name = { "", "名字" },
-    }
-}
 defProtocol.structs.userInfor = {
     "用户信息",
     {
-        id = { "" },
+        uid = { "" },
         name = { "", "名字" },
         lev = { 0, "等级" },
-        isNew = { false, "" },
-        ver = { 0, "版本" },
-        currCity = { defProtocol.structs.city, "当前城" },
-        cityList = { { defProtocol.structs.city, defProtocol.structs.city }, "城池列表" },
+        ver = { 0, "服务数据版本号" },
     }
 }
 
@@ -81,27 +72,47 @@ local structs = defProtocol.structs;
 --===================================================
 -- 接口定义
 defProtocol.cmds = {
-    --[[
-    login = {       -- 接口名
-        desc="";       -- 接口说明
-        input = {"userId", "password" };  -- 入参
-        inputDesc = {"用户名","密码"};     -- 入参说明
-        output = { structs.retInfor, structs.userInfor, "sysTime" };        -- 出参
-        outputDesc = {"返回信息","用户信息","系统时间"};  -- 出参说明
+--[[
+login = {       -- 接口名
+    desc="";       -- 接口说明
+    input = {"userId", "password" };  -- 入参
+    inputDesc = {"用户名","密码"};     -- 入参说明
+    output = { structs.retInfor, structs.userInfor, "sysTime" };        -- 出参
+    outputDesc = {"返回信息","用户信息","系统时间"};  -- 出参说明
+    logic = "cmd4user";     -- 处理的接口的lua
+};
+--]]
+    regist = {
+        desc = "注册"; -- 接口说明
+        input = { "userId", "password", "machInfor"}; -- 入参
+        inputDesc = {"用户名", "密码", "机器信息"}; -- 入参说明
+        output = { structs.retInfor, structs.userInfor, "sysTime", "session" }; -- 出参
+        outputDesc = {"返回信息","用户信息","系统时间", "会话id"}; -- 出参说明
+        logic = "cmd4user";
     };
-    --]]
     login = {
         desc = "登陆"; -- 接口说明
         input = { "userId", "password" }; -- 入参
-        inputDesc = {"用户名","密码"}; -- 入参说明
-        output = { structs.retInfor, structs.userInfor, "sysTime" }; -- 出参
-        outputDesc = {"返回信息","用户信息","系统时间"}; -- 出参说明
+        inputDesc = {"用户名", "密码"}; -- 入参说明
+        output = { structs.retInfor, structs.userInfor, "sysTime", "session" }; -- 出参
+        outputDesc = {"返回信息","用户信息","系统时间", "会话id"}; -- 出参说明
+        logic = "cmd4user";
     };
 
     logout = {
         desc = "退出",
         output = { structs.retInfor }, -- 出参
         outputDesc = {"返回信息"}, -- 出参说明
+        logic = "cmd4user";
+    };
+
+    syndata = {
+        desc = "数据同步",
+        input = {"ver", "data"},
+        inputDesc = {"版本号", "数据信息"},
+        output = { structs.retInfor, "newVer", "newData" },
+        outputDesc = {"返回信息", "新版本号","新数据"},
+        logic = "cmd4user";
     };
 
 }

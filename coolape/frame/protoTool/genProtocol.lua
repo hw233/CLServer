@@ -433,7 +433,7 @@ do
         add(strsServer, table.concat(dispatchserver, "\n"));
 
         add(strsServer, "    --==============================");
-        add(strsServer, "    function NetProto.dispatcher(map)")
+        add(strsServer, "    function NetProto.dispatcher(map, client_fd)")
         add(strsServer, "        local cmd = map[0]")
         add(strsServer, "        if cmd == nil then")
         add(strsServer, "            skynet.error(\"get cmd is nil\")")
@@ -448,7 +448,7 @@ do
         add(strsServer, "        local logicCMD = assert(dis.logic.CMD)")
         add(strsServer, "        local f = assert(logicCMD[m.cmd])")
         add(strsServer, "        if f then")
-        add(strsServer, "            return f(m)")
+        add(strsServer, "            return f(m, client_fd)")
         add(strsServer, "        end")
         add(strsServer, "        return nil;")
         add(strsServer, "    end")

@@ -367,6 +367,13 @@ function genDB.genLuaFile(outPath, tableCfg)
     else
         table.insert(str, "function " .. name .. ".instanse()")
     end
+    for i, v in ipairs(tableCfg.primaryKey) do
+        table.insert(str, "    if " .. v .. " == nil then")
+        table.insert(str, "        skynet.error(\"[dbuser.instanse] " .. v .. " == nil\")")
+        table.insert(str, "        return nil")
+        table.insert(str, "    end")
+    end
+
     table.insert(str, "    local key = " .. table.concat(tableCfg.primaryKey, " .. \"_\" .. "))
     table.insert(str, "    if key == \"\" then")
     table.insert(str, "        error(\"the key is null\", 0)")

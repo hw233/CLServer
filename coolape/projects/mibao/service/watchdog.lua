@@ -1,4 +1,5 @@
 local skynet = require "skynet"
+require "skynet.manager"    -- import skynet.register
 
 local CMD = {}
 local SOCKET = {}
@@ -63,4 +64,6 @@ skynet.start(function()
             skynet.ret(skynet.pack(f(subcmd, ...)))
         end
     end)
+
+    skynet.register "watchdog"
 end)

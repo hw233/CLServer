@@ -65,19 +65,19 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] = m.id  --   string
-            r[13] =  BioUtl.int2bio(m.ver)  -- 服务数据版本号 int
-            r[14] = m.name  -- 名字 string
             r[15] =  BioUtl.int2bio(m.lev)  -- 等级 int
+            r[28] = m.uid  --   string
+            r[14] = m.name  -- 名字 string
+            r[13] =  BioUtl.int2bio(m.ver)  -- 服务数据版本号 int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.id = m[12] --  string
-            r.ver = m[13] --  int
-            r.name = m[14] --  string
             r.lev = m[15] --  int
+            r.uid = m[28] --  string
+            r.name = m[14] --  string
+            r.ver = m[13] --  int
             return r;
         end,
     }
@@ -135,20 +135,22 @@ do
         ret[2] = NetProto.ST_retInfor.toMap(retInfor); -- 返回信息
         return ret
     end,
-    login = function(retInfor, userInfor, sysTime)
+    login = function(retInfor, userInfor, sysTime, session)
         local ret = {}
         ret[0] = 17
         ret[2] = NetProto.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[20] = NetProto.ST_userInfor.toMap(userInfor); -- 用户信息
         ret[21] = sysTime; -- 系统时间
+        ret[29] = session; -- 会话id
         return ret
     end,
-    regist = function(retInfor, userInfor, sysTime)
+    regist = function(retInfor, userInfor, sysTime, session)
         local ret = {}
         ret[0] = 26
         ret[2] = NetProto.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[20] = NetProto.ST_userInfor.toMap(userInfor); -- 用户信息
         ret[21] = sysTime; -- 系统时间
+        ret[29] = session; -- 会话id
         return ret
     end,
     }
@@ -158,7 +160,7 @@ do
     NetProto.dispatch[17]={onReceive = NetProto.recive.login, send = NetProto.send.login, logic = cmd4user}
     NetProto.dispatch[26]={onReceive = NetProto.recive.regist, send = NetProto.send.regist, logic = cmd4user}
     --==============================
-    function NetProto.dispatcher(map)
+    function NetProto.dispatcher(map, client_fd)
         local cmd = map[0]
         if cmd == nil then
             skynet.error("get cmd is nil")
@@ -173,7 +175,7 @@ do
         local logicCMD = assert(dis.logic.CMD)
         local f = assert(logicCMD[m.cmd])
         if f then
-            return f(m)
+            return f(m, client_fd)
         end
         return nil;
     end

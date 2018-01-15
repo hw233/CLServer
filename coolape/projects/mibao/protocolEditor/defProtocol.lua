@@ -56,7 +56,7 @@ defProtocol.structs.retInfor = {
 defProtocol.structs.userInfor = {
     "用户信息",
     {
-        id = { "" },
+        uid = { "" },
         name = { "", "名字" },
         lev = { 0, "等级" },
         ver = { 0, "服务数据版本号" },
@@ -86,16 +86,16 @@ defProtocol.cmds = {
         desc = "注册"; -- 接口说明
         input = { "userId", "password", "machInfor"}; -- 入参
         inputDesc = {"用户名", "密码", "机器信息"}; -- 入参说明
-        output = { structs.retInfor, structs.userInfor, "sysTime" }; -- 出参
-        outputDesc = {"返回信息","用户信息","系统时间"}; -- 出参说明
+        output = { structs.retInfor, structs.userInfor, "sysTime", "session" }; -- 出参
+        outputDesc = {"返回信息","用户信息","系统时间", "会话id"}; -- 出参说明
         logic = "cmd4user";
     };
     login = {
         desc = "登陆"; -- 接口说明
         input = { "userId", "password" }; -- 入参
         inputDesc = {"用户名", "密码"}; -- 入参说明
-        output = { structs.retInfor, structs.userInfor, "sysTime" }; -- 出参
-        outputDesc = {"返回信息","用户信息","系统时间"}; -- 出参说明
+        output = { structs.retInfor, structs.userInfor, "sysTime", "session" }; -- 出参
+        outputDesc = {"返回信息","用户信息","系统时间", "会话id"}; -- 出参说明
         logic = "cmd4user";
     };
 

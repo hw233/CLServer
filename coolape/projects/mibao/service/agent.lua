@@ -7,7 +7,7 @@ local CLUtl = require("CLUtl")
 local WATCHDOG
 
 local CMD = {}
-local client_fd
+local client_fd     -- socket fd
 local mysql
 local strLen = string.len;
 local strSub = string.sub;
@@ -50,7 +50,7 @@ local function procCmd(map)
     --for k, v in pairs(map) do
     --    print(k, v)
     --end
-    local ok, result = pcall(NetProto.dispatcher, map)
+    local ok, result = pcall(NetProto.dispatcher, map, client_fd)
     if ok then
         if result then
             send_package(result)
