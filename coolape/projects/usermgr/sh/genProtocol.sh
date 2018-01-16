@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #生成协议
-projectName="mibao"
+projectName="usermgr"
 skynet="./skynet/"
 protocolCfg="./coolape/projects/${projectName}/protocolEditor/defProtocol.lua"
 outPath="./coolape/projects/${projectName}/protocol/"

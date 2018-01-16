@@ -165,6 +165,12 @@ function command.FLUSHALL(immd)
     end
 end
 
+-- 取得序列号
+function command.NEXTVAL(key)
+    key = key or "default"
+    local sql = "select nextval(key);"
+    return skynet.call("CLMySQL", "lua", "exesql", sql)
+end
 
 -- 生成insert的sql
 function command.GETINSERTSQL(tableName, data)
