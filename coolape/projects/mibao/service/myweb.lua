@@ -30,6 +30,11 @@ if mode == "agent" then
         end
     end
 
+    local function setUft8(header)
+        header["Content-Type"] = "text/html; charset=utf-8"
+        return header;
+    end
+
     skynet.start(function()
         agentserver = skynet.newservice("agenthttp")
         skynet.dispatch("lua", function(_, _, id)
@@ -41,7 +46,7 @@ if mode == "agent" then
                     response(id, code)
                 else
                     local result = skynet.call(agentserver, "lua", "get", url, method, header, body)
-                    response(id, code, result)
+                    response(id, code, result, setUft8(header))
                 end
             else
                 if url == sockethelper.socket_error then

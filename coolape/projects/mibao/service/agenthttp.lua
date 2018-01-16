@@ -1,4 +1,4 @@
-local skynet = require "skynet"
+﻿local skynet = require "skynet"
 local socket = require "skynet.socket"
 local urllib = require "http.url"
 local BioUtl = require("BioUtl")
@@ -39,8 +39,7 @@ function CMD.get(url, method, header, body)
     printhttp(url, method, header, body) -- debug log
 
     -- 有http请求
-    print(json.encode({name="陈彬",dd=123}))
-    return "none"
+    return json.encode({name="陈彬",dd=123})
 end
 
 -- ======================================================
