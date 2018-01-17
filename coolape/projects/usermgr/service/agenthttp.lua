@@ -2,11 +2,15 @@
 local socket = require "skynet.socket"
 local urllib = require "http.url"
 local BioUtl = require("BioUtl")
-local NetProto = require("NetProtoServer")
+require("UsermgrHttpProtoServer")
+---@type CLUtl
 local CLUtl = require("CLUtl")
 local json = require("json")
 local table = table
 local string = string
+
+---@type UsermgrHttpProto
+local NetProto = UsermgrHttpProto
 local CMD = {}
 
 -- ======================================================
@@ -33,13 +37,45 @@ local printhttp = function(url, method, header, body)
     return ret
 end
 
--- ======================================================
--- ======================================================
-function CMD.get(url, method, header, body)
-    printhttp(url, method, header, body) -- debug log
+local parseBody = function(body)
+    --local contents = CLUtl.strSplit(body, "&")
+    --local data = {}
+    --local strs
+    --for i, v in ipairs(contents) do
+    --    strs = CLUtl.strSplit(v, "=")
+    --    data[urllib.decode(strs[1])] = urllib.decode(strs[2])
+    --end
+    local data = urllib.parse_query(body)
+    for k, v in pairs(data) do
+        print(k)
+    end
+    return data
+end
 
+-- ======================================================
+-- ======================================================
+function CMD.onrequset(url, method, header, body)
     -- 有http请求
-    return json.encode({name="陈彬",dd=123})
+    printhttp(url, method, header, body) -- debug log
+    if method:upper() == "POST" then
+        local content = parseBody(body)
+        if content and content.data then
+            local map = BioUtl.readObject(content.data)
+
+            local ok, result = pcall(NetProto.dispatcher, map, nil)
+            if ok then
+                if result then
+                    return result
+                end
+            else
+                skynet.error(result)
+            end
+        else
+            skynet.error("get post url, but body content id nil. url=" .. url)
+        end
+    else
+        -- TODO: get
+    end
 end
 
 -- ======================================================

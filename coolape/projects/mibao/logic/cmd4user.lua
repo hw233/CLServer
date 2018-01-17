@@ -1,6 +1,6 @@
 local skynet = require("skynet")
 require("dbuser")
-require("errcode")
+require("Errcode")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
 cmd4user = {}
@@ -14,13 +14,13 @@ cmd4user.CMD = {
         local ret = {}
         if CLUtl.isNilOrEmpty(m.userId) or CLUtl.isNilOrEmpty(m.password) then
             ret.msg = "用户名和密码不能为空";
-            ret.code = errcode.error
+            ret.code = Errcode.error
             return NetProto.send.regist(ret, nil, 0)
         end
         myself = dbuser.instanse(m.userId)
         if not CLUtl.isNilOrEmpty(myself:getuid()) then
             ret.msg = "用户名已经存在";
-            ret.code = errcode.uidregisted
+            ret.code = Errcode.uidregisted
             return NetProto.send.regist(ret, nil, 0)
         end
         local newuser = {}
@@ -29,7 +29,7 @@ cmd4user.CMD = {
         myself:init(newuser)
 
         ret.msg = nil;
-        ret.code = errcode.ok
+        ret.code = Errcode.ok
         local user = {}
         user.id = myself:getuid() --  string
         user.ver = 0 --  int
@@ -49,18 +49,18 @@ cmd4user.CMD = {
             -- 说明是没有数据
             local ret = {}
             ret.msg = "用户不存在";
-            ret.code = errcode.needregist
+            ret.code = Errcode.needregist
             return NetProto.send.login(ret, nil, 0)
         elseif m.password ~= myself:getpassword() then
             -- 说明密码错误
             local ret = {}
             ret.msg = "密码错误";
-            ret.code = errcode.error
+            ret.code = Errcode.error
             return NetProto.send.login(ret, nil, 0)
         else
             local ret = {}
             ret.msg = nil;
-            ret.code = errcode.ok
+            ret.code = Errcode.ok
             local user = {}
             user.id = myself:getuid() --  string
             user.ver = 0 --  int
@@ -75,14 +75,14 @@ cmd4user.CMD = {
         --local ret = {}
         if myself then
             if uid ~= myself:getuid() then
-                ret.code = errcode.error
+                ret.code = Errcode.error
                 ret.msg = "数据错误"
                 return NetProto.send.logout(ret)
             end
             myself:release()
             myself = nil;
         end
-        --ret.code = errcode.ok
+        --ret.code = Errcode.ok
         --NetProto.send.logout(ret) -- dosconnect not
         skynet.call("watchdog", "lua", "close", fd)
     end,

@@ -3,7 +3,6 @@ local user = {
     desc = "用户表",
     columns = {
         --{ "idx", "int(11) NOT NULL AUTO_INCREMENT", "唯一标识" },
-        { "idx", "int(11) NOT NULL ", "唯一标识" },
         { "uid", "varchar(45) NOT NULL", "用户id" },
         { "password", "varchar(45) NOT NULL", "用户密码" },
         { "crtTime", "datetime", "创建时间" },
@@ -14,7 +13,7 @@ local user = {
         { "deviceid", "varchar(45)", "机器id" },
         { "deviceinfor", "varchar(128)", "机器信息" },
     },
-    primaryKey = { "uid"},
+    primaryKey = {"uid"},
     defaultData = {}, -- 初始数据
 }
 

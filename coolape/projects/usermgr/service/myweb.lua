@@ -41,12 +41,13 @@ if mode == "agent" then
             socket.start(id)
             -- limit request body size to 8192 (you can pass nil to unlimit)
             local code, url, method, header, body = httpd.read_request(sockethelper.readfunc(id), 8192)
+            print("code====" .. code)
             if code then
                 if code ~= 200 then
                     response(id, code)
                 else
-                    local result = skynet.call(agentserver, "lua", "get", url, method, header, body)
-                    response(id, code, result, setUft8(header))
+                    local result = skynet.call(agentserver, "lua", "onrequset", url, method, header, body)
+                    response(id, code, result, setUft8({}))
                 end
             else
                 if url == sockethelper.socket_error then

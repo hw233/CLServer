@@ -269,6 +269,7 @@ do
         add(strsClient, "do");
         add(strsServer, "do");
         add(strsClient, "    require(\"bio.BioUtl\")\n")
+        add(strsServer, "    local skynet = require \"skynet\"\n")
         add(strsServer, "    require(\"BioUtl\")\n")
         add(strsClient, "    ".. defProtocol.name .." = {}");
         add(strsServer, "    ".. defProtocol.name .." = {}");
@@ -433,13 +434,17 @@ do
         add(strsServer, table.concat(dispatchserver, "\n"));
 
         add(strsServer, "    --==============================");
-        add(strsServer, "    function NetProto.dispatcher(map, client_fd)")
+        add(strsServer, "    function ".. defProtocol.name ..".dispatcher(map, client_fd)")
+        add(strsServer, "        if map == nil then")
+        add(strsServer, "            skynet.error(\"[dispatcher] mpa == nil\")")
+        add(strsServer, "            return nil")
+        add(strsServer, "        end")
         add(strsServer, "        local cmd = map[0]")
         add(strsServer, "        if cmd == nil then")
         add(strsServer, "            skynet.error(\"get cmd is nil\")")
         add(strsServer, "            return nil;")
         add(strsServer, "        end")
-        add(strsServer, "        local dis = NetProto.dispatch[cmd]")
+        add(strsServer, "        local dis = ".. defProtocol.name ..".dispatch[cmd]")
         add(strsServer, "        if dis == nil then")
         add(strsServer, "            skynet.error(\"get protocol cfg is nil\")")
         add(strsServer, "            return nil;")

@@ -41,8 +41,8 @@ function()
 
     -- http server
     skynet.newservice("myweb",
-        8081, -- http port
-        20 -- 代理个数
+        8802, -- http port
+        2 -- 代理个数
     )
 
     skynet.exit()

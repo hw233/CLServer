@@ -45,7 +45,7 @@ if mode == "agent" then
                 if code ~= 200 then
                     response(id, code)
                 else
-                    local result = skynet.call(agentserver, "lua", "get", url, method, header, body)
+                    local result = skynet.call(agentserver, "lua", "onrequset", url, method, header, body)
                     response(id, code, result, setUft8(header))
                 end
             else

@@ -1,5 +1,7 @@
 do
     local cmd4user = require("cmd4user")
+    local skynet = require "skynet"
+
     require("BioUtl")
 
     UsermgrHttpProto = {}
@@ -174,13 +176,17 @@ do
     UsermgrHttpProto.dispatch[20]={onReceive = UsermgrHttpProto.recive.login, send = UsermgrHttpProto.send.login, logic = cmd4user}
     UsermgrHttpProto.dispatch[24]={onReceive = UsermgrHttpProto.recive.regist, send = UsermgrHttpProto.send.regist, logic = cmd4user}
     --==============================
-    function NetProto.dispatcher(map, client_fd)
+    function UsermgrHttpProto.dispatcher(map, client_fd)
+        if map == nil then
+            skynet.error("[dispatcher] mpa == nil")
+            return nil
+        end
         local cmd = map[0]
         if cmd == nil then
             skynet.error("get cmd is nil")
             return nil;
         end
-        local dis = NetProto.dispatch[cmd]
+        local dis = UsermgrHttpProto.dispatch[cmd]
         if dis == nil then
             skynet.error("get protocol cfg is nil")
             return nil;

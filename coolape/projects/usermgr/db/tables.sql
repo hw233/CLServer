@@ -87,7 +87,6 @@ CREATE TABLE `servers` (
 #---- 用户表
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
-  `idx` int(11) NOT NULL ,
   `uid` varchar(45) NOT NULL,
   `password` varchar(45) NOT NULL,
   `crtTime` datetime,

@@ -89,7 +89,19 @@ function dbservers:release()
 end
 
 function dbservers.querySql(idx, appid)
-    return "SELECT * FROM servers WHERE " .. "`idx`=" .. (idx and idx or 0) .. " AND " .. "`appid`=" .. (appid and appid or 0) .. ";"
+    -- 如果某个参数为nil,则where条件中不包括该条件
+    local where = {}
+    if idx then
+        table.insert(where, "`idx`=" .. "'" .. idx  .. "'")
+    end
+    if appid then
+        table.insert(where, "`appid`=" .. "'" .. appid  .. "'")
+    end
+    if #where > 0 then
+        return "SELECT * FROM user WHERE " .. table.concat(where, " and ") .. ";"
+    else
+       return "SELECT * FROM user;"
+    end
 end
 
 function dbservers.instanse(idx, appid)

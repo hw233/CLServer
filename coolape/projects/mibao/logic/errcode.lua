@@ -1,8 +1,9 @@
-errcode = {}
+-- 错误代码
+Errcode = {}
 
-errcode.ok = 1
-errcode.error = -1
-errcode.needregist = 2;  -- 未注册
-errcode.uidregisted = 3;  -- uid已经被注册
+Errcode.ok = 1
+Errcode.error = -1
+Errcode.needregist = 2;  -- 未注册
+Errcode.uidregisted = 3;  -- uid已经被注册
 
-return errcode
+return Errcode

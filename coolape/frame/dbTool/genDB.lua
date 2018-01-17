@@ -355,10 +355,23 @@ function genDB.genLuaFile(outPath, tableCfg)
 
     if tableCfg.primaryKey then
         table.insert(str, "function " .. name .. ".querySql(" .. table.concat(tableCfg.primaryKey, ", ") .. ")")
+        table.insert(str, "    -- 如果某个参数为nil,则where条件中不包括该条件")
+        table.insert(str, "    local where = {}")
+        for i, k in ipairs(tableCfg.primaryKey) do
+            table.insert(str, "    if " .. k .. " then")
+            table.insert(str, "        table.insert(where, \"`" .. k .. "`=\" .. \"'\" .. " .. k .. "  .. \"'\")")
+            table.insert(str, "    end")
+        end
+
+        table.insert(str, "    if #where > 0 then")
+        table.insert(str, "        return \"SELECT * FROM user WHERE \" .. table.concat(where, \" and \") .. \";\"")
+        table.insert(str, "    else")
+        table.insert(str, "       return \"SELECT * FROM user;\"")
+        table.insert(str, "    end")
     else
         table.insert(str, "function " .. name .. ".querySql()")
+        table.insert(str, "    return \"SELECT * FROM" .. tableCfg.name .. ";")
     end
-    table.insert(str, "    return \"SELECT * FROM " .. tableCfg.name .. " WHERE \" .. " .. table.concat(where2, " .. \" AND \" .. ") .. " .. \";\"")
     table.insert(str, "end")
     table.insert(str, "")
 

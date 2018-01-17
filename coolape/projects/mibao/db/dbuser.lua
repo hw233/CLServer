@@ -98,7 +98,16 @@ function dbuser:release()
 end
 
 function dbuser.querySql(uid)
-    return "SELECT * FROM user WHERE " .. "`uid`=" .. (uid and "'" .. uid .."'" or "") .. ";"
+    local where = {}
+    if uid then
+        table.insert(where, "`uid`=" .. (uid and "'" .. uid .."'" or ""))
+    end
+
+    if #where > 0 then
+        return "SELECT * FROM user WHERE " .. table.concat(where, " and ") .. ";"
+    else
+        return "SELECT * FROM user;"
+    end
 end
 
 function dbuser.instanse(uid)

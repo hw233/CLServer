@@ -43,7 +43,7 @@ defProtocol.structs.BB = {
 }
 
 --]]
----@class structs
+---@class defProtocol.structs
 defProtocol.structs = {}
 defProtocol.structs.retInfor = {
     "返回信息",
