@@ -9,15 +9,15 @@ dbservers.name = "servers"
 function dbservers:ctor(v)
     self.__name__ = "servers"    -- 表名
     self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-    self.__key__ = nil --- 缓存数据的key
+    self.__key__ = nil -- 缓存数据的key
 end
 
 function dbservers:init(data)
-    self.__key__ = data.idx .. "_" .. data.appid
+    self.__key__ = data.idx
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
-        local r = skynet.call("CLMySQL", "lua", "exesql", sql)
+        local r = skynet.call("CLMySQL", "lua", "save", sql)
         if r == nil or r.errno == nil then
             self.__isNew__ = false
         else
@@ -98,22 +98,37 @@ function dbservers.querySql(idx, appid)
         table.insert(where, "`appid`=" .. "'" .. appid  .. "'")
     end
     if #where > 0 then
-        return "SELECT * FROM user WHERE " .. table.concat(where, " and ") .. ";"
+        return "SELECT * FROM servers WHERE " .. table.concat(where, " and ") .. ";"
     else
-       return "SELECT * FROM user;"
+       return "SELECT * FROM servers;"
     end
 end
 
-function dbservers.instanse(idx, appid)
+-- 取得一个组
+function dbservers.getList(appid, orderby)
+    local sql = "SELECT * FROM servers WHERE appid=" .. appid ..  (orderby and " ORDER BY" ..  orderby or "") .. ";"
+    local list = skynet.call("CLMySQL", "lua", "exesql", sql)
+    if list and list.errno then
+        skynet.error("[dbservers.getGroup] sql error==" .. sql)
+        return nil
+     end
+     for i, v in ipairs(list) do
+         local key = v.idx
+         local d = skynet.call("CLDB", "lua", "get", dbservers.name, key)
+         if d ~= nil then
+             -- 用缓存的数据才是最新的
+             list[i] = d
+         end
+     end
+     return list
+end
+
+function dbservers.instanse(idx)
     if idx == nil then
-        skynet.error("[dbuser.instanse] idx == nil")
+        skynet.error("[dbservers.instanse] idx == nil")
         return nil
     end
-    if appid == nil then
-        skynet.error("[dbuser.instanse] appid == nil")
-        return nil
-    end
-    local key = idx .. "_" .. appid
+    local key = idx
     if key == "" then
         error("the key is null", 0)
     end
@@ -122,16 +137,16 @@ function dbservers.instanse(idx, appid)
     obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbservers.name, key)
     if d == nil then
-        d = skynet.call("CLMySQL", "lua", "exesql", dbservers.querySql(idx,appid))
+        d = skynet.call("CLMySQL", "lua", "exesql", dbservers.querySql(idx, nil))
         if d and d.errno == nil and #d > 0 then
             if #d == 1 then
                 d = d[1]
+                -- 取得mysql表里的数据
+                obj.__isNew__ = false
+                obj:init(d)
             else
                 error("get data is more than one! count==" .. #d .. ", lua==dbservers")
             end
-            -- 取得mysql表里的数据
-            obj.__isNew__ = false
-            obj:init(d)
         else
             -- 没有数据
             obj.__isNew__ = true

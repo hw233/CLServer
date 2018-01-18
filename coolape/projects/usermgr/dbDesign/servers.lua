@@ -8,6 +8,8 @@ local user = {
         { "status", "int(1)", "状态 0:正常; 1:爆满; 2:维护" },
     },
     primaryKey = { "idx", "appid"},
+    cacheKey = { "idx" }, -- 缓存key
+    groupKey = "appid", -- 组key
     defaultData = {}, -- 初始数据
 }
 

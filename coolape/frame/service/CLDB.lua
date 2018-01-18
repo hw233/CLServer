@@ -3,7 +3,9 @@ local skynet = require "skynet"
 local sharedata = require "skynet.sharedata"
 require "skynet.manager"    -- import skynet.register
 local tablesdesign = "tablesdesign"
+require("CLUtl")
 local db = {}
+local db4Group = {}
 local dbTimeout = {}
 local command = {}
 local timeoutsec = 30 * 60;   -- 数据超时时间（秒）
@@ -40,7 +42,33 @@ local function checktimeout(db, dbTimeout)
     end
 end
 
+-- 更新组
+local function setGroup(tableName, groupKey, key)
+    local d = command.GET(tableName, key)
+    local t = db4Group[tableName] or {}
+    local group = t[groupKey] or {}
+    group[key] = d
+    t[groupKey] = group
+    db4Group[tableName] = t
+end
+
+-- 移除组里的数据
+local function removeGroup(tableName, groupKey, key)
+    local t = db4Group[tableName] or {}
+    local group = t[groupKey] or {}
+    group[key] = nil
+    t[groupKey] = group
+    db4Group[tableName] = t
+end
+
 -- ============================================================
+-- 取得一个组，注意这个组不是list而是个table
+function command.GETGROUP(tableName, groupKey)
+    local t = db4Group[tableName] or {}
+    local cacheGroup = t[groupKey] or {}
+    return cacheGroup;
+end
+
 -- 取得数据.支持多个key
 function command.GET(tableName, key, ...)
     local t = db[tableName]
@@ -89,23 +117,48 @@ function command.SET(tableName, key, ...)
             if subt == nil then
                 subt = {}
             end
-            last = subt[params[i]]
+            last = subt[params[i]] -- 取得old数据
         end
-        subt[params[count - 1]] = val
+        subt[params[count - 1]] = val   -- 设置成新数据
     else
         t[key] = val
     end
+    --..........................................
+    if last ~= val then
+        -- 如果有组，则更新
+        local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
+        if tableCfg == nil then
+            skynet.error("[cldb.remove],get tabel config is nil==" .. tableName)
+        end
+        local d = command.GET(tableName, key)
+        if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
+            setGroup(tableName, d[tableCfg.groupKey], key)
+        end
+    end
+
     return last
 end
 
 -- 移除数据
 function command.REMOVE(tableName, key)
     local t = db[tableName]
+    local last = nil
     if t then
-        local last = t[key]
-        t[key] = nil;
-        return last
+        last = t[key]
+        t[key] = nil
     end
+
+    if last then
+        -- 清除组里的数据
+        local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
+        if tableCfg == nil then
+            skynet.error("[cldb.remove],get tabel config is nil==" .. tableName)
+        end
+        if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
+            removeGroup(tableName, last[tableCfg.groupKey], key)
+        end
+    end
+    return last
 end
 
 -- 设置数据超时

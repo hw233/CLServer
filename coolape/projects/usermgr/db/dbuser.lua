@@ -9,7 +9,7 @@ dbuser.name = "user"
 function dbuser:ctor(v)
     self.__name__ = "user"    -- 表名
     self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-    self.__key__ = nil --- 缓存数据的key
+    self.__key__ = nil -- 缓存数据的key
 end
 
 function dbuser:init(data)
@@ -17,7 +17,7 @@ function dbuser:init(data)
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
-        local r = skynet.call("CLMySQL", "lua", "exesql", sql)
+        local r = skynet.call("CLMySQL", "lua", "save", sql)
         if r == nil or r.errno == nil then
             self.__isNew__ = false
         else
@@ -164,12 +164,12 @@ function dbuser.instanse(uid)
         if d and d.errno == nil and #d > 0 then
             if #d == 1 then
                 d = d[1]
+                -- 取得mysql表里的数据
+                obj.__isNew__ = false
+                obj:init(d)
             else
                 error("get data is more than one! count==" .. #d .. ", lua==dbuser")
             end
-            -- 取得mysql表里的数据
-            obj.__isNew__ = false
-            obj:init(d)
         else
             -- 没有数据
             obj.__isNew__ = true
