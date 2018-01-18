@@ -268,11 +268,11 @@ do
         local strsServer = {}
         add(strsClient, "do");
         add(strsServer, "do");
+        add(strsClient, "    ".. defProtocol.name .." = {}");
+        add(strsServer, "    ".. defProtocol.name .." = {}");
         add(strsClient, "    require(\"bio.BioUtl\")\n")
         add(strsServer, "    local skynet = require \"skynet\"\n")
         add(strsServer, "    require(\"BioUtl\")\n")
-        add(strsClient, "    ".. defProtocol.name .." = {}");
-        add(strsServer, "    ".. defProtocol.name .." = {}");
         add(strsClient, "    ".. defProtocol.name ..".__sessionID = 0; -- 会话ID");
         add(strsClient, "    ".. defProtocol.name ..".dispatch = {}");
         add(strsServer, "    ".. defProtocol.name ..".dispatch = {}");
@@ -465,7 +465,7 @@ do
         add(strsServer, "end");
 
         for k,v in pairs(requires) do
-            table.insert(strsServer, 2, "    local " .. k .. " = require(\"".. k .. "\")")
+            table.insert(strsServer, 3, "    local " .. k .. " = require(\"".. k .. "\")")
         end
 
         --==================

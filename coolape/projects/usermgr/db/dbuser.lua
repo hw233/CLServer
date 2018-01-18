@@ -37,6 +37,15 @@ function dbuser:value2copy()  -- 取得数据复样，注意是只读的数据�
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
 end
 
+function dbuser:setidx(v)
+    -- 唯一标识
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
+end
+function dbuser:getidx()
+    -- 唯一标识
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+end
+
 function dbuser:setuid(v)
     -- 用户id
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uid", v)
@@ -133,9 +142,12 @@ function dbuser:release()
     skynet.call("CLDB", "lua", "SETTIMEOUT", self.__name__, self.__key__)
 end
 
-function dbuser.querySql(uid)
+function dbuser.querySql(idx, uid)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}
+    if idx then
+        table.insert(where, "`idx`=" .. "'" .. idx  .. "'")
+    end
     if uid then
         table.insert(where, "`uid`=" .. "'" .. uid  .. "'")
     end
@@ -160,7 +172,7 @@ function dbuser.instanse(uid)
     obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbuser.name, key)
     if d == nil then
-        d = skynet.call("CLMySQL", "lua", "exesql", dbuser.querySql(uid))
+        d = skynet.call("CLMySQL", "lua", "exesql", dbuser.querySql(nil, uid))
         if d and d.errno == nil and #d > 0 then
             if #d == 1 then
                 d = d[1]

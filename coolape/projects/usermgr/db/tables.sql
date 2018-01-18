@@ -87,6 +87,7 @@ CREATE TABLE `servers` (
 #---- 用户表
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
+  `idx` int(11) NOT NULL AUTO_INCREMENT,
   `uid` varchar(45) NOT NULL,
   `password` varchar(45) NOT NULL,
   `crtTime` datetime,
@@ -96,5 +97,5 @@ CREATE TABLE `user` (
   `channel` varchar(45),
   `deviceid` varchar(45),
   `deviceinfor` varchar(128),
-  PRIMARY KEY (`uid`)
+  PRIMARY KEY (`idx`, `uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

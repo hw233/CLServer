@@ -1,6 +1,7 @@
 ﻿local skynet = require "skynet"
 local socket = require "skynet.socket"
 local urllib = require "http.url"
+---@type BioUtl
 local BioUtl = require("BioUtl")
 require("UsermgrHttpProtoServer")
 ---@type CLUtl
@@ -46,8 +47,9 @@ local parseBody = function(body)
     --    data[urllib.decode(strs[1])] = urllib.decode(strs[2])
     --end
     local data = urllib.parse_query(body)
+    print(data)
     for k, v in pairs(data) do
-        print(k)
+        print("key===" .. k)
     end
     return data
 end
@@ -56,16 +58,17 @@ end
 -- ======================================================
 function CMD.onrequset(url, method, header, body)
     -- 有http请求
-    printhttp(url, method, header, body) -- debug log
+    --printhttp(url, method, header, body) -- debug log
     if method:upper() == "POST" then
         local content = parseBody(body)
         if content and content.data then
+            print("len=========" .. string.len(content.data))
             local map = BioUtl.readObject(content.data)
 
             local ok, result = pcall(NetProto.dispatcher, map, nil)
             if ok then
                 if result then
-                    return result
+                    return BioUtl.writeObject(result)
                 end
             else
                 skynet.error(result)

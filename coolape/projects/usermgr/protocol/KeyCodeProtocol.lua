@@ -22,29 +22,29 @@ do
     map[25] = "channel"
     map[26] = "deviceID"
     map[27] = "deviceInfor"
-    map["retInfor"] = 2
+    map[0] = "cmd"
     map["code"] = 11
     map["servers"] = 19
     map["msg"] = 10
-    map["status"] = 15
+    map["userId"] = 21
     map["deviceInfor"] = 27
     map["cmd"] = 0
     map["login"] = 20
     map["list"] = 12
     map["__currIndex__"] = 28
     map["idx"] = 13
+    map["status"] = 15
     map["regist"] = 24
-    map["name"] = 14
     map["getServers"] = 16
-    map["userInfor"] = 23
+    map["channceid"] = 18
     map["password"] = 22
     map["appid"] = 17
-    map["channceid"] = 18
+    map["name"] = 14
+    map["userInfor"] = 23
     map["channel"] = 25
-    map["__session__"] = 1
-    map[0] = "cmd"
-    map["userId"] = 21
+    map["retInfor"] = 2
     map["deviceID"] = 26
+    map["__session__"] = 1
     
 
     KeyCodeProtocol.getKeyCode = function(key)

@@ -1,10 +1,10 @@
 do
+    UsermgrHttpProto = {}
     local cmd4user = require("cmd4user")
     local skynet = require "skynet"
 
     require("BioUtl")
 
-    UsermgrHttpProto = {}
     UsermgrHttpProto.dispatch = {}
     --==============================
     -- public toMap
@@ -83,16 +83,16 @@ do
             local r = {}
             if m == nil then return r end
             r[13] =  BioUtl.int2bio(m.idx)  -- id int
-            r[14] = m.name  -- 名称 string
             r[15] =  BioUtl.int2bio(m.status)  -- 状态 0:正常; 1:爆满; 2:维护 int
+            r[14] = m.name  -- 名称 string
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.idx = m[13] --  int
-            r.name = m[14] --  string
             r.status = m[15] --  int
+            r.name = m[14] --  string
             return r;
         end,
     }
