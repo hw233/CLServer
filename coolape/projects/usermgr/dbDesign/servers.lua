@@ -6,6 +6,7 @@ local user = {
         { "appid", "int(11)  NOT NULL", "应用id" },
         { "name", "varchar(45) NOT NULL", "服务器名" },
         { "status", "int(1)", "状态 0:正常; 1:爆满; 2:维护" },
+        { "isnew", "bool", "新服" },
     },
     primaryKey = { "idx", "appid"},
     cacheKey = { "idx" }, -- 缓存key

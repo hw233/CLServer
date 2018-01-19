@@ -73,6 +73,15 @@ function dbservers:getstatus()
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
 end
 
+function dbservers:setisnew(v)
+    -- 新服
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "isnew", v)
+end
+function dbservers:getisnew()
+    -- 新服
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "isnew")
+end
+
 -- 把数据flush到mysql里， immd=true 立即生效
 function dbservers:flush(immd)
     local sql

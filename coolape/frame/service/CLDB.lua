@@ -221,8 +221,14 @@ end
 -- 取得序列号
 function command.NEXTVAL(key)
     key = key or "default"
-    local sql = "select nextval(key);"
-    return skynet.call("CLMySQL", "lua", "exesql", sql)
+    local sql = "select nextval('" .. key .. "') as val;"
+    local ret = skynet.call("CLMySQL", "lua", "exesql", sql)
+    if ret and ret.errno then
+        skynet.error("get nextval error" .. ret.errno .. ",sql=[" .. sql .."]")
+        return -1
+    end
+    ret = ret[1]
+    return ret.val
 end
 
 -- 生成insert的sql

@@ -38,19 +38,8 @@ local printhttp = function(url, method, header, body)
     return ret
 end
 
-local parseBody = function(body)
-    --local contents = CLUtl.strSplit(body, "&")
-    --local data = {}
-    --local strs
-    --for i, v in ipairs(contents) do
-    --    strs = CLUtl.strSplit(v, "=")
-    --    data[urllib.decode(strs[1])] = urllib.decode(strs[2])
-    --end
+local parseStrBody = function(body)
     local data = urllib.parse_query(body)
-    print(data)
-    for k, v in pairs(data) do
-        print("key===" .. k)
-    end
     return data
 end
 
@@ -60,11 +49,9 @@ function CMD.onrequset(url, method, header, body)
     -- 有http请求
     --printhttp(url, method, header, body) -- debug log
     if method:upper() == "POST" then
-        local content = parseBody(body)
-        if content and content.data then
-            print("len=========" .. string.len(content.data))
-            local map = BioUtl.readObject(content.data)
-
+        --local content = parseStrBody(body)
+        if body then
+            local map = BioUtl.readObject(body)
             local ok, result = pcall(NetProto.dispatcher, map, nil)
             if ok then
                 if result then

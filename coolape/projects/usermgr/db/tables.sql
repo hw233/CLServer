@@ -81,13 +81,14 @@ CREATE TABLE `servers` (
   `appid` int(11)  NOT NULL,
   `name` varchar(45) NOT NULL,
   `status` int(1),
+  `isnew` bool,
   PRIMARY KEY (`idx`, `appid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 用户表
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
-  `idx` int(11) NOT NULL AUTO_INCREMENT,
+  `idx` int(11) NOT NULL,
   `uid` varchar(45) NOT NULL,
   `password` varchar(45) NOT NULL,
   `crtTime` datetime,
@@ -98,4 +99,13 @@ CREATE TABLE `user` (
   `deviceid` varchar(45),
   `deviceinfor` varchar(128),
   PRIMARY KEY (`idx`, `uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 用户与服务器关系
+DROP TABLE IF EXISTS `userserver`;
+CREATE TABLE `userserver` (
+  `sidx` int(11) NOT NULL,
+  `uidx` int(11) NOT NULL,
+  `appid` int(11) NOT NULL,
+  PRIMARY KEY (`uidx`, `appid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
