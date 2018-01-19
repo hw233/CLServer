@@ -1,6 +1,7 @@
 do
     UsermgrHttpProto = {}
     local cmd4user = require("cmd4user")
+    local table = table
     local skynet = require "skynet"
 
     require("BioUtl")
@@ -8,38 +9,38 @@ do
     UsermgrHttpProto.dispatch = {}
     --==============================
     -- public toMap
-    UsermgrHttpProto._toMap = function(stName, m)
+    UsermgrHttpProto._toMap = function(stuctobj, m)
         local ret = {}
         if m == nil then return ret end
         for k,v in pairs(m) do
-            ret[k] = UsermgrHttpProto[stName].toMap(v)
+            ret[k] = stuctobj.toMap(v)
         end
         return ret
     end
     -- public toList
-    UsermgrHttpProto._toList = function(stName, m)
+    UsermgrHttpProto._toList = function(stuctobj, m)
         local ret = {}
         if m == nil then return ret end
         for i,v in ipairs(m) do
-            table.insert(ret, UsermgrHttpProto[stName].toMap(v))
+            table.insert(ret, stuctobj.toMap(v))
         end
         return ret
     end
     -- public parse
-    UsermgrHttpProto._parseMap = function(stName, m)
+    UsermgrHttpProto._parseMap = function(stuctobj, m)
         local ret = {}
         if m == nil then return ret end
         for k,v in pairs(m) do
-            ret[k] = UsermgrHttpProto[stName].parse(v)
+            ret[k] = stuctobj.parse(v)
         end
         return ret
     end
     -- public parse
-    UsermgrHttpProto._parseList = function(stName, m)
+    UsermgrHttpProto._parseList = function(stuctobj, m)
         local ret = {}
         if m == nil then return ret end
         for i,v in ipairs(m) do
-            table.insert(ret, UsermgrHttpProto[stName].parse(v))
+            table.insert(ret, stuctobj.parse(v))
         end
         return ret
     end
@@ -59,21 +60,6 @@ do
             if m == nil then return r end
             r.msg = m[10] --  string
             r.code = m[11] --  int
-            return r;
-        end,
-    }
-    -- 服务器列表
-    UsermgrHttpProto.ST_servers = {
-        toMap = function(m)
-            local r = {}
-            if m == nil then return r end
-            r[12] = UsermgrHttpProto._toList(UsermgrHttpProto.ST_server, m.list)  -- 服务器列表
-            return r;
-        end,
-        parse = function(m)
-            local r = {}
-            if m == nil then return r end
-            r.list = UsermgrHttpProto._parseList(UsermgrHttpProto.ST_server, m.list)  -- 服务器列表
             return r;
         end,
     }
@@ -115,15 +101,6 @@ do
     }
     --==============================
     UsermgrHttpProto.recive = {
-    -- 取得服务器列表
-    getServers = function(map)
-        local ret = {}
-        ret.cmd = "getServers"
-        ret.__session__ = map[1]
-        ret.appid = map[17]-- 应用id
-        ret.channceid = map[18]-- 渠道号
-        return ret
-    end,
     -- 登陆
     login = function(map)
         local ret = {}
@@ -131,6 +108,7 @@ do
         ret.__session__ = map[1]
         ret.userId = map[21]-- 用户名
         ret.password = map[22]-- 密码
+        ret.appid = map[17]-- 应用id
         return ret
     end,
     -- 注册
@@ -146,35 +124,79 @@ do
         ret.deviceInfor = map[27]-- 机器信息
         return ret
     end,
+    -- 保存所选服务器
+    setEnterServer = function(map)
+        local ret = {}
+        ret.cmd = "setEnterServer"
+        ret.__session__ = map[1]
+        ret.sidx = map[30]-- 服务器id
+        ret.uidx = map[31]-- 用户id
+        ret.appid = map[17]-- 应用id
+        return ret
+    end,
+    -- 取得服务器信息
+    getServerInfor = function(map)
+        local ret = {}
+        ret.cmd = "getServerInfor"
+        ret.__session__ = map[1]
+        ret.idx = map[13]-- 服务器id
+        return ret
+    end,
+    -- 取得服务器列表
+    getServers = function(map)
+        local ret = {}
+        ret.cmd = "getServers"
+        ret.__session__ = map[1]
+        ret.appid = map[17]-- 应用id
+        ret.channceid = map[18]-- 渠道号
+        return ret
+    end,
     }
     --==============================
     UsermgrHttpProto.send = {
-    getServers = function(retInfor, servers)
-        local ret = {}
-        ret[0] = 16
-        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[19] = UsermgrHttpProto.ST_servers.toMap(servers); -- 服务器列表
-        return ret
-    end,
-    login = function(retInfor, userInfor)
+    login = function(retInfor, userInfor, serverid)
         local ret = {}
         ret[0] = 20
         ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[23] = UsermgrHttpProto.ST_userInfor.toMap(userInfor); -- 用户信息
+        ret[28] = serverid; -- 服务器id
         return ret
     end,
-    regist = function(retInfor, userInfor)
+    regist = function(retInfor, userInfor, serverid)
         local ret = {}
         ret[0] = 24
         ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[23] = UsermgrHttpProto.ST_userInfor.toMap(userInfor); -- 用户信息
+        ret[28] = serverid; -- 服务器id
+        return ret
+    end,
+    setEnterServer = function(retInfor)
+        local ret = {}
+        ret[0] = 29
+        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
+        return ret
+    end,
+    getServerInfor = function(retInfor, server)
+        local ret = {}
+        ret[0] = 32
+        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[33] = UsermgrHttpProto.ST_server.toMap(server); -- 服务器信息
+        return ret
+    end,
+    getServers = function(retInfor, servers)
+        local ret = {}
+        ret[0] = 16
+        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[19] = UsermgrHttpProto._toList(UsermgrHttpProto.ST_server, servers)  -- 服务器列表
         return ret
     end,
     }
     --==============================
-    UsermgrHttpProto.dispatch[16]={onReceive = UsermgrHttpProto.recive.getServers, send = UsermgrHttpProto.send.getServers, logic = cmd4user}
     UsermgrHttpProto.dispatch[20]={onReceive = UsermgrHttpProto.recive.login, send = UsermgrHttpProto.send.login, logic = cmd4user}
     UsermgrHttpProto.dispatch[24]={onReceive = UsermgrHttpProto.recive.regist, send = UsermgrHttpProto.send.regist, logic = cmd4user}
+    UsermgrHttpProto.dispatch[29]={onReceive = UsermgrHttpProto.recive.setEnterServer, send = UsermgrHttpProto.send.setEnterServer, logic = cmd4user}
+    UsermgrHttpProto.dispatch[32]={onReceive = UsermgrHttpProto.recive.getServerInfor, send = UsermgrHttpProto.send.getServerInfor, logic = cmd4user}
+    UsermgrHttpProto.dispatch[16]={onReceive = UsermgrHttpProto.recive.getServers, send = UsermgrHttpProto.send.getServers, logic = cmd4user}
     --==============================
     function UsermgrHttpProto.dispatcher(map, client_fd)
         if map == nil then

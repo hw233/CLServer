@@ -79,10 +79,11 @@ DROP TABLE IF EXISTS `servers`;
 CREATE TABLE `servers` (
   `idx` int(11) NOT NULL,
   `appid` int(11)  NOT NULL,
+  `channel` int(11)  NOT NULL,
   `name` varchar(45) NOT NULL,
   `status` int(1),
   `isnew` bool,
-  PRIMARY KEY (`idx`, `appid`)
+  PRIMARY KEY (`idx`, `appid`, `channel`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 用户表

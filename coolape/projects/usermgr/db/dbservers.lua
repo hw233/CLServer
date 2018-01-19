@@ -55,6 +55,15 @@ function dbservers:getappid()
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "appid")
 end
 
+function dbservers:setchannel(v)
+    -- 渠道id
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "channel", v)
+end
+function dbservers:getchannel()
+    -- 渠道id
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "channel")
+end
+
 function dbservers:setname(v)
     -- 服务器名
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
@@ -97,7 +106,7 @@ function dbservers:release()
     skynet.call("CLDB", "lua", "SETTIMEOUT", self.__name__, self.__key__)
 end
 
-function dbservers.querySql(idx, appid)
+function dbservers.querySql(idx, appid, channel)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}
     if idx then
@@ -105,6 +114,9 @@ function dbservers.querySql(idx, appid)
     end
     if appid then
         table.insert(where, "`appid`=" .. "'" .. appid  .. "'")
+    end
+    if channel then
+        table.insert(where, "`channel`=" .. "'" .. channel  .. "'")
     end
     if #where > 0 then
         return "SELECT * FROM servers WHERE " .. table.concat(where, " and ") .. ";"
@@ -146,7 +158,7 @@ function dbservers.instanse(idx)
     obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbservers.name, key)
     if d == nil then
-        d = skynet.call("CLMySQL", "lua", "exesql", dbservers.querySql(idx, nil))
+        d = skynet.call("CLMySQL", "lua", "exesql", dbservers.querySql(idx, nil, nil))
         if d and d.errno == nil and #d > 0 then
             if #d == 1 then
                 d = d[1]

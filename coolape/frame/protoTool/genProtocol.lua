@@ -104,50 +104,50 @@ do
         return nil;
     end
 
+    local getStName = function(stName)
+        return defProtocol.name .."." ..  StructHead.. stName;
+    end
     --===================================================
     --===================================================
     local function makeStruct(map, isInt2bio)
-        local getStName = function(stName)
-            return defProtocol.name .."." ..  StructHead.. stName;
-        end
         local ret = {}
         add(ret, "    -- public toMap")
-        add(ret, "    ".. defProtocol.name .."._toMap = function(stName, m)");
+        add(ret, "    ".. defProtocol.name .."._toMap = function(stuctobj, m)");
         add(ret, "        local ret = {}");
         add(ret, "        if m == nil then return ret end");
         add(ret, "        for k,v in pairs(m) do");
-        add(ret, "            ret[k] = ".. defProtocol.name .."[stName].toMap(v)");
+        add(ret, "            ret[k] = stuctobj.toMap(v)");
         add(ret, "        end");
         add(ret, "        return ret");
         add(ret, "    end");
 
         add(ret, "    -- public toList")
-        add(ret, "    ".. defProtocol.name .."._toList = function(stName, m)");
+        add(ret, "    ".. defProtocol.name .."._toList = function(stuctobj, m)");
         add(ret, "        local ret = {}");
         add(ret, "        if m == nil then return ret end");
         add(ret, "        for i,v in ipairs(m) do");
-        add(ret, "            table.insert(ret, ".. defProtocol.name .."[stName].toMap(v))");
+        add(ret, "            table.insert(ret, stuctobj.toMap(v))");
         add(ret, "        end");
         add(ret, "        return ret");
         add(ret, "    end");
 
 
         add(ret, "    -- public parse")
-        add(ret, "    ".. defProtocol.name .."._parseMap = function(stName, m)");
+        add(ret, "    ".. defProtocol.name .."._parseMap = function(stuctobj, m)");
         add(ret, "        local ret = {}");
         add(ret, "        if m == nil then return ret end");
         add(ret, "        for k,v in pairs(m) do");
-        add(ret, "            ret[k] = ".. defProtocol.name .."[stName].parse(v)");
+        add(ret, "            ret[k] = stuctobj.parse(v)");
         add(ret, "        end");
         add(ret, "        return ret");
         add(ret, "    end");
 
         add(ret, "    -- public parse")
-        add(ret, "    ".. defProtocol.name .."._parseList = function(stName, m)");
+        add(ret, "    ".. defProtocol.name .."._parseList = function(stuctobj, m)");
         add(ret, "        local ret = {}");
         add(ret, "        if m == nil then return ret end");
         add(ret, "        for i,v in ipairs(m) do");
-        add(ret, "            table.insert(ret, ".. defProtocol.name .."[stName].parse(v))");
+        add(ret, "            table.insert(ret, stuctobj.parse(v))");
         add(ret, "        end");
         add(ret, "        return ret");
         add(ret, "    end");
@@ -270,6 +270,8 @@ do
         add(strsServer, "do");
         add(strsClient, "    ".. defProtocol.name .." = {}");
         add(strsServer, "    ".. defProtocol.name .." = {}");
+        add(strsClient, "    local table = table");
+        add(strsServer, "    local table = table");
         add(strsClient, "    require(\"bio.BioUtl\")\n")
         add(strsServer, "    local skynet = require \"skynet\"\n")
         add(strsServer, "    require(\"BioUtl\")\n")
@@ -311,19 +313,43 @@ do
 
                 for i, v2 in ipairs(cfg.input) do
                     local pname = v2;
+                    local isList = false
                     if type(v2) == "table" then
                         pname = getKeyByVal(defProtocol.structs, v2)
-                        assert(pname, "get key by val is null==" .. i)
-                        add(toMapStrClient, "        ret[" .. getKeyCode(pname) .. "] = ".. defProtocol.name .."." .. StructHead .. pname .. ".toMap(".. pname .."); -- " .. (inputDesList[i] or ""));
+                        if pname == nil or pname == "" then
+                            isList = isArray(v2)
+                            if isList then
+                                -- 说明是list
+                                local type2 = type(v2[1])
+                                if type2 == "table"  then
+                                    pname = getKeyByVal(defProtocol.structs, v2[1])
+                                    assert(pname, "get key by val is null==" .. i)
+                                    add(toMapStrClient, "        ret[" .. getKeyCode(pname .. "s") .. "] = ".. defProtocol.name .."._toList(" .. getStName(pname) .. ", " .. pname .. "s" .. ")  -- " .. (inputDesList[i] or ""));
+                                else
+                                    add(toMapStrClient, "        ret[" .. getKeyCode("list") .. "] = list -- " .. (inputDesList[i] or ""));
+                                end
+                            end
+                        else
+                            add(toMapStrClient, "        ret[" .. getKeyCode(pname) .. "] = ".. defProtocol.name .."." .. StructHead .. pname .. ".toMap(".. pname .."); -- " .. (inputDesList[i] or ""));
+                        end
                     else
                         add(toMapStrClient, "        ret[" .. getKeyCode(pname) .. "] = " .. pname .. "; -- " .. (inputDesList[i] or ""));
                     end
-                    table.insert(inputParams, pname)
 
+                    if isList then
+                        table.insert(inputParams, pname .. "s")
+                    else
+                        table.insert(inputParams, pname)
+                    end
 
                     -- recive
                     if type(v2) == "table" then
-                        add(serverReciveParams, "        ret." .. pname .. " = ".. defProtocol.name .."." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(pname) .."]) -- " .. (inputDesList[i] or ""));
+                        if isList then
+                            local stName = pname .. "s"
+                            add(serverReciveParams, "        ret." .. stName .. " = ".. defProtocol.name .."._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(stName) .. "]) -- " .. (inputDesList[i] or ""))
+                        else
+                            add(serverReciveParams, "        ret." .. pname .. " = ".. defProtocol.name .."." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(pname) .."]) -- " .. (inputDesList[i] or ""));
+                        end
                     else
                         add(serverReciveParams, "        ret." .. pname .. " = " .. "map[" .. getKeyCode(pname) .."]-- " .. (inputDesList[i] or ""));
                     end
@@ -338,18 +364,45 @@ do
 
                 for i, v2 in ipairs(cfg.output) do
                     local pname = v2;
+                    local isList = false
                     if type(v2) == "table" then
                         pname = getKeyByVal(defProtocol.structs, v2)
-                        assert(pname, "get key by val is null==" .. i)
-                        add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = ".. defProtocol.name .."." .. StructHead .. pname .. ".toMap(".. pname .."); -- " .. (inputDesList[i] or ""));
+                        if pname == nil or pname == "" then
+                            isList = isArray(v2)
+                            if isList then
+                                -- 说明是list
+                                local type2 = type(v2[1])
+                                if type2 == "table"  then
+                                    pname = getKeyByVal(defProtocol.structs, v2[1])
+                                    assert(pname, "get key by val is null==" .. i)
+                                    add(toMapStrServer, "        ret[" .. getKeyCode(pname .. "s") .. "] = ".. defProtocol.name .."._toList(" .. getStName(pname) .. ", " .. pname .. "s" .. ")  -- " .. (inputDesList[i] or ""));
+                                else
+                                    add(toMapStrServer, "        ret[" .. getKeyCode("list") .. "] = list -- " .. (inputDesList[i] or ""));
+                                end
+                            else
+                                print("not support this case")
+                            end
+                        else
+                            add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = ".. defProtocol.name .."." .. StructHead .. pname .. ".toMap(".. pname .."); -- " .. (inputDesList[i] or ""));
+                        end
                     else
                         add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = " .. pname .. "; -- " .. (inputDesList[i] or ""));
                     end
-                    table.insert(outputParams, pname)
+
+                    if isList then
+                        table.insert(outputParams, pname .. "s")
+                    else
+                        table.insert(outputParams, pname)
+                    end
 
                     -- recive
                     if type(v2) == "table" then
-                        add(clientReciveParams, "        ret." .. pname .. " = ".. defProtocol.name .."." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(pname) .."]) -- " .. (inputDesList[i] or ""))
+                        if isList then
+                            local stName = pname .. "s"
+                            add(clientReciveParams, "        ret." .. stName .. " = ".. defProtocol.name .."._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(stName) .. "]) -- " .. (inputDesList[i] or ""))
+                        else
+                            add(clientReciveParams, "        ret." .. pname .. " = ".. defProtocol.name .."." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(pname) .."]) -- " .. (inputDesList[i] or ""))
+                        end
                     else
                         add(clientReciveParams, "        ret." .. pname .. " = " .. "map[" .. getKeyCode(pname) .."]-- " .. (inputDesList[i] or ""));
                     end

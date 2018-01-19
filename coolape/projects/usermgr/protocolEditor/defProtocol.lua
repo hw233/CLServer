@@ -68,12 +68,12 @@ defProtocol.structs.server = {
         status = { 0, "状态 0:正常; 1:爆满; 2:维护" }
     }
 }
-defProtocol.structs.servers = {
-    "服务器列表",
-    {
-        list = { { defProtocol.structs.server, defProtocol.structs.server }, "服务器列表" },
-    }
-}
+--defProtocol.structs.servers = {
+--    "服务器列表",
+--    {
+--        list = { { defProtocol.structs.server, defProtocol.structs.server }, "服务器列表" },
+--    }
+--}
 --===================================================
 --===================================================
 --===================================================
@@ -129,7 +129,7 @@ defProtocol.cmds = {
         desc = "取得服务器列表"; -- 接口说明
         input = { "appid", "channceid" }; -- 入参
         inputDesc = { "应用id", "渠道号" }; -- 入参说明
-        output = { structs.retInfor, structs.servers }; -- 出参
+        output = { structs.retInfor, {defProtocol.structs.server, defProtocol.structs.server} }; -- 出参
         outputDesc = { "返回信息", "服务器列表", }; -- 出参说明
         logic = "cmd4user";
     };
