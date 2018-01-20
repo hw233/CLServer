@@ -126,9 +126,13 @@ function command.SET(tableName, key, ...)
     --..........................................
     if last ~= val then
         local d = command.GET(tableName, key)
-        -- 更新到mysql表里
-        local sql = command.GETUPDATESQL(tableName, d)
-        skynet.call("CLMySQL", "lua", "save", sql)
+
+        if count > 1 then
+            -- 更新到mysql表里
+            -- 说明是设置某个字段的值，这个时候才需要考虑更新到表
+            local sql = command.GETUPDATESQL(tableName, d)
+            skynet.call("CLMySQL", "lua", "save", sql)
+        end
 
         -- 如果有组，则更新
         local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)

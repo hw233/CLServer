@@ -10,6 +10,7 @@ local Utl = require "Utl"
 local dateEx = require("dateEx")
 ---@type UsermgrHttpProto
 local NetProto = UsermgrHttpProto
+local table = table
 
 cmd4user = {}
 
@@ -142,7 +143,6 @@ cmd4user.CMD = {
     end,
 
     getServerInfor = function(m, fd)
-        print("getServerInfor===========")
         -- 取得服务器信息
         if m.idx == nil then
             local ret = {}
@@ -168,6 +168,36 @@ cmd4user.CMD = {
         s:release()
         return NetProto.send.getServerInfor(ret, result)
     end,
+
+    getServers = function(m, fg)
+        -- 取得服务器列表
+        local appid = m.appid
+        local channel = m.channel
+        if appid == nil then
+            local ret = {}
+            ret.msg = "参数错误！";
+            ret.code = Errcode.error
+            return NetProto.send.getServers(ret)
+        end
+        local list = dbservers.getList(appid, " idx desc ")
+        local result = {}
+        if list and #list > 0 then
+            if channel then
+                for i, v in ipairs(list) do
+                    if v.channel == channel then
+                        table.insert(result, v)
+                    end
+                end
+            else
+                result = list
+            end
+        end
+
+        local ret = {}
+        ret.msg = nil
+        ret.code = Errcode.ok
+        return NetProto.send.getServers(ret, result)
+    end
 }
 
 return cmd4user

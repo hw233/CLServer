@@ -31,7 +31,6 @@ do
             return bytes;
         else
             outputStreemPool:retObj(os)
-            print(result)
             return nil;
         end
     end
@@ -49,7 +48,7 @@ do
             return result;
         else
             inputStreemPool:retObj(is)
-            print(result)
+            --print(result)
             return nil;
         end
     end
@@ -67,7 +66,7 @@ do
             return bytes;
         else
             outputStreemPool:retObj(os)
-            print(result)
+            --print(result)
             return nil;
         end
     end
@@ -84,7 +83,7 @@ do
             inputStreemPool:retObj(is)
             return result;
         else
-            print(result)
+            --print(result)
             inputStreemPool:retObj(is)
             return 0;
         end

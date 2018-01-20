@@ -34,7 +34,8 @@ local printhttp = function(url, method, header, body)
     end
     table.insert(tmp, "-----body----\n" .. body)
     local ret = table.concat(tmp, "\n")
-    print(ret)
+    --print(ret)
+    skynet.error(ret)
     return ret
 end
 
@@ -47,7 +48,7 @@ end
 -- ======================================================
 function CMD.onrequset(url, method, header, body)
     -- 有http请求
-    --printhttp(url, method, header, body) -- debug log
+    printhttp(url, method, header, body) -- debug log
     if method:upper() == "POST" then
         --local content = parseStrBody(body)
         if body then

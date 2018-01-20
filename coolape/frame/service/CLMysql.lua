@@ -13,6 +13,7 @@ local CMD = {}
 local db;
 local sqlQueue = CLLQueue.new();
 local synchrotime -- 数据同步时间
+local isDebugSql = false
 
 ---------------------------------------------
 -- 数据入库
@@ -46,13 +47,14 @@ cfg={
         max_packet_size = 1024 * 1024,
         on_connect = on_connect,
         synchrotime = 500,      -- 同步数据时间间隔 100=1秒
+        isDebug = false,
     }
 --]]
 function CMD.CONNECT(cfg)
     local function on_connect(db)
         db:query("set charset utf8");
     end
-
+    isDebugSql = cfg.isDebug
     cfg.on_connect = on_connect
     synchrotime = cfg.synchrotime or 6000
 
@@ -78,13 +80,15 @@ end
 -- 执行sql
 function CMD.EXESQL(sql)
     if db and sql then
+        if isDebugSql then
+            skynet.error("sql=【" .. sql .. "】")
+        end
         local ret = db:query(sql)
         if ret and ret.errno then
             skynet.error(CLUtl.dump(ret) .. ", sql=【" .. sql .. "】")
         end
         return ret;
     end
-    return nil;
 end
 
 -- 保数据

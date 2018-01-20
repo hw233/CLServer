@@ -24,6 +24,7 @@ function()
         password = "123.",
         max_packet_size = 1024 * 1024,
         synchrotime = 0.5*60*100, -- 同步数据时间间隔 100=1秒
+        isDebug = true,
     })
 
     -- 简单缓存数据库
