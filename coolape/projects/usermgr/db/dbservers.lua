@@ -88,7 +88,12 @@ function dbservers:setisnew(v)
 end
 function dbservers:getisnew()
     -- 新服
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "isnew")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "isnew")
+    if val == nil or val == 0 or val == false then
+        return false
+    else
+        return true
+    end
 end
 
 -- 把数据flush到mysql里， immd=true 立即生效
@@ -100,6 +105,10 @@ function dbservers:flush(immd)
         sql = skynet.call("CLDB", "lua", "GETUPDATESQL", self.__name__, self:value2copy())
     end
     return skynet.call("CLMySql", "lua", "save", sql, immd)
+end
+
+function dbservers:isEmpty()
+    return (self.__key__ == nil) or (self:getidx() == nil)
 end
 
 function dbservers:release()

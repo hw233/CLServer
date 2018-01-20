@@ -65,7 +65,8 @@ defProtocol.structs.server = {
     {
         idx = { 0, "id" },
         name = { "", "名称" },
-        status = { 0, "状态 0:正常; 1:爆满; 2:维护" }
+        status = { 0, "状态 0:正常; 1:爆满; 2:维护" },
+        isnew = { true, "新服" },
     }
 }
 --defProtocol.structs.servers = {
@@ -83,44 +84,44 @@ local structs = defProtocol.structs;
 --===================================================
 -- 接口定义
 defProtocol.cmds = {
-    --[[
-    login = {       -- 接口名
-        desc="";       -- 接口说明
-        input = {"userId", "password" };  -- 入参
-        inputDesc = {"用户名","密码"};     -- 入参说明
-        output = { structs.retInfor, structs.userInfor, "sysTime" };        -- 出参
-        outputDesc = {"返回信息","用户信息","系统时间"};  -- 出参说明
-        logic = "cmd4user";     -- 处理的接口的lua
-    };
-    --]]
+--[[
+login = {       -- 接口名
+    desc="";       -- 接口说明
+    input = {"userId", "password" };  -- 入参
+    inputDesc = {"用户名","密码"};     -- 入参说明
+    output = { structs.retInfor, structs.userInfor, "sysTime" };        -- 出参
+    outputDesc = {"返回信息","用户信息","系统时间"};  -- 出参说明
+    logic = "cmd4user";     -- 处理的接口的lua
+};
+--]]
     regist = {
         desc = "注册"; -- 接口说明
         input = { "userId", "password", "appid", "channel", "deviceID", "deviceInfor" }; -- 入参
-        inputDesc = { "用户名", "密码", "应用id", "渠道", "机器码", "机器信息" }; -- 入参说明
+        inputDesc = { "用户名", "密码", "应用id", "渠道号", "机器码", "机器信息" }; -- 入参说明
         output = { structs.retInfor, structs.userInfor, "serverid" }; -- 出参
-        outputDesc = { "返回信息", "用户信息", "服务器id"}; -- 出参说明
+        outputDesc = { "返回信息", "用户信息", "服务器id" }; -- 出参说明
         logic = "cmd4user";
     };
     login = {
         desc = "登陆"; -- 接口说明
-        input = { "userId", "password", "appid" }; -- 入参
-        inputDesc = { "用户名", "密码", "应用id" }; -- 入参说明
+        input = { "userId", "password", "appid", "channel" }; -- 入参
+        inputDesc = { "用户名", "密码", "应用id", "渠道号" }; -- 入参说明
         output = { structs.retInfor, structs.userInfor, "serverid" }; -- 出参
-        outputDesc = { "返回信息", "用户信息", "服务器id"}; -- 出参说明
+        outputDesc = { "返回信息", "用户信息", "服务器id" }; -- 出参说明
         logic = "cmd4user";
     };
     setEnterServer = {
         desc = "保存所选服务器"; -- 接口说明
         input = { "sidx", "uidx", "appid" }; -- 入参
         inputDesc = { "服务器id", "用户id", "应用id" }; -- 入参说明
-        output = { structs.retInfor}; -- 出参
-        outputDesc = { "返回信息"}; -- 出参说明
+        output = { structs.retInfor }; -- 出参
+        outputDesc = { "返回信息" }; -- 出参说明
         logic = "cmd4user";
     };
     getServerInfor = {
         desc = "取得服务器信息"; -- 接口说明
-        input = { "idx"}; -- 入参
-        inputDesc = { "服务器id"}; -- 入参说明
+        input = { "idx" }; -- 入参
+        inputDesc = { "服务器id" }; -- 入参说明
         output = { structs.retInfor, structs.server }; -- 出参
         outputDesc = { "返回信息", "服务器信息", }; -- 出参说明
         logic = "cmd4user";
@@ -129,7 +130,7 @@ defProtocol.cmds = {
         desc = "取得服务器列表"; -- 接口说明
         input = { "appid", "channceid" }; -- 入参
         inputDesc = { "应用id", "渠道号" }; -- 入参说明
-        output = { structs.retInfor, {defProtocol.structs.server, defProtocol.structs.server} }; -- 出参
+        output = { structs.retInfor, { defProtocol.structs.server, defProtocol.structs.server } }; -- 出参
         outputDesc = { "返回信息", "服务器列表", }; -- 出参说明
         logic = "cmd4user";
     };

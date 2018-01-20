@@ -1,8 +1,11 @@
 local skynet = require("skynet")
 require("dbuser")
+require("dbuserserver")
+require("dbservers")
 require("Errcode")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
+local Utl = require "Utl"
 ---@type dateEx
 local dateEx = require("dateEx")
 ---@type UsermgrHttpProto
@@ -11,22 +14,24 @@ local NetProto = UsermgrHttpProto
 cmd4user = {}
 
 -- 取得服务器idx
-local function getServerid(uidx, appid)
+local function getServerid(uidx, appid, channel)
+    if not appid then
+        return 0
+    end
     local us = dbuserserver.instanse(uidx, appid)
-    local sidx = us:getsidx()
-    if CLUtl.isNilOrEmpty(sidx) then
+    if us:isEmpty() then
         -- 说明该用户是第一次进来
         local list = dbservers.getList(appid)
-        if list then
+        if list and #list > 0 then
             for i, v in ipairs(list) do
-                if v.isnew then
+                if v.isnew and (channel == nil or v.channel == channel) then
                     return v.idx
                 end
             end
             return list[1].idx
         end
     end
-    return sidx;
+    return (us:getsidx() or 0)
 end
 
 cmd4user.CMD = {
@@ -47,7 +52,7 @@ cmd4user.CMD = {
             return NetProto.send.regist(ret, nil, 0)
         end
         local newuser = {}
-        newuser.idx = skynet.call("CLDB", "lua", "nextVal", "user");
+        newuser.idx = Utl.nextVal("user")
         newuser.uid = m.userId
         newuser.password = m.password
         newuser.crtTime = dateEx.nowStr()
@@ -68,17 +73,22 @@ cmd4user.CMD = {
         local user = {}
         user.idx = myself:getidx()
         user.name = "user" --  string
-        local ret = NetProto.send.regist(ret, user, getServerid(newuser.idx, m.appid))
+        local ret = NetProto.send.regist(ret, user, getServerid(newuser.idx, m.appid, m.channel))
         myself:release()
         return ret;
     end,
 
     login = function(m, fd)
         -- 登陆
-        --print(m.userId, m.password)
+        if m.userId == nil then
+            local ret = {}
+            ret.msg = "参数错误！";
+            ret.code = Errcode.error
+            return NetProto.send.login(ret)
+        end
         ---@type dbuser
         local myself = dbuser.instanse(m.userId)
-        if CLUtl.isNilOrEmpty(myself:getuid()) then
+        if myself:isEmpty() then
             -- 说明是没有数据
             local ret = {}
             ret.msg = "用户不存在";
@@ -99,17 +109,25 @@ cmd4user.CMD = {
             user.idx = myself:getidx()
             user.name = "user" --  string
             myself:release()
-            return NetProto.send.login(ret, user, getServerid(myself:getidx(), m.appid))
+            return NetProto.send.login(ret, user, getServerid(myself:getidx(), m.appid, m.channel))
         end
     end,
-    -- 保存选服
-    setEnterServer = function(m)
+
+    setEnterServer = function(m, fd)
+        -- 保存选服
         local uidx = m.uidx
         local sidx = m.sidx
         local appid = m.appid
 
+        if uidx == nil or sidx == nil or appid == nil then
+            local ret = {}
+            ret.msg = "参数错误！";
+            ret.code = Errcode.error
+            return NetProto.send.setEnterServer(ret)
+        end
+
         local us = dbuserserver.instanse(uidx, appid)
-        if CLUtl.isNilOrEmpty(us:getsidx()) then
+        if us:isEmpty() then
             local data = {}
             data.sidx = sidx
             data.uidx = uidx
@@ -121,6 +139,34 @@ cmd4user.CMD = {
         ret.msg = nil;
         ret.code = Errcode.ok
         return NetProto.send.setEnterServer(ret)
+    end,
+
+    getServerInfor = function(m, fd)
+        print("getServerInfor===========")
+        -- 取得服务器信息
+        if m.idx == nil then
+            local ret = {}
+            ret.msg = "参数错误！";
+            ret.code = Errcode.error
+            return NetProto.send.getServerInfor(ret)
+        end
+
+        local s = dbservers.instanse(m.idx)
+        if s:isEmpty() then
+            -- 未找到
+            local ret = {}
+            ret.msg = "未找到数据";
+            ret.code = Errcode.error
+            return NetProto.send.getServerInfor(ret, nil)
+        end
+        local ret = {}
+        ret.msg = nil
+        ret.code = Errcode.ok
+        local result = s:value2copy()
+        s:setisnew(false)
+        result.isnew = s:getisnew()
+        s:release()
+        return NetProto.send.getServerInfor(ret, result)
     end,
 }
 

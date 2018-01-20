@@ -125,15 +125,20 @@ function command.SET(tableName, key, ...)
     end
     --..........................................
     if last ~= val then
+        local d = command.GET(tableName, key)
+        -- 更新到mysql表里
+        local sql = command.GETUPDATESQL(tableName, d)
+        skynet.call("CLMySQL", "lua", "save", sql)
+
         -- 如果有组，则更新
         local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
         if tableCfg == nil then
             skynet.error("[cldb.remove],get tabel config is nil==" .. tableName)
         end
-        local d = command.GET(tableName, key)
         if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
             setGroup(tableName, d[tableCfg.groupKey], key)
         end
+
     end
 
     return last
@@ -244,7 +249,7 @@ function command.GETINSERTSQL(tableName, data)
     for i, v in ipairs(tableCfg.columns) do
         insert(columns, "`" .. v[1] .. "`" )
         local types = v[2]:upper()
-        if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
+        if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
             insert(dataInsert, (data[v[1]] and data[v[1]] or 0));
         else
             insert(dataInsert, (data[v[1]] and "'" .. data[v[1]] .. "'" or "NULL") );
@@ -271,7 +276,7 @@ function command.GETUPDATESQL(tableName, data)
     local where = {}
     for i, v in ipairs(tableCfg.columns) do
         local types = v[2]:upper()
-        if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
+        if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
             insert(dataUpdate, "`" .. v[1] .. "`=" .. (data[v[1]] and data[v[1]] or 0));
         else
             insert(dataUpdate, "`" .. v[1] .. "`=" .. (data[v[1]] and "'" .. data[v[1]] .. "'" or "NULL"));
@@ -288,7 +293,7 @@ function command.GETUPDATESQL(tableName, data)
                 end
             end
 
-            if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
+            if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
                 insert(where, "`" .. pkey .. "`=" .. (data[pkey] and data[pkey] or 0));
             else
                 insert(where, "`" .. pkey .. "`=" .. (data[pkey] and "'" .. data[pkey] .. "'" or "NULL"));
@@ -323,7 +328,7 @@ function command.GETDELETESQL(tableName, data)
                 end
             end
 
-            if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
+            if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
                 insert(where, "`" .. pkey .. "`=" .. (data[pkey] and data[pkey] or 0));
             else
                 insert(where, "`" .. pkey .. "`=" .. (data[pkey] and "'" .. data[pkey] .. "'" or "NULL"));

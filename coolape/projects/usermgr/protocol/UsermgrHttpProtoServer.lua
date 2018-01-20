@@ -69,16 +69,18 @@ do
             local r = {}
             if m == nil then return r end
             r[13] =  BioUtl.int2bio(m.idx)  -- id int
-            r[15] =  BioUtl.int2bio(m.status)  -- 状态 0:正常; 1:爆满; 2:维护 int
+            r[34] = m.isnew  -- 新服 boolean
             r[14] = m.name  -- 名称 string
+            r[15] =  BioUtl.int2bio(m.status)  -- 状态 0:正常; 1:爆满; 2:维护 int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.idx = m[13] --  int
-            r.status = m[15] --  int
+            r.isnew = m[34] --  boolean
             r.name = m[14] --  string
+            r.status = m[15] --  int
             return r;
         end,
     }
@@ -109,6 +111,7 @@ do
         ret.userId = map[21]-- 用户名
         ret.password = map[22]-- 密码
         ret.appid = map[17]-- 应用id
+        ret.channel = map[25]-- 渠道号
         return ret
     end,
     -- 注册
@@ -119,7 +122,7 @@ do
         ret.userId = map[21]-- 用户名
         ret.password = map[22]-- 密码
         ret.appid = map[17]-- 应用id
-        ret.channel = map[25]-- 渠道
+        ret.channel = map[25]-- 渠道号
         ret.deviceID = map[26]-- 机器码
         ret.deviceInfor = map[27]-- 机器信息
         return ret

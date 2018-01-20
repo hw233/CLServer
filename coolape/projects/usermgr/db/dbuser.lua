@@ -138,6 +138,10 @@ function dbuser:flush(immd)
     return skynet.call("CLMySql", "lua", "save", sql, immd)
 end
 
+function dbuser:isEmpty()
+    return (self.__key__ == nil) or (self:getuid() == nil)
+end
+
 function dbuser:release()
     skynet.call("CLDB", "lua", "SETTIMEOUT", self.__name__, self.__key__)
 end

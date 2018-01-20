@@ -220,13 +220,23 @@ function genDB.genLuaFile(outPath, tableCfg)
         table.insert(getsetFunc, "end")
         table.insert(getsetFunc, "function " .. name .. ":get" .. v[1] .. "()")
         table.insert(getsetFunc, "    " .. ( v[3] and "-- " .. v[3] or ""))
-        table.insert(getsetFunc, "    return skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__, \"" .. v[1] .. "\")")
+        if v[2]:upper():find("BOOL") then
+            table.insert(getsetFunc, "    local val = skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__, \"" .. v[1] .. "\")")
+            table.insert(getsetFunc, "    if val == nil or val == 0 or val == false then")
+            table.insert(getsetFunc, "        return false")
+            table.insert(getsetFunc, "    else")
+            table.insert(getsetFunc, "        return true")
+            table.insert(getsetFunc, "    end")
+        else
+
+            table.insert(getsetFunc, "    return skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__, \"" .. v[1] .. "\")")
+        end
         table.insert(getsetFunc, "end")
         table.insert(getsetFunc, "")
 
         table.insert(columns, "`" .. v[1] .. "`" )
         local types = v[2]:upper()
-        if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
+        if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
             table.insert(dataInit, "    self." .. v[1] .. " = 0" .. ( v[3] and "    -- " .. v[3] or ""))
             table.insert(dataSet, "    self." .. v[1] .. " = data." .. v[1] .. ( v[3] and "    -- " .. v[3] or ""))
             table.insert(dataInsert, "(self." .. v[1] .. " and self." .. v[1] .. " or 0)");
@@ -264,7 +274,7 @@ function genDB.genLuaFile(outPath, tableCfg)
                     end
                 end
             end
-            if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
+            if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
                 table.insert(where, "\"`" .. pkey .. "`=\" .. (self." .. pkey .. " and self." .. pkey .. " or 0)");
                 table.insert(where2, "\"`" .. pkey .. "`=\" .. (" .. pkey .. " and " .. pkey .. " or 0)");
             else
@@ -330,6 +340,16 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "    return skynet.call(\"CLMySql\", \"lua\", \"save\", sql, immd)")
     table.insert(str, "end")
     table.insert(str, "")
+
+    table.insert(str, "function " .. name .. ":isEmpty()")
+    local tmp = {}
+    for i, v in ipairs(tableCfg.cacheKey) do
+        table.insert(tmp, "(self:get" .. v .. "() == nil)")
+    end
+    table.insert(str, "    return (self.__key__ == nil) or " .. table.concat(tmp, " or ") )
+    table.insert(str, "end")
+    table.insert(str, "")
+
     table.insert(str, "function " .. name .. ":release()")
     table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"SETTIMEOUT\", self.__name__, self.__key__)")
     table.insert(str, "end")
@@ -398,8 +418,8 @@ function genDB.genLuaFile(outPath, tableCfg)
                 break
             end
         end
-        local where=""
-        if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
+        local where = ""
+        if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
             where = " .. " .. tableCfg.groupKey .. " .. "
         else
             where = " .. \"'\" .. " .. tableCfg.groupKey .. " .. \"'\" .. "
@@ -414,7 +434,7 @@ function genDB.genLuaFile(outPath, tableCfg)
         table.insert(str, "     end")
 
         table.insert(str, "     for i, v in ipairs(list) do")
-        table.insert(str, "         local key = " ..  table.concat(shardataKey2, " .. \"_\" .. "))
+        table.insert(str, "         local key = " .. table.concat(shardataKey2, " .. \"_\" .. "))
         table.insert(str, "         local d = skynet.call(\"CLDB\", \"lua\", \"get\", " .. name .. ".name, key)")
         table.insert(str, "         if d ~= nil then")
         table.insert(str, "             -- 用缓存的数据才是最新的")
