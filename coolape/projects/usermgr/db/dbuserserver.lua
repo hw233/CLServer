@@ -87,10 +87,10 @@ function dbuserserver.querySql(uidx, appid)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}
     if uidx then
-        table.insert(where, "`uidx`=" .. "'" .. uidx  .. "'")
+        table.insert(where, "`uidx`=" .. uidx)
     end
     if appid then
-        table.insert(where, "`appid`=" .. "'" .. appid  .. "'")
+        table.insert(where, "`appid`=" .. appid)
     end
     if #where > 0 then
         return "SELECT * FROM userserver WHERE " .. table.concat(where, " and ") .. ";"

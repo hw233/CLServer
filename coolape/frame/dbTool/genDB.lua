@@ -393,8 +393,19 @@ function genDB.genLuaFile(outPath, tableCfg)
         table.insert(str, "    -- 如果某个参数为nil,则where条件中不包括该条件")
         table.insert(str, "    local where = {}")
         for i, k in ipairs(tableCfg.primaryKey) do
+            local types = ""
+            for j, col in ipairs(tableCfg.columns) do
+                if k == col[1] then
+                    types = col[2]:upper()
+                    break
+                end
+            end
             table.insert(str, "    if " .. k .. " then")
-            table.insert(str, "        table.insert(where, \"`" .. k .. "`=\" .. \"'\" .. " .. k .. "  .. \"'\")")
+            if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
+                table.insert(str, "        table.insert(where, \"`" .. k .. "`=\" .. " .. k .. ")")
+            else
+                table.insert(str, "        table.insert(where, \"`" .. k .. "`=\" .. \"'\" .. " .. k .. "  .. \"'\")")
+            end
             table.insert(str, "    end")
         end
 

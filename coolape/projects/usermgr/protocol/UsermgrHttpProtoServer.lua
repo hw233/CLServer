@@ -1,5 +1,6 @@
 do
     UsermgrHttpProto = {}
+    local cmd4server = require("cmd4server")
     local cmd4user = require("cmd4user")
     local table = table
     local skynet = require "skynet"
@@ -151,7 +152,7 @@ do
         ret.cmd = "getServers"
         ret.__session__ = map[1]
         ret.appid = map[17]-- 应用id
-        ret.channceid = map[18]-- 渠道号
+        ret.channel = map[25]-- 渠道号
         return ret
     end,
     }
@@ -197,9 +198,9 @@ do
     --==============================
     UsermgrHttpProto.dispatch[20]={onReceive = UsermgrHttpProto.recive.login, send = UsermgrHttpProto.send.login, logic = cmd4user}
     UsermgrHttpProto.dispatch[24]={onReceive = UsermgrHttpProto.recive.regist, send = UsermgrHttpProto.send.regist, logic = cmd4user}
-    UsermgrHttpProto.dispatch[29]={onReceive = UsermgrHttpProto.recive.setEnterServer, send = UsermgrHttpProto.send.setEnterServer, logic = cmd4user}
-    UsermgrHttpProto.dispatch[32]={onReceive = UsermgrHttpProto.recive.getServerInfor, send = UsermgrHttpProto.send.getServerInfor, logic = cmd4user}
-    UsermgrHttpProto.dispatch[16]={onReceive = UsermgrHttpProto.recive.getServers, send = UsermgrHttpProto.send.getServers, logic = cmd4user}
+    UsermgrHttpProto.dispatch[29]={onReceive = UsermgrHttpProto.recive.setEnterServer, send = UsermgrHttpProto.send.setEnterServer, logic = cmd4server}
+    UsermgrHttpProto.dispatch[32]={onReceive = UsermgrHttpProto.recive.getServerInfor, send = UsermgrHttpProto.send.getServerInfor, logic = cmd4server}
+    UsermgrHttpProto.dispatch[16]={onReceive = UsermgrHttpProto.recive.getServers, send = UsermgrHttpProto.send.getServers, logic = cmd4server}
     --==============================
     function UsermgrHttpProto.dispatcher(map, client_fd)
         if map == nil then

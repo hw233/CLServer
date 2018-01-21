@@ -119,13 +119,13 @@ function dbservers.querySql(idx, appid, channel)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}
     if idx then
-        table.insert(where, "`idx`=" .. "'" .. idx  .. "'")
+        table.insert(where, "`idx`=" .. idx)
     end
     if appid then
-        table.insert(where, "`appid`=" .. "'" .. appid  .. "'")
+        table.insert(where, "`appid`=" .. appid)
     end
     if channel then
-        table.insert(where, "`channel`=" .. "'" .. channel  .. "'")
+        table.insert(where, "`channel`=" .. channel)
     end
     if #where > 0 then
         return "SELECT * FROM servers WHERE " .. table.concat(where, " and ") .. ";"

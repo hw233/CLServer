@@ -150,7 +150,7 @@ function dbuser.querySql(idx, uid)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}
     if idx then
-        table.insert(where, "`idx`=" .. "'" .. idx  .. "'")
+        table.insert(where, "`idx`=" .. idx)
     end
     if uid then
         table.insert(where, "`uid`=" .. "'" .. uid  .. "'")
