@@ -49,23 +49,28 @@ end
 function CMD.onrequset(url, method, header, body)
     -- 有http请求
     printhttp(url, method, header, body) -- debug log
+    local path, query = urllib.parse(url)
     if method:upper() == "POST" then
-        --local content = parseStrBody(body)
-        if body then
-            local map = BioUtl.readObject(body)
-            local ok, result = pcall(NetProto.dispatcher, map, nil)
-            if ok then
-                if result then
-                    return BioUtl.writeObject(result)
+        if path and path:lower() == "/usermgr/postbio" then
+            if body then
+                local map = BioUtl.readObject(body)
+                local ok, result = pcall(NetProto.dispatcher, map, nil)
+                if ok then
+                    if result then
+                        return BioUtl.writeObject(result)
+                    end
+                else
+                    skynet.error(result)
                 end
             else
-                skynet.error(result)
+                skynet.error("get post url, but body content id nil. url=" .. url)
             end
         else
-            skynet.error("get post url, but body content id nil. url=" .. url)
+            local content = parseStrBody(body)
         end
     else
         -- TODO: get
+
     end
 end
 
