@@ -1,6 +1,6 @@
 local skynet = require "skynet"
 
-local max_client = 1024
+local max_client = 1024*512
 
 skynet.start(
 function()

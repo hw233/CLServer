@@ -1,6 +1,7 @@
 ﻿local skynet = require "skynet"
 local socket = require "skynet.socket"
 local urllib = require "http.url"
+---@type BioUtl
 local BioUtl = require("BioUtl")
 require("NetProtoServer")
 ---@type CLUtl
@@ -10,7 +11,7 @@ local table = table
 local string = string
 
 ---@type UsermgrHttpProto
-local NetProto = NetProto
+local NetProto = UsermgrHttpProto
 local CMD = {}
 
 -- ======================================================
@@ -33,22 +34,13 @@ local printhttp = function(url, method, header, body)
     end
     table.insert(tmp, "-----body----\n" .. body)
     local ret = table.concat(tmp, "\n")
-    print(ret)
+    --print(ret)
+    skynet.error(ret)
     return ret
 end
 
-local parseBody = function(body)
-    --local contents = CLUtl.strSplit(body, "&")
-    --local data = {}
-    --local strs
-    --for i, v in ipairs(contents) do
-    --    strs = CLUtl.strSplit(v, "=")
-    --    data[urllib.decode(strs[1])] = urllib.decode(strs[2])
-    --end
+local parseStrBody = function(body)
     local data = urllib.parse_query(body)
-    for k, v in pairs(data) do
-        print(k)
-    end
     return data
 end
 
@@ -57,24 +49,28 @@ end
 function CMD.onrequset(url, method, header, body)
     -- 有http请求
     printhttp(url, method, header, body) -- debug log
+    local path, query = urllib.parse(url)
     if method:upper() == "POST" then
-        local content = parseBody(body)
-        if content and content.data then
-            local map = BioUtl.readObject(content.data)
-
-            local ok, result = pcall(NetProto.dispatcher, map, nil)
-            if ok then
-                if result then
-                    return result
+        if path and path:lower() == "/mibao/postbio" then
+            if body then
+                local map = BioUtl.readObject(body)
+                local ok, result = pcall(NetProto.dispatcher, map, nil)
+                if ok then
+                    if result then
+                        return BioUtl.writeObject(result)
+                    end
+                else
+                    skynet.error(result)
                 end
             else
-                skynet.error(result)
+                skynet.error("get post url, but body content id nil. url=" .. url)
             end
         else
-            skynet.error("get post url, but body content id nil. url=" .. url)
+            local content = parseStrBody(body)
         end
     else
         -- TODO: get
+
     end
 end
 
