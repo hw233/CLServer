@@ -291,8 +291,10 @@ do
         local serverSend = {}
         local clientRecive = {}
         local serverRecive = {}
+        local cmdMap = {}
         for cmd, cfg in pairs(defProtocol.cmds) do
             requires[cfg.logic] = true;
+            add(cmdMap, "        " .. cmd .. " = \"" .. cmd .. "\"")
             add(dispatch,       "    ".. defProtocol.name ..".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = ".. defProtocol.name ..".recive." .. cmd .. ", send = ".. defProtocol.name ..".send." .. cmd .."}")
             add(dispatchserver, "    ".. defProtocol.name ..".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = ".. defProtocol.name ..".recive." .. cmd .. ", send = ".. defProtocol.name ..".send." .. cmd ..", logic = " .. cfg.logic .. "}")
             if cfg.desc then
@@ -485,6 +487,18 @@ do
         -- dispatch
         add(strsClient, table.concat(dispatch, "\n"));
         add(strsServer, table.concat(dispatchserver, "\n"));
+
+        add(strsClient, "    --==============================");
+        add(strsClient, "    " .. defProtocol.name .. ".cmds = {");
+        add(strsClient, table.concat(cmdMap, ",\n"))
+        add(strsClient, "    }");
+        add(strsClient, "    --==============================");
+
+        add(strsServer, "    --==============================");
+        add(strsServer, "    " .. defProtocol.name .. ".cmds = {");
+        add(strsServer, table.concat(cmdMap, ",\n"))
+        add(strsServer, "    }");
+        add(strsServer, "");
 
         add(strsServer, "    --==============================");
         add(strsServer, "    function ".. defProtocol.name ..".dispatcher(map, client_fd)")

@@ -104,21 +104,10 @@ do
     }
     --==============================
     UsermgrHttpProto.recive = {
-    -- 登陆
-    login = function(map)
-        local ret = {}
-        ret.cmd = "login"
-        ret.__session__ = map[1]
-        ret.userId = map[21]-- 用户名
-        ret.password = map[22]-- 密码
-        ret.appid = map[17]-- 应用id
-        ret.channel = map[25]-- 渠道号
-        return ret
-    end,
     -- 注册
-    regist = function(map)
+    registAccount = function(map)
         local ret = {}
-        ret.cmd = "regist"
+        ret.cmd = "registAccount"
         ret.__session__ = map[1]
         ret.userId = map[21]-- 用户名
         ret.password = map[22]-- 密码
@@ -126,6 +115,15 @@ do
         ret.channel = map[25]-- 渠道号
         ret.deviceID = map[26]-- 机器码
         ret.deviceInfor = map[27]-- 机器信息
+        return ret
+    end,
+    -- 取得服务器列表
+    getServers = function(map)
+        local ret = {}
+        ret.cmd = "getServers"
+        ret.__session__ = map[1]
+        ret.appid = map[17]-- 应用id
+        ret.channel = map[25]-- 渠道号
         return ret
     end,
     -- 保存所选服务器
@@ -138,6 +136,17 @@ do
         ret.appid = map[17]-- 应用id
         return ret
     end,
+    -- 登陆
+    loginAccount = function(map)
+        local ret = {}
+        ret.cmd = "loginAccount"
+        ret.__session__ = map[1]
+        ret.userId = map[21]-- 用户名
+        ret.password = map[22]-- 密码
+        ret.appid = map[17]-- 应用id
+        ret.channel = map[25]-- 渠道号
+        return ret
+    end,
     -- 取得服务器信息
     getServerInfor = function(map)
         local ret = {}
@@ -146,45 +155,16 @@ do
         ret.idx = map[13]-- 服务器id
         return ret
     end,
-    -- 取得服务器列表
-    getServers = function(map)
-        local ret = {}
-        ret.cmd = "getServers"
-        ret.__session__ = map[1]
-        ret.appid = map[17]-- 应用id
-        ret.channel = map[25]-- 渠道号
-        return ret
-    end,
     }
     --==============================
     UsermgrHttpProto.send = {
-    login = function(retInfor, userInfor, serverid)
+    registAccount = function(retInfor, userInfor, serverid, systime)
         local ret = {}
-        ret[0] = 20
+        ret[0] = 36
         ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[23] = UsermgrHttpProto.ST_userInfor.toMap(userInfor); -- 用户信息
-        ret[28] = serverid; -- 服务器id
-        return ret
-    end,
-    regist = function(retInfor, userInfor, serverid)
-        local ret = {}
-        ret[0] = 24
-        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[23] = UsermgrHttpProto.ST_userInfor.toMap(userInfor); -- 用户信息
-        ret[28] = serverid; -- 服务器id
-        return ret
-    end,
-    setEnterServer = function(retInfor)
-        local ret = {}
-        ret[0] = 29
-        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
-        return ret
-    end,
-    getServerInfor = function(retInfor, server)
-        local ret = {}
-        ret[0] = 32
-        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[33] = UsermgrHttpProto.ST_server.toMap(server); -- 服务器信息
+        ret[28] = serverid; -- 服务器id int
+        ret[35] = systime; -- 系统时间 long
         return ret
     end,
     getServers = function(retInfor, servers)
@@ -194,13 +174,44 @@ do
         ret[19] = UsermgrHttpProto._toList(UsermgrHttpProto.ST_server, servers)  -- 服务器列表
         return ret
     end,
+    setEnterServer = function(retInfor)
+        local ret = {}
+        ret[0] = 29
+        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
+        return ret
+    end,
+    loginAccount = function(retInfor, userInfor, serverid, systime)
+        local ret = {}
+        ret[0] = 37
+        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[23] = UsermgrHttpProto.ST_userInfor.toMap(userInfor); -- 用户信息
+        ret[28] = serverid; -- 服务器id int
+        ret[35] = systime; -- 系统时间 long
+        return ret
+    end,
+    getServerInfor = function(retInfor, server)
+        local ret = {}
+        ret[0] = 32
+        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[33] = UsermgrHttpProto.ST_server.toMap(server); -- 服务器信息
+        return ret
+    end,
     }
     --==============================
-    UsermgrHttpProto.dispatch[20]={onReceive = UsermgrHttpProto.recive.login, send = UsermgrHttpProto.send.login, logic = cmd4user}
-    UsermgrHttpProto.dispatch[24]={onReceive = UsermgrHttpProto.recive.regist, send = UsermgrHttpProto.send.regist, logic = cmd4user}
-    UsermgrHttpProto.dispatch[29]={onReceive = UsermgrHttpProto.recive.setEnterServer, send = UsermgrHttpProto.send.setEnterServer, logic = cmd4server}
-    UsermgrHttpProto.dispatch[32]={onReceive = UsermgrHttpProto.recive.getServerInfor, send = UsermgrHttpProto.send.getServerInfor, logic = cmd4server}
+    UsermgrHttpProto.dispatch[36]={onReceive = UsermgrHttpProto.recive.registAccount, send = UsermgrHttpProto.send.registAccount, logic = cmd4user}
     UsermgrHttpProto.dispatch[16]={onReceive = UsermgrHttpProto.recive.getServers, send = UsermgrHttpProto.send.getServers, logic = cmd4server}
+    UsermgrHttpProto.dispatch[29]={onReceive = UsermgrHttpProto.recive.setEnterServer, send = UsermgrHttpProto.send.setEnterServer, logic = cmd4server}
+    UsermgrHttpProto.dispatch[37]={onReceive = UsermgrHttpProto.recive.loginAccount, send = UsermgrHttpProto.send.loginAccount, logic = cmd4user}
+    UsermgrHttpProto.dispatch[32]={onReceive = UsermgrHttpProto.recive.getServerInfor, send = UsermgrHttpProto.send.getServerInfor, logic = cmd4server}
+    --==============================
+    UsermgrHttpProto.cmds = {
+        registAccount = "registAccount",
+        getServers = "getServers",
+        setEnterServer = "setEnterServer",
+        loginAccount = "loginAccount",
+        getServerInfor = "getServerInfor"
+    }
+
     --==============================
     function UsermgrHttpProto.dispatcher(map, client_fd)
         if map == nil then

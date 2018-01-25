@@ -36,13 +36,13 @@ local function getServerid(uidx, appid, channel)
 end
 
 cmd4user.CMD = {
-    regist = function(m, fd)
+    registAccount = function(m, fd)
         -- 注册
         local ret = {}
         if CLUtl.isNilOrEmpty(m.userId) or CLUtl.isNilOrEmpty(m.password) then
             ret.msg = "用户名和密码不能为空";
             ret.code = Errcode.error
-            return NetProto.send.regist(ret, nil, 0)
+            return NetProto.send.registAccount(ret, nil, 0, dateEx.nowMS())
         end
         ---@type dbuser
         local myself = dbuser.instanse(m.userId)
@@ -50,7 +50,7 @@ cmd4user.CMD = {
             ret.msg = "用户名已经存在";
             ret.code = Errcode.uidregisted
             myself:release()
-            return NetProto.send.regist(ret, nil, 0)
+            return NetProto.send.registAccount(ret, nil, 0, dateEx.nowMS())
         end
         local newuser = {}
         newuser.idx = Utl.nextVal("user")
@@ -66,7 +66,7 @@ cmd4user.CMD = {
         if not myself:init(newuser) then
             ret.msg = "注册失败";
             ret.code = Errcode.error
-            return NetProto.send.regist(ret, nil, 0)
+            return NetProto.send.registAccount(ret, nil, 0, dateEx.nowMS())
         end
 
         ret.msg = nil;
@@ -79,18 +79,18 @@ cmd4user.CMD = {
         if m.appid ~= 1001 then
             serveridx = getServerid(newuser.idx, m.appid, m.channel)
         end
-        local ret = NetProto.send.regist(ret, user, serveridx)
+        local ret = NetProto.send.registAccount(ret, user, serveridx, dateEx.nowMS())
         myself:release()
         return ret;
     end,
 
-    login = function(m, fd)
+    loginAccount = function(m, fd)
         -- 登陆
         if m.userId == nil then
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return NetProto.send.login(ret)
+            return NetProto.send.loginAccount(ret)
         end
         ---@type dbuser
         local myself = dbuser.instanse(m.userId)
@@ -99,14 +99,14 @@ cmd4user.CMD = {
             local ret = {}
             ret.msg = "用户不存在";
             ret.code = Errcode.needregist
-            return NetProto.send.login(ret, nil, 0)
+            return NetProto.send.loginAccount(ret, nil, 0, dateEx.nowMS())
         elseif m.password ~= myself:getpassword() then
             -- 说明密码错误
             local ret = {}
             ret.msg = "密码错误";
             ret.code = Errcode.psderror
             myself:release()
-            return NetProto.send.login(ret, nil, 0)
+            return NetProto.send.loginAccount(ret, nil, 0, dateEx.nowMS())
         else
             local ret = {}
             ret.msg = nil;
@@ -119,7 +119,7 @@ cmd4user.CMD = {
             if m.appid ~= 1001 then -- 1001:咪宝
                 serveridx = getServerid(user.idx, m.appid, m.channel)
             end
-            local ret = NetProto.send.login(ret, user, serveridx)
+            local ret = NetProto.send.loginAccount(ret, user, serveridx, dateEx.nowMS())
             myself:release()
             return ret
         end

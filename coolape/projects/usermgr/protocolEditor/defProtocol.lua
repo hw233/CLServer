@@ -94,20 +94,20 @@ defProtocol.cmds = {
         logic = "cmd4user";     -- 处理的接口的lua
     };
     --]]
-    regist = {
+    registAccount = {
         desc = "注册"; -- 接口说明
         input = { "userId", "password", "appid", "channel", "deviceID", "deviceInfor" }; -- 入参
         inputDesc = { "用户名", "密码", "应用id", "渠道号", "机器码", "机器信息" }; -- 入参说明
-        output = { structs.retInfor, structs.userInfor, "serverid" }; -- 出参
-        outputDesc = { "返回信息", "用户信息", "服务器id" }; -- 出参说明
+        output = { structs.retInfor, structs.userInfor, "serverid", "systime" }; -- 出参
+        outputDesc = { "返回信息", "用户信息", "服务器id int", "系统时间 long" }; -- 出参说明
         logic = "cmd4user";
     };
-    login = {
+    loginAccount = {
         desc = "登陆"; -- 接口说明
         input = { "userId", "password", "appid", "channel" }; -- 入参
         inputDesc = { "用户名", "密码", "应用id", "渠道号" }; -- 入参说明
-        output = { structs.retInfor, structs.userInfor, "serverid" }; -- 出参
-        outputDesc = { "返回信息", "用户信息", "服务器id" }; -- 出参说明
+        output = { structs.retInfor, structs.userInfor, "serverid", "systime" }; -- 出参
+        outputDesc = { "返回信息", "用户信息", "服务器id int", "系统时间 long" }; -- 出参说明
         logic = "cmd4user";
     };
     setEnterServer = {
