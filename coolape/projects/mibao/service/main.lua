@@ -9,7 +9,7 @@ function()
         local console = skynet.newservice("console")
     end
 
-    skynet.newservice("debug_console", 8000)
+    skynet.newservice("debug_console", 8002)
 
     -- 配制数据
     skynet.uniqueservice("CLCfg")

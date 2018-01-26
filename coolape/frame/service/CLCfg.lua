@@ -3,6 +3,7 @@ local skynet = require "skynet"
 require "skynet.manager"    -- import skynet.register
 local sharedata = require "skynet.sharedata"
 require("CLUtl")
+require("fileEx")
 
 local command = {}
 
@@ -16,7 +17,7 @@ local function init()
     local tablesdesign = {}
     local path = assert(skynet.getenv("projectPath"))
     path = path .. "dbDesign/"
-    local tables = CLUtl.getFiles(path, "lua")
+    local tables = fileEx.getFiles(path, "lua")
     for i, v in ipairs(tables) do
         local t = dofile(path .. v );
         if tablesdesign[t.name] then

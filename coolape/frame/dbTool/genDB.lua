@@ -7,12 +7,13 @@ package.cpath = "luaclib/?.so"
 package.path = "lualib/?.lua;" .. "./coolape/frame/toolkit/?.lua"
 
 require("CLUtl")
+require("fileEx")
 
 genDB = {}
 local sqlDumpFile = "tables.sql";
 
 function genDB.getFiles()
-    return CLUtl.getFiles(arg[1], "lua")
+    return fileEx.getFiles(arg[1], "lua")
 end
 
 function getFile(file_name)

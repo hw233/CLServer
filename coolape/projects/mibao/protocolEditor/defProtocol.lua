@@ -15,7 +15,17 @@ defProtocol.structs.retInfor = {
         msg = { "", "返回消息" },
     }
 }
-
+-- 密码信息
+defProtocol.structs.psdInfor = {
+    "密码信息",
+    {
+        platform = { "", "平台、网站等，作为key用" },
+        desc = { "", "备注" },
+        user = { "", "账号" },
+        psd = { "", "密码" },
+        time = { 0, "修改时间" }
+    }
+}
 --===================================================
 --===================================================
 --===================================================
@@ -28,7 +38,7 @@ local structs = defProtocol.structs;
 defProtocol.cmds = {
     syndata = {
         desc = "数据同步",
-        input = { "data" },
+        input = { {structs.psdInfor,structs.psdInfor }},
         inputDesc = { "数据信息" },
         output = { structs.retInfor, "newData" },
         outputDesc = { "返回信息", "新数据" },
