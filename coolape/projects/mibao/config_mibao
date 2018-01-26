@@ -28,7 +28,8 @@ cpath = skynetRoot.."cservice/?.so"
 
 -- preload = "./examples/preload.lua"	-- run preload.lua before every lua service run
 thread = 1
-logger = coolapeRoot .. "logs/error_" .. projectName .. ".log"
+-- logger = coolapeRoot .. "logs/error_" .. projectName .. ".log"
+logger = nil
 logpath = "."
 harbor = 0
 -- address = "127.0.0.1:2526"

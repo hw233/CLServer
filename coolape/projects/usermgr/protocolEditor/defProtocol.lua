@@ -2,7 +2,7 @@
 -- 定义接口协议
 --]]
 defProtocol = {}
-defProtocol.name = "UsermgrHttpProto";      -- 协议名字
+defProtocol.name = "NetProtoUsermgr";      -- 协议名字
 defProtocol.isSendClientInt2bio = true;     -- 发送给客户端时是否把int转成bio
 --===================================================
 --===================================================

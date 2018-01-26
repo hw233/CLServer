@@ -1,5 +1,5 @@
 do
-    UsermgrHttpProto = {}
+    NetProtoUsermgr = {}
     local cmd4server = require("cmd4server")
     local cmd4user = require("cmd4user")
     local table = table
@@ -7,10 +7,10 @@ do
 
     require("BioUtl")
 
-    UsermgrHttpProto.dispatch = {}
+    NetProtoUsermgr.dispatch = {}
     --==============================
     -- public toMap
-    UsermgrHttpProto._toMap = function(stuctobj, m)
+    NetProtoUsermgr._toMap = function(stuctobj, m)
         local ret = {}
         if m == nil then return ret end
         for k,v in pairs(m) do
@@ -19,7 +19,7 @@ do
         return ret
     end
     -- public toList
-    UsermgrHttpProto._toList = function(stuctobj, m)
+    NetProtoUsermgr._toList = function(stuctobj, m)
         local ret = {}
         if m == nil then return ret end
         for i,v in ipairs(m) do
@@ -28,7 +28,7 @@ do
         return ret
     end
     -- public parse
-    UsermgrHttpProto._parseMap = function(stuctobj, m)
+    NetProtoUsermgr._parseMap = function(stuctobj, m)
         local ret = {}
         if m == nil then return ret end
         for k,v in pairs(m) do
@@ -37,7 +37,7 @@ do
         return ret
     end
     -- public parse
-    UsermgrHttpProto._parseList = function(stuctobj, m)
+    NetProtoUsermgr._parseList = function(stuctobj, m)
         local ret = {}
         if m == nil then return ret end
         for i,v in ipairs(m) do
@@ -48,7 +48,7 @@ do
   --==================================
   --==================================
     -- 返回信息
-    UsermgrHttpProto.ST_retInfor = {
+    NetProtoUsermgr.ST_retInfor = {
         toMap = function(m)
             local r = {}
             if m == nil then return r end
@@ -65,7 +65,7 @@ do
         end,
     }
     -- 服务器
-    UsermgrHttpProto.ST_server = {
+    NetProtoUsermgr.ST_server = {
         toMap = function(m)
             local r = {}
             if m == nil then return r end
@@ -86,7 +86,7 @@ do
         end,
     }
     -- 用户信息
-    UsermgrHttpProto.ST_userInfor = {
+    NetProtoUsermgr.ST_userInfor = {
         toMap = function(m)
             local r = {}
             if m == nil then return r end
@@ -103,7 +103,7 @@ do
         end,
     }
     --==============================
-    UsermgrHttpProto.recive = {
+    NetProtoUsermgr.recive = {
     -- 注册
     registAccount = function(map)
         local ret = {}
@@ -157,12 +157,12 @@ do
     end,
     }
     --==============================
-    UsermgrHttpProto.send = {
+    NetProtoUsermgr.send = {
     registAccount = function(retInfor, userInfor, serverid, systime)
         local ret = {}
         ret[0] = 36
-        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[23] = UsermgrHttpProto.ST_userInfor.toMap(userInfor); -- 用户信息
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[23] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
         ret[28] = serverid; -- 服务器id int
         ret[35] = systime; -- 系统时间 long
         return ret
@@ -170,21 +170,21 @@ do
     getServers = function(retInfor, servers)
         local ret = {}
         ret[0] = 16
-        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[19] = UsermgrHttpProto._toList(UsermgrHttpProto.ST_server, servers)  -- 服务器列表
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[19] = NetProtoUsermgr._toList(NetProtoUsermgr.ST_server, servers)  -- 服务器列表
         return ret
     end,
     setEnterServer = function(retInfor)
         local ret = {}
         ret[0] = 29
-        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         return ret
     end,
     loginAccount = function(retInfor, userInfor, serverid, systime)
         local ret = {}
         ret[0] = 37
-        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[23] = UsermgrHttpProto.ST_userInfor.toMap(userInfor); -- 用户信息
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[23] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
         ret[28] = serverid; -- 服务器id int
         ret[35] = systime; -- 系统时间 long
         return ret
@@ -192,19 +192,19 @@ do
     getServerInfor = function(retInfor, server)
         local ret = {}
         ret[0] = 32
-        ret[2] = UsermgrHttpProto.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[33] = UsermgrHttpProto.ST_server.toMap(server); -- 服务器信息
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[33] = NetProtoUsermgr.ST_server.toMap(server); -- 服务器信息
         return ret
     end,
     }
     --==============================
-    UsermgrHttpProto.dispatch[36]={onReceive = UsermgrHttpProto.recive.registAccount, send = UsermgrHttpProto.send.registAccount, logic = cmd4user}
-    UsermgrHttpProto.dispatch[16]={onReceive = UsermgrHttpProto.recive.getServers, send = UsermgrHttpProto.send.getServers, logic = cmd4server}
-    UsermgrHttpProto.dispatch[29]={onReceive = UsermgrHttpProto.recive.setEnterServer, send = UsermgrHttpProto.send.setEnterServer, logic = cmd4server}
-    UsermgrHttpProto.dispatch[37]={onReceive = UsermgrHttpProto.recive.loginAccount, send = UsermgrHttpProto.send.loginAccount, logic = cmd4user}
-    UsermgrHttpProto.dispatch[32]={onReceive = UsermgrHttpProto.recive.getServerInfor, send = UsermgrHttpProto.send.getServerInfor, logic = cmd4server}
+    NetProtoUsermgr.dispatch[36]={onReceive = NetProtoUsermgr.recive.registAccount, send = NetProtoUsermgr.send.registAccount, logic = cmd4user}
+    NetProtoUsermgr.dispatch[16]={onReceive = NetProtoUsermgr.recive.getServers, send = NetProtoUsermgr.send.getServers, logic = cmd4server}
+    NetProtoUsermgr.dispatch[29]={onReceive = NetProtoUsermgr.recive.setEnterServer, send = NetProtoUsermgr.send.setEnterServer, logic = cmd4server}
+    NetProtoUsermgr.dispatch[37]={onReceive = NetProtoUsermgr.recive.loginAccount, send = NetProtoUsermgr.send.loginAccount, logic = cmd4user}
+    NetProtoUsermgr.dispatch[32]={onReceive = NetProtoUsermgr.recive.getServerInfor, send = NetProtoUsermgr.send.getServerInfor, logic = cmd4server}
     --==============================
-    UsermgrHttpProto.cmds = {
+    NetProtoUsermgr.cmds = {
         registAccount = "registAccount",
         getServers = "getServers",
         setEnterServer = "setEnterServer",
@@ -213,7 +213,7 @@ do
     }
 
     --==============================
-    function UsermgrHttpProto.dispatcher(map, client_fd)
+    function NetProtoUsermgr.dispatcher(map, client_fd)
         if map == nil then
             skynet.error("[dispatcher] mpa == nil")
             return nil
@@ -223,7 +223,7 @@ do
             skynet.error("get cmd is nil")
             return nil;
         end
-        local dis = UsermgrHttpProto.dispatch[cmd]
+        local dis = NetProtoUsermgr.dispatch[cmd]
         if dis == nil then
             skynet.error("get protocol cfg is nil")
             return nil;
@@ -237,5 +237,5 @@ do
         return nil;
     end
     --==============================
-    return UsermgrHttpProto
+    return NetProtoUsermgr
 end

@@ -3,15 +3,15 @@ local socket = require "skynet.socket"
 local urllib = require "http.url"
 ---@type BioUtl
 local BioUtl = require("BioUtl")
-require("UsermgrHttpProtoServer")
+require("NetProtoUsermgrServer")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
 local json = require("json")
 local table = table
 local string = string
 
----@type UsermgrHttpProto
-local NetProto = UsermgrHttpProto
+---@type NetProtoUsermgr
+local NetProto = NetProtoUsermgr
 local CMD = {}
 
 -- ======================================================

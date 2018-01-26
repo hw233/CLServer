@@ -8,8 +8,8 @@ local CLUtl = require("CLUtl")
 local Utl = require "Utl"
 ---@type dateEx
 local dateEx = require("dateEx")
----@type UsermgrHttpProto
-local NetProto = UsermgrHttpProto
+---@type NetProtoUsermgr
+local NetProto = NetProtoUsermgr
 local table = table
 
 local cmd4user = {}
