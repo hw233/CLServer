@@ -29,8 +29,6 @@ function()
 
     -- 简单缓存数据库
     skynet.uniqueservice("CLDB")
-    -- 服务器管理
-    skynet.uniqueservice("servermgr")
 
     -- 监听socket
     local watchdog = skynet.uniqueservice("watchdog")
