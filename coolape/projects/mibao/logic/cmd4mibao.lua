@@ -34,7 +34,7 @@ cmd4mibao.CMD = {
 
         local cell;
         local cellOld;
-        for i = #new, 1 do
+        for i = #new, 1, -1 do
             cell = new[i]
             cellOld = map[cell.platform]
             if cellOld then

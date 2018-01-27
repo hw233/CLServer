@@ -48,7 +48,7 @@ end
 -- ======================================================
 function CMD.onrequset(url, method, header, body)
     -- 有http请求
-    printhttp(url, method, header, body) -- debug log
+    --printhttp(url, method, header, body) -- debug log
     local path, query = urllib.parse(url)
     if method:upper() == "POST" then
         if path and path:lower() == "/mibao/postbio" then
