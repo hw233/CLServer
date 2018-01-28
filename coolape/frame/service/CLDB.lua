@@ -342,6 +342,11 @@ function command.GETDELETESQL(tableName, data)
     local sql = "DELETE FROM " .. tableCfg.name .. " WHERE " .. concat(where, " AND ") .. ";"
     return sql
 end
+
+function command.STOP()
+    command.FLUSHALL(true)
+    skynet.exit()
+end
 -- ============================================================
 skynet.start(function()
     skynet.dispatch("lua", function(session, address, cmd, ...)

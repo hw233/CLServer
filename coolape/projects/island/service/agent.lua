@@ -1,8 +1,10 @@
 local skynet = require "skynet"
 local socket = require "skynet.socket"
 local BioUtl = require("BioUtl")
+---@type NetProtoIsland
 local NetProto =  require("NetProtoIslandServer")
 local CLUtl = require("CLUtl")
+local KeyCodeProtocol = require("KeyCodeProtocol")
 
 local WATCHDOG
 
@@ -106,6 +108,7 @@ skynet.register_protocol {
         return BioUtl.readObject(bytes)
     end,
     dispatch = function(_, _, map, ...)
+        skynet.call(WATCHDOG, "lua", "alivefd", client_fd)
         pcall(procPackage, map);
     end
 }
@@ -122,7 +125,10 @@ function CMD.start(conf)
 end
 
 function CMD.disconnect()
-    -- todo: do something before exit
+    local map = {}
+    map[0] = KeyCodeProtocol.getKeyCode("release")
+    NetProto.dispatcher(map, client_fd)
+
     skynet.exit()
 end
 

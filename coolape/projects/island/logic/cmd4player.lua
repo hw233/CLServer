@@ -101,15 +101,16 @@ cmd4player.CMD = {
             return ret
         end
     end,
-    logout = function(m, fd)
+    release = function(m, fd)
         --TODO:把相关处理入库
         if myself then
             myself:release();
             myself = nil;
         end
+    end,
+    logout = function(m, fd)
         skynet.call("watchdog", "lua", "close", fd)
     end,
-
 }
 
 return cmd4player
