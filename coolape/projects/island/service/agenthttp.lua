@@ -73,6 +73,7 @@ function CMD.onrequset(url, method, header, body)
         if path == "/island/stopserver" then
             -- 停服处理
             skynet.send("watchdog", "lua", "stop")
+            return ""
         end
     end
 end
