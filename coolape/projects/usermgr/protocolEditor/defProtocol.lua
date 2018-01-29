@@ -67,6 +67,8 @@ defProtocol.structs.server = {
         name = { "", "名称" },
         status = { 0, "状态 0:正常; 1:爆满; 2:维护" },
         isnew = { true, "新服" },
+        androidVer = { "", "客户端android版本" },
+        iosVer = { "", "客户端ios版本" },
     }
 }
 --defProtocol.structs.servers = {
@@ -84,16 +86,16 @@ local structs = defProtocol.structs;
 --===================================================
 -- 接口定义
 defProtocol.cmds = {
-    --[[
-    login = {       -- 接口名
-        desc="";       -- 接口说明
-        input = {"userId", "password" };  -- 入参
-        inputDesc = {"用户名","密码"};     -- 入参说明
-        output = { structs.retInfor, structs.userInfor, "sysTime" };        -- 出参
-        outputDesc = {"返回信息","用户信息","系统时间"};  -- 出参说明
-        logic = "cmd4user";     -- 处理的接口的lua
-    };
-    --]]
+--[[
+login = {       -- 接口名
+    desc="";       -- 接口说明
+    input = {"userId", "password" };  -- 入参
+    inputDesc = {"用户名","密码"};     -- 入参说明
+    output = { structs.retInfor, structs.userInfor, "sysTime" };        -- 出参
+    outputDesc = {"返回信息","用户信息","系统时间"};  -- 出参说明
+    logic = "cmd4user";     -- 处理的接口的lua
+};
+--]]
     registAccount = {
         desc = "注册"; -- 接口说明
         input = { "userId", "password", "appid", "channel", "deviceID", "deviceInfor" }; -- 入参

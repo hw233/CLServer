@@ -3,6 +3,7 @@
 --
 
 require("class")
+---@class CLLStack
 CLLStack = class("CLLStack")
 
 local remove = table.remove

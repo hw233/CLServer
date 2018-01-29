@@ -1,5 +1,6 @@
 ﻿-- 时间
 local skynet = require "skynet"
+---@class dateEx
 dateEx = {}
 dateEx.yy_mm_dd_HH_MM_SS = "%Y-%m-%d %H:%M:%S"
 dateEx.yymmddHHMMSS = "%Y%m%d%H%M%S"

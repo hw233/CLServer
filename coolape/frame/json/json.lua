@@ -36,6 +36,7 @@ local table = require("table")
 -----------------------------------------------------------------------------
 -- Module declaration
 -----------------------------------------------------------------------------
+---@class json
 local json = {}             -- Public namespace
 local json_private = {}     -- Private namespace
 

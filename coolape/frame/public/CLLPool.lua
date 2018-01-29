@@ -1,6 +1,7 @@
 require("class")
 require("CLLQueue")
 
+---@class CLLPool
 CLLPool = class("CLLPool")
 --local queue;
 --local cloneClass;

@@ -79,7 +79,7 @@ end
 
 -- 执行sql
 function CMD.EXESQL(sql)
-    if db and sql then
+    if db and sql and sql ~= "" then
         if isDebugSql then
             skynet.error("sql=【" .. sql .. "】")
         end
@@ -93,6 +93,10 @@ end
 
 -- 保数据
 function CMD.SAVE(sql, immediately)
+    if sql == nil or sql == "" then
+        return
+    end
+
     if immediately then
         return CMD.EXESQL(sql)
     else
@@ -116,6 +120,14 @@ function CMD.FLUSHALL()
             end
         end
     end
+end
+
+function CMD.STOP()
+    if db then
+        CMD.FLUSHALL()
+    end
+    CMD.DISCONNECT()
+    skynet.exit()
 end
 ---------------------------------------------
 skynet.start(function()

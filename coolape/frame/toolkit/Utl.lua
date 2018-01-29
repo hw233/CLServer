@@ -1,5 +1,5 @@
-﻿
-local skynet = require "skynet"
+﻿local skynet = require "skynet"
+---@class Utl
 Utl = {}
 -- 取得key的自增序列号
 function Utl.nextVal(key)

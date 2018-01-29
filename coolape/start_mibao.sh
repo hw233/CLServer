@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 #cd CLServer
-./skynet/skynet ./coolape/projects/mibao/config_mibao
+projectname="mibao"
+./skynet/skynet ./coolape/projects/${projectname}/config_${projectname}

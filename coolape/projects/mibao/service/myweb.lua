@@ -59,7 +59,7 @@ if mode == "agent" then
         end)
     end)
 else
-    port = port or 8081
+    port = port
     agentSize = agentSize or 5
     skynet.start(function()
         local agent = {}

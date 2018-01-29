@@ -111,6 +111,10 @@ cmd4player.CMD = {
     logout = function(m, fd)
         skynet.call("watchdog", "lua", "close", fd)
     end,
+    stopserver = function(m, fd)
+        --  停服处理
+        skynet.send("watchdog", "lua", "stop")
+    end
 }
 
 return cmd4player

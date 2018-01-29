@@ -4,6 +4,7 @@ do
     require("BioOutputStream")
     require("CLLPool")
 
+    ---@class BioUtl
     BioUtl = {}
     local inputStreemPool;
     local outputStreemPool;

@@ -1,4 +1,5 @@
 ﻿-- 工具
+---@class CLUtl
 CLUtl = {}
 function CLUtl.strSplit(inputstr, sep)
     if sep == nil then

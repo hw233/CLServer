@@ -70,8 +70,9 @@ function CMD.onrequset(url, method, header, body)
         end
     else
         -- TODO: get
-        if path == "/island/stop" then
-            skynet.call("watchdog", "lua", "stop")
+        if path == "/island/stopserver" then
+            -- 停服处理
+            skynet.send("watchdog", "lua", "stop")
         end
     end
 end

@@ -99,8 +99,18 @@ defProtocol.cmds = {
         inputDesc = { }; -- 入参说明
         output = { }; -- 出参
         outputDesc = { }; -- 出参说明
+        logic = "cmd4player",
+        only4server = true,
+    },
+    stopserver = {
+        desc = "停服，客户端不用调用，服务器内部调用的指令"; -- 接口说明
+        input = { }; -- 入参
+        inputDesc = { }; -- 入参说明
+        output = { }; -- 出参
+        outputDesc = { }; -- 出参说明
         logic = "cmd4player";
-    }
+        only4server = true,
+    },
 }
 
 return defProtocol

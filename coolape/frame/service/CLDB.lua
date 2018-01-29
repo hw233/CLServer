@@ -3,7 +3,8 @@ local skynet = require "skynet"
 local sharedata = require "skynet.sharedata"
 require "skynet.manager"    -- import skynet.register
 local tablesdesign = "tablesdesign"
-require("CLUtl")
+---@type CLUtl
+local CLUtl = require("CLUtl")
 local db = {}
 local db4Group = {}
 local dbTimeout = {}
@@ -229,7 +230,10 @@ end
 
 -- 取得序列号
 function command.NEXTVAL(key)
-    key = key or "default"
+    if CLUtl.isNilOrEmpty(key) then
+        key = "default"
+    end
+
     local sql = "select nextval('" .. key .. "') as val;"
     local ret = skynet.call("CLMySQL", "lua", "exesql", sql)
     if ret and ret.errno then

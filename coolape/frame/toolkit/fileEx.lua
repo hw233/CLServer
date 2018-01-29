@@ -1,4 +1,5 @@
 ﻿-- 文件处理
+---@class fileEx
 fileEx = {}
 
 -- 取得目录下文件列表
