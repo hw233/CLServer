@@ -347,9 +347,11 @@ function command.GETDELETESQL(tableName, data)
     return sql
 end
 
-function command.STOP()
+function command.STOP(exit)
     command.FLUSHALL(true)
-    skynet.exit()
+    if exit then
+        skynet.exit()
+    end
 end
 -- ============================================================
 skynet.start(function()

@@ -70,10 +70,23 @@ function CMD.onrequset(url, method, header, body)
         end
     else
         -- TODO: get
-
+        if path == "/usermgr/stopserver" then
+            -- 停服处理
+            CMD.stop()
+            return ""
+        end
     end
 end
 
+function CMD.stop()
+    skynet.call("CLDB", "lua", "stop")
+    skynet.call("CLMySQL", "lua", "stop")
+    -- kill进程
+    local projectname = skynet.getenv("projectName")
+    local stopcmd = "ps -ef|grep config_" .. projectname .. "|grep -v grep |awk '{print $2}'|xargs -n1 kill -9"
+    io.popen(stopcmd)
+    --skynet.exit()
+end
 -- ======================================================
 skynet.start(function()
     skynet.dispatch("lua", function(_, _, command, ...)

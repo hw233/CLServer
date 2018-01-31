@@ -84,8 +84,8 @@ function CMD.stop()
         close_agent(fd)
     end
 
-    skynet.send("CLDB", "lua", "stop")
-    skynet.send("CLMySQL", "lua", "stop")
+    skynet.call("CLDB", "lua", "stop")
+    skynet.call("CLMySQL", "lua", "stop")
     -- kill进程
     local projectname = skynet.getenv("projectName")
     local stopcmd = "ps -ef|grep config_" .. projectname .. "|grep -v grep |awk '{print $2}'|xargs -n1 kill -9"

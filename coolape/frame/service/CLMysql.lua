@@ -122,12 +122,14 @@ function CMD.FLUSHALL()
     end
 end
 
-function CMD.STOP()
+function CMD.STOP(exit)
     if db then
         CMD.FLUSHALL()
     end
     CMD.DISCONNECT()
-    skynet.exit()
+    if exit then
+        skynet.exit()
+    end
 end
 ---------------------------------------------
 skynet.start(function()
