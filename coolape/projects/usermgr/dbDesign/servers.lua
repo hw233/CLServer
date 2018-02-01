@@ -8,6 +8,8 @@ local tab = {
         { "name", "varchar(45) NOT NULL", "服务器名" },
         { "status", "int(1)", "状态 0:正常; 1:爆满; 2:维护" },
         { "isnew", "bool", "新服" },
+        { "host", "varchar(32) NOT NULL", "ip" },
+        { "port", "int(11) NOT NULL", "port" },
         { "androidVer", "varchar(24)", "客户端android版本" },
         { "iosVer", "varchar(24)", "客户端ios版本" },
     },

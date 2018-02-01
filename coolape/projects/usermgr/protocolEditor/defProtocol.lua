@@ -69,6 +69,8 @@ defProtocol.structs.server = {
         isnew = { true, "新服" },
         androidVer = { "", "客户端android版本" },
         iosVer = { "", "客户端ios版本" },
+        host =  { "", "ip地址" },
+        port = {0, "端口"},
     }
 }
 --defProtocol.structs.servers = {
