@@ -83,6 +83,8 @@ CREATE TABLE `servers` (
   `name` varchar(45) NOT NULL,
   `status` int(1),
   `isnew` bool,
+  `androidVer` varchar(24),
+  `iosVer` varchar(24),
   PRIMARY KEY (`idx`, `appid`, `channel`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
@@ -90,6 +92,7 @@ CREATE TABLE `servers` (
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `idx` int(11) NOT NULL,
+  `uidChl` varchar(45) NOT NULL,
   `uid` varchar(45) NOT NULL,
   `password` varchar(45) NOT NULL,
   `crtTime` datetime,
@@ -99,7 +102,7 @@ CREATE TABLE `user` (
   `channel` varchar(45),
   `deviceid` varchar(45),
   `deviceinfor` varchar(128),
-  PRIMARY KEY (`idx`, `uid`)
+  PRIMARY KEY (`idx`, `uid`, `uidChl`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 用户与服务器关系

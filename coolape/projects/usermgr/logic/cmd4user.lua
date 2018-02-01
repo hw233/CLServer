@@ -45,7 +45,7 @@ cmd4user.CMD = {
             return NetProto.send.registAccount(ret, nil, 0, dateEx.nowMS())
         end
         ---@type dbuser
-        local myself = dbuser.instanse(m.userId)
+        local myself = dbuser.instanse(m.userId, "")
         if not CLUtl.isNilOrEmpty(myself:getuid()) then
             ret.msg = "用户名已经存在";
             ret.code = Errcode.uidregisted
@@ -54,6 +54,7 @@ cmd4user.CMD = {
         end
         local newuser = {}
         newuser.idx = Utl.nextVal("user")
+        newuser.uidChl = ""
         newuser.uid = m.userId
         newuser.password = m.password
         newuser.crtTime = dateEx.nowStr()
@@ -73,7 +74,7 @@ cmd4user.CMD = {
         ret.code = Errcode.ok
         local user = {}
         user.idx = myself:getidx()
-        user.name = "user" --  string
+        --user.name = "user" --  string
 
         local serveridx = 0
         if m.appid ~= 1001 then
@@ -86,14 +87,14 @@ cmd4user.CMD = {
 
     loginAccount = function(m, fd)
         -- 登陆
-        if m.userId == nil then
+        if CLUtl.isNilOrEmpty(m.userId) then
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
             return NetProto.send.loginAccount(ret)
         end
         ---@type dbuser
-        local myself = dbuser.instanse(m.userId)
+        local myself = dbuser.instanse(m.userId, "")
         if myself:isEmpty() then
             -- 说明是没有数据
             local ret = {}
@@ -113,10 +114,12 @@ cmd4user.CMD = {
             ret.code = Errcode.ok
             local user = {}
             user.idx = myself:getidx()
-            user.name = "user" --  string
+            myself:setlastEnTime(dateEx.nowStr())
+            --user.name = "user" --  string
 
             local serveridx = 0
-            if m.appid ~= 1001 then -- 1001:咪宝
+            if m.appid ~= 1001 then
+                -- 1001:咪宝
                 serveridx = getServerid(user.idx, m.appid, m.channel)
             end
             local ret = NetProto.send.loginAccount(ret, user, serveridx, dateEx.nowMS())
@@ -125,6 +128,58 @@ cmd4user.CMD = {
         end
     end,
 
+    loginAccountChannel = function(m, fd)
+        -- 渠道登陆
+        if CLUtl.isNilOrEmpty(m.userId) then
+            local ret = {}
+            ret.msg = "参数错误！";
+            ret.code = Errcode.error
+            return NetProto.send.loginAccount(ret)
+        end
+        local ret = {}
+        ---@type dbuser
+        local myself = dbuser.instanse("", m.userId)
+        if myself:isEmpty() then
+            -- 说明是没有数据
+            --local ret = {}
+            --ret.msg = "用户不存在";
+            --ret.code = Errcode.needregist
+            --return NetProto.send.loginAccount(ret, nil, 0, dateEx.nowMS())
+
+            local newuser = {}
+            newuser.idx = Utl.nextVal("user")
+            newuser.uidChl = m.userId
+            newuser.uid = ""
+            newuser.password = ""
+            newuser.crtTime = dateEx.nowStr()
+            newuser.lastEnTime = dateEx.nowStr()
+            newuser.status = 0
+            newuser.appid = m.appid
+            newuser.channel = m.channel
+            newuser.deviceid = m.deviceID
+            newuser.deviceinfor = m.deviceInfor
+            if not myself:init(newuser) then
+                ret.msg = "注册失败";
+                ret.code = Errcode.error
+                return NetProto.send.loginAccountChannel(ret, nil, 0, dateEx.nowMS())
+            end
+        end
+        ret.msg = nil;
+        ret.code = Errcode.ok
+        local user = {}
+        user.idx = myself:getidx()
+        myself:setlastEnTime(dateEx.nowStr())
+        --user.name = "user" --  string
+
+        local serveridx = 0
+        if m.appid ~= 1001 then
+            -- 1001:咪宝
+            serveridx = getServerid(user.idx, m.appid, m.channel)
+        end
+        local ret = NetProto.send.loginAccountChannel(ret, user, serveridx, dateEx.nowMS())
+        myself:release()
+        return ret
+    end,
 }
 
 return cmd4user

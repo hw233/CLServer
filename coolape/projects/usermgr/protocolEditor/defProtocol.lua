@@ -57,7 +57,7 @@ defProtocol.structs.userInfor = {
     "用户信息",
     {
         idx = { 0, "唯一标识" },
-        name = { "", "名字" },
+        --name = { "", "名字" },
     }
 }
 defProtocol.structs.server = {
@@ -103,7 +103,7 @@ login = {       -- 接口名
         output = { structs.retInfor, structs.userInfor, "serverid", "systime" }; -- 出参
         outputDesc = { "返回信息", "用户信息", "服务器id int", "系统时间 long" }; -- 出参说明
         logic = "cmd4user";
-    };
+    },
     loginAccount = {
         desc = "登陆"; -- 接口说明
         input = { "userId", "password", "appid", "channel" }; -- 入参
@@ -111,7 +111,15 @@ login = {       -- 接口名
         output = { structs.retInfor, structs.userInfor, "serverid", "systime" }; -- 出参
         outputDesc = { "返回信息", "用户信息", "服务器id int", "系统时间 long" }; -- 出参说明
         logic = "cmd4user";
-    };
+    },
+    loginAccountChannel = {
+        desc = "渠道登陆"; -- 接口说明
+        input = { "userId", "appid", "channel", "deviceID", "deviceInfor" }; -- 入参
+        inputDesc = { "用户名", "应用id", "渠道号" }; -- 入参说明
+        output = { structs.retInfor, structs.userInfor, "serverid", "systime" }; -- 出参
+        outputDesc = { "返回信息", "用户信息", "服务器id int", "系统时间 long" }; -- 出参说明
+        logic = "cmd4user";
+    },
     setEnterServer = {
         desc = "保存所选服务器"; -- 接口说明
         input = { "sidx", "uidx", "appid" }; -- 入参
@@ -119,7 +127,7 @@ login = {       -- 接口名
         output = { structs.retInfor }; -- 出参
         outputDesc = { "返回信息" }; -- 出参说明
         logic = "cmd4server";
-    };
+    },
     getServerInfor = {
         desc = "取得服务器信息"; -- 接口说明
         input = { "idx" }; -- 入参
@@ -127,7 +135,7 @@ login = {       -- 接口名
         output = { structs.retInfor, structs.server }; -- 出参
         outputDesc = { "返回信息", "服务器信息", }; -- 出参说明
         logic = "cmd4server";
-    };
+    },
     getServers = {
         desc = "取得服务器列表"; -- 接口说明
         input = { "appid", "channel" }; -- 入参
@@ -135,7 +143,7 @@ login = {       -- 接口名
         output = { structs.retInfor, { defProtocol.structs.server, defProtocol.structs.server } }; -- 出参
         outputDesc = { "返回信息", "服务器列表", }; -- 出参说明
         logic = "cmd4server";
-    };
+    },
 }
 
 return defProtocol

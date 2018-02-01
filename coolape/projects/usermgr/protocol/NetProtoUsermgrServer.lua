@@ -70,8 +70,10 @@ do
             local r = {}
             if m == nil then return r end
             r[13] =  BioUtl.int2bio(m.idx)  -- id int
-            r[34] = m.isnew  -- 新服 boolean
             r[14] = m.name  -- 名称 string
+            r[38] = m.iosVer  -- 客户端ios版本 string
+            r[39] = m.androidVer  -- 客户端android版本 string
+            r[34] = m.isnew  -- 新服 boolean
             r[15] =  BioUtl.int2bio(m.status)  -- 状态 0:正常; 1:爆满; 2:维护 int
             return r;
         end,
@@ -79,8 +81,10 @@ do
             local r = {}
             if m == nil then return r end
             r.idx = m[13] --  int
-            r.isnew = m[34] --  boolean
             r.name = m[14] --  string
+            r.iosVer = m[38] --  string
+            r.androidVer = m[39] --  string
+            r.isnew = m[34] --  boolean
             r.status = m[15] --  int
             return r;
         end,
@@ -91,14 +95,12 @@ do
             local r = {}
             if m == nil then return r end
             r[13] =  BioUtl.int2bio(m.idx)  -- 唯一标识 int
-            r[14] = m.name  -- 名字 string
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.idx = m[13] --  int
-            r.name = m[14] --  string
             return r;
         end,
     }
@@ -126,6 +128,14 @@ do
         ret.channel = map[25]-- 渠道号
         return ret
     end,
+    -- 取得服务器信息
+    getServerInfor = function(map)
+        local ret = {}
+        ret.cmd = "getServerInfor"
+        ret.__session__ = map[1]
+        ret.idx = map[13]-- 服务器id
+        return ret
+    end,
     -- 保存所选服务器
     setEnterServer = function(map)
         local ret = {}
@@ -147,12 +157,16 @@ do
         ret.channel = map[25]-- 渠道号
         return ret
     end,
-    -- 取得服务器信息
-    getServerInfor = function(map)
+    -- 渠道登陆
+    loginAccountChannel = function(map)
         local ret = {}
-        ret.cmd = "getServerInfor"
+        ret.cmd = "loginAccountChannel"
         ret.__session__ = map[1]
-        ret.idx = map[13]-- 服务器id
+        ret.userId = map[21]-- 用户名
+        ret.appid = map[17]-- 应用id
+        ret.channel = map[25]-- 渠道号
+        ret.deviceID = map[26]-- 
+        ret.deviceInfor = map[27]-- 
         return ret
     end,
     }
@@ -174,6 +188,13 @@ do
         ret[19] = NetProtoUsermgr._toList(NetProtoUsermgr.ST_server, servers)  -- 服务器列表
         return ret
     end,
+    getServerInfor = function(retInfor, server)
+        local ret = {}
+        ret[0] = 32
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[33] = NetProtoUsermgr.ST_server.toMap(server); -- 服务器信息
+        return ret
+    end,
     setEnterServer = function(retInfor)
         local ret = {}
         ret[0] = 29
@@ -189,27 +210,31 @@ do
         ret[35] = systime; -- 系统时间 long
         return ret
     end,
-    getServerInfor = function(retInfor, server)
+    loginAccountChannel = function(retInfor, userInfor, serverid, systime)
         local ret = {}
-        ret[0] = 32
+        ret[0] = 40
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[33] = NetProtoUsermgr.ST_server.toMap(server); -- 服务器信息
+        ret[23] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
+        ret[28] = serverid; -- 服务器id int
+        ret[35] = systime; -- 系统时间 long
         return ret
     end,
     }
     --==============================
     NetProtoUsermgr.dispatch[36]={onReceive = NetProtoUsermgr.recive.registAccount, send = NetProtoUsermgr.send.registAccount, logic = cmd4user}
     NetProtoUsermgr.dispatch[16]={onReceive = NetProtoUsermgr.recive.getServers, send = NetProtoUsermgr.send.getServers, logic = cmd4server}
+    NetProtoUsermgr.dispatch[32]={onReceive = NetProtoUsermgr.recive.getServerInfor, send = NetProtoUsermgr.send.getServerInfor, logic = cmd4server}
     NetProtoUsermgr.dispatch[29]={onReceive = NetProtoUsermgr.recive.setEnterServer, send = NetProtoUsermgr.send.setEnterServer, logic = cmd4server}
     NetProtoUsermgr.dispatch[37]={onReceive = NetProtoUsermgr.recive.loginAccount, send = NetProtoUsermgr.send.loginAccount, logic = cmd4user}
-    NetProtoUsermgr.dispatch[32]={onReceive = NetProtoUsermgr.recive.getServerInfor, send = NetProtoUsermgr.send.getServerInfor, logic = cmd4server}
+    NetProtoUsermgr.dispatch[40]={onReceive = NetProtoUsermgr.recive.loginAccountChannel, send = NetProtoUsermgr.send.loginAccountChannel, logic = cmd4user}
     --==============================
     NetProtoUsermgr.cmds = {
         registAccount = "registAccount",
         getServers = "getServers",
+        getServerInfor = "getServerInfor",
         setEnterServer = "setEnterServer",
         loginAccount = "loginAccount",
-        getServerInfor = "getServerInfor"
+        loginAccountChannel = "loginAccountChannel"
     }
 
     --==============================

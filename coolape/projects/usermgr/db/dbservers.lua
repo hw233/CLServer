@@ -96,6 +96,24 @@ function dbservers:getisnew()
     end
 end
 
+function dbservers:setandroidVer(v)
+    -- 客户端android版本
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "androidVer", v)
+end
+function dbservers:getandroidVer()
+    -- 客户端android版本
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "androidVer")
+end
+
+function dbservers:setiosVer(v)
+    -- 客户端ios版本
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "iosVer", v)
+end
+function dbservers:getiosVer()
+    -- 客户端ios版本
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "iosVer")
+end
+
 -- 把数据flush到mysql里， immd=true 立即生效
 function dbservers:flush(immd)
     local sql

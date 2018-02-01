@@ -13,7 +13,7 @@ function dbuser:ctor(v)
 end
 
 function dbuser:init(data)
-    self.__key__ = data.uid
+    self.__key__ = data.uid .. "_" .. data.uidChl
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
@@ -44,6 +44,15 @@ end
 function dbuser:getidx()
     -- 唯一标识
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+end
+
+function dbuser:setuidChl(v)
+    -- 用户id
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uidChl", v)
+end
+function dbuser:getuidChl()
+    -- 用户id
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "uidChl")
 end
 
 function dbuser:setuid(v)
@@ -139,14 +148,14 @@ function dbuser:flush(immd)
 end
 
 function dbuser:isEmpty()
-    return (self.__key__ == nil) or (self:getuid() == nil)
+    return (self.__key__ == nil) or (self:getuid() == nil) or (self:getuidChl() == nil)
 end
 
 function dbuser:release()
     skynet.call("CLDB", "lua", "SETTIMEOUT", self.__name__, self.__key__)
 end
 
-function dbuser.querySql(idx, uid)
+function dbuser.querySql(idx, uid, uidChl)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}
     if idx then
@@ -155,6 +164,9 @@ function dbuser.querySql(idx, uid)
     if uid then
         table.insert(where, "`uid`=" .. "'" .. uid  .. "'")
     end
+    if uidChl then
+        table.insert(where, "`uidChl`=" .. "'" .. uidChl  .. "'")
+    end
     if #where > 0 then
         return "SELECT * FROM user WHERE " .. table.concat(where, " and ") .. ";"
     else
@@ -162,12 +174,16 @@ function dbuser.querySql(idx, uid)
     end
 end
 
-function dbuser.instanse(uid)
+function dbuser.instanse(uid, uidChl)
     if uid == nil then
         skynet.error("[dbuser.instanse] uid == nil")
         return nil
     end
-    local key = uid
+    if uidChl == nil then
+        skynet.error("[dbuser.instanse] uidChl == nil")
+        return nil
+    end
+    local key = uid .. "_" .. uidChl
     if key == "" then
         error("the key is null", 0)
     end
@@ -176,7 +192,7 @@ function dbuser.instanse(uid)
     obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbuser.name, key)
     if d == nil then
-        d = skynet.call("CLMySQL", "lua", "exesql", dbuser.querySql(nil, uid))
+        d = skynet.call("CLMySQL", "lua", "exesql", dbuser.querySql(nil, uid, uidChl))
         if d and d.errno == nil and #d > 0 then
             if #d == 1 then
                 d = d[1]
