@@ -1,4 +1,4 @@
-local user = {
+local tab = {
     name = "user",
     desc = "用户表",
     columns = {
@@ -20,4 +20,4 @@ local user = {
     defaultData = {}, -- 初始数据
 }
 
-return user
+return tab
