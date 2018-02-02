@@ -83,6 +83,8 @@ CREATE TABLE `servers` (
   `name` varchar(45) NOT NULL,
   `status` int(1),
   `isnew` bool,
+  `host` varchar(32) NOT NULL,
+  `port` int(11) NOT NULL,
   `androidVer` varchar(24),
   `iosVer` varchar(24),
   PRIMARY KEY (`idx`, `appid`, `channel`)

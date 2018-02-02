@@ -1,4 +1,5 @@
 do
+    ---@class NetProtoUsermgr
     NetProtoUsermgr = {}
     local table = table
     require("bio.BioUtl")
@@ -67,22 +68,26 @@ do
             local r = {}
             if m == nil then return r end
             r[13] = m.idx  -- id int
+            r[41] = m.port  -- 端口 int
             r[14] = m.name  -- 名称 string
+            r[42] = m.host  -- ip地址 string
             r[38] = m.iosVer  -- 客户端ios版本 string
             r[39] = m.androidVer  -- 客户端android版本 string
-            r[34] = m.isnew  -- 新服 boolean
             r[15] = m.status  -- 状态 0:正常; 1:爆满; 2:维护 int
+            r[34] = m.isnew  -- 新服 boolean
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.idx = m[13] --  int
+            r.port = m[41] --  int
             r.name = m[14] --  string
+            r.host = m[42] --  string
             r.iosVer = m[38] --  string
             r.androidVer = m[39] --  string
-            r.isnew = m[34] --  boolean
             r.status = m[15] --  int
+            r.isnew = m[34] --  boolean
             return r;
         end,
     }

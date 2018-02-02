@@ -96,6 +96,24 @@ function dbservers:getisnew()
     end
 end
 
+function dbservers:sethost(v)
+    -- ip
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "host", v)
+end
+function dbservers:gethost()
+    -- ip
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "host")
+end
+
+function dbservers:setport(v)
+    -- port
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "port", v)
+end
+function dbservers:getport()
+    -- port
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "port")
+end
+
 function dbservers:setandroidVer(v)
     -- 客户端android版本
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "androidVer", v)

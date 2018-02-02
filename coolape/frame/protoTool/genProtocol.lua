@@ -268,6 +268,8 @@ do
         local strsServer = {}
         add(strsClient, "do");
         add(strsServer, "do");
+        add(strsClient, "    ---@class " .. defProtocol.name);
+        add(strsServer, "    ---@class " .. defProtocol.name);
         add(strsClient, "    ".. defProtocol.name .." = {}");
         add(strsServer, "    ".. defProtocol.name .." = {}");
         add(strsClient, "    local table = table");
