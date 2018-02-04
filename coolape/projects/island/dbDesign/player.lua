@@ -1,21 +1,22 @@
 local tab = {
-    name = "user",
-    desc = "用户表",
+    name = "player",
+    desc = "玩家表",
     columns = {
-        --{ "idx", "int(11) NOT NULL AUTO_INCREMENT", "唯一标识" },
         { "idx", "int(11) NOT NULL", "唯一标识" },
-        { "uid", "varchar(45) NOT NULL", "用户id" },
-        { "password", "varchar(45) NOT NULL", "用户密码" },
+        { "uidx", "varchar(45) NOT NULL", "用户id" },
+        { "status", "int(11)", "状态 1:正常;" },
+        { "lev", "int(4)", "等级" },
+        { "money", "int(11)", "充值总数" },
+        { "diam", "int(11)", "钻石" },
+        {"cityidx", "int(11)", "主城idx" },
+        { "unionidx", "int(11)", "联盟idx" },
         { "crtTime", "datetime", "创建时间" },
         { "lastEnTime", "datetime", "最后登陆时间" },
-        { "status", "int(11)", "状态 0:正常;" },
-        { "appid", "int(11) ", "应用id" },
         { "channel", "varchar(45)", "渠道" },
         { "deviceid", "varchar(45)", "机器id" },
-        { "deviceinfor", "varchar(128)", "机器信息" },
     },
-    primaryKey = {"idx", "uid" },
-    cacheKey = { "uid" }, -- 缓存key
+    primaryKey = { "idx", "uid" },
+    cacheKey = { "idx" }, -- 缓存key
     groupKey = "", -- 组key
     defaultData = {}, -- 初始数据
 }
