@@ -65,7 +65,7 @@ defProtocol.structs.server = {
     {
         idx = { 0, "id" },
         name = { "", "名称" },
-        status = { 0, "状态 0:正常; 1:爆满; 2:维护" },
+        status = { 0, "状态 1:正常; 2:爆满; 3:维护" },
         isnew = { true, "新服" },
         androidVer = { "", "客户端android版本" },
         iosVer = { "", "客户端ios版本" },

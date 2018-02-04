@@ -6,7 +6,7 @@ local tab = {
         { "appid", "int(11)  NOT NULL", "应用id" },
         { "channel", "int(11)  NOT NULL", "渠道id" },
         { "name", "varchar(45) NOT NULL", "服务器名" },
-        { "status", "int(1)", "状态 0:正常; 1:爆满; 2:维护" },
+        { "status", "int(1)", "状态 1:正常; 2:爆满; 3:维护" },
         { "isnew", "bool", "新服" },
         { "host", "varchar(32) NOT NULL", "ip" },
         { "port", "int(11) NOT NULL", "port" },

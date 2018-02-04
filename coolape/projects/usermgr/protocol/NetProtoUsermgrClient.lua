@@ -73,8 +73,8 @@ do
             r[42] = m.host  -- ip地址 string
             r[38] = m.iosVer  -- 客户端ios版本 string
             r[39] = m.androidVer  -- 客户端android版本 string
-            r[15] = m.status  -- 状态 0:正常; 1:爆满; 2:维护 int
             r[34] = m.isnew  -- 新服 boolean
+            r[15] = m.status  -- 状态 1:正常; 2:爆满; 3:维护 int
             return r;
         end,
         parse = function(m)
@@ -86,8 +86,8 @@ do
             r.host = m[42] --  string
             r.iosVer = m[38] --  string
             r.androidVer = m[39] --  string
-            r.status = m[15] --  int
             r.isnew = m[34] --  boolean
+            r.status = m[15] --  int
             return r;
         end,
     }

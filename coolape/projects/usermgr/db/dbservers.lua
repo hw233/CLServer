@@ -74,11 +74,11 @@ function dbservers:getname()
 end
 
 function dbservers:setstatus(v)
-    -- 状态 0:正常; 1:爆满; 2:维护
+    -- 状态 1:正常; 2:爆满; 3:维护
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbservers:getstatus()
-    -- 状态 0:正常; 1:爆满; 2:维护
+    -- 状态 1:正常; 2:爆满; 3:维护
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
 end
 
