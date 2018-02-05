@@ -69,6 +69,24 @@ local structs = defProtocol.structs;
 --===================================================
 -- 接口定义
 defProtocol.cmds = {
+    release = {
+        desc = "数据释放，客户端不用调用，服务器内部调用的指令"; -- 接口说明
+        input = { }; -- 入参
+        inputDesc = { }; -- 入参说明
+        output = { }; -- 出参
+        outputDesc = { }; -- 出参说明
+        logic = "cmd4player",
+        only4server = true,
+    },
+    stopserver = {
+        desc = "停服，客户端不用调用，服务器内部调用的指令"; -- 接口说明
+        input = { }; -- 入参
+        inputDesc = { }; -- 入参说明
+        output = { }; -- 出参
+        outputDesc = { }; -- 出参说明
+        logic = "cmd4player";
+        only4server = true,
+    },
     regist = {
         desc = "注册"; -- 接口说明
         input = { "uidx", "name", "icon", "channel", "deviceID" }; -- 入参
@@ -92,24 +110,6 @@ defProtocol.cmds = {
         output = { structs.retInfor }; -- 出参
         outputDesc = { "返回信息" }; -- 出参说明
         logic = "cmd4player";
-    },
-    release = {
-        desc = "数据释放，客户端不用调用，服务器内部调用的指令"; -- 接口说明
-        input = { }; -- 入参
-        inputDesc = { }; -- 入参说明
-        output = { }; -- 出参
-        outputDesc = { }; -- 出参说明
-        logic = "cmd4player",
-        only4server = true,
-    },
-    stopserver = {
-        desc = "停服，客户端不用调用，服务器内部调用的指令"; -- 接口说明
-        input = { }; -- 入参
-        inputDesc = { }; -- 入参说明
-        output = { }; -- 出参
-        outputDesc = { }; -- 出参说明
-        logic = "cmd4player";
-        only4server = true,
     },
 }
 
