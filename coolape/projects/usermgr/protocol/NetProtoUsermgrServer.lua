@@ -1,8 +1,8 @@
 do
     ---@class NetProtoUsermgr
+    NetProtoUsermgr = {}
     local cmd4server = require("cmd4server")
     local cmd4user = require("cmd4user")
-    NetProtoUsermgr = {}
     local table = table
     local skynet = require "skynet"
 
@@ -158,8 +158,8 @@ do
         ret.__session__ = map[1]
         ret.userId = map[21]-- 用户名
         ret.password = map[22]-- 密码
-        ret.appid = map[17]-- 应用id
-        ret.channel = map[25]-- 渠道号
+        ret.appid = map[17]-- 应用id int
+        ret.channel = map[25]-- 渠道号 string
         return ret
     end,
     -- 渠道登陆
@@ -168,8 +168,8 @@ do
         ret.cmd = "loginAccountChannel"
         ret.__session__ = map[1]
         ret.userId = map[21]-- 用户名
-        ret.appid = map[17]-- 应用id
-        ret.channel = map[25]-- 渠道号
+        ret.appid = map[17]-- 应用id int
+        ret.channel = map[25]-- 渠道号 string
         ret.deviceID = map[26]-- 
         ret.deviceInfor = map[27]-- 
         return ret
@@ -182,8 +182,16 @@ do
         ret[0] = 36
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[23] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
-        ret[28] = serverid; -- 服务器id int
-        ret[35] = systime; -- 系统时间 long
+        if type(serverid) == "number" then
+            ret[28] = BioUtl.number2bio(serverid); -- 服务器id int
+        else
+            ret[28] = serverid; -- 服务器id int
+        end
+        if type(systime) == "number" then
+            ret[35] = BioUtl.number2bio(systime); -- 系统时间 long
+        else
+            ret[35] = systime; -- 系统时间 long
+        end
         return ret
     end,
     getServers = function(retInfor, servers)
@@ -211,8 +219,16 @@ do
         ret[0] = 37
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[23] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
-        ret[28] = serverid; -- 服务器id int
-        ret[35] = systime; -- 系统时间 long
+        if type(serverid) == "number" then
+            ret[28] = BioUtl.number2bio(serverid); -- 服务器id int
+        else
+            ret[28] = serverid; -- 服务器id int
+        end
+        if type(systime) == "number" then
+            ret[35] = BioUtl.number2bio(systime); -- 系统时间 long
+        else
+            ret[35] = systime; -- 系统时间 long
+        end
         return ret
     end,
     loginAccountChannel = function(retInfor, userInfor, serverid, systime)
@@ -220,8 +236,16 @@ do
         ret[0] = 40
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[23] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
-        ret[28] = serverid; -- 服务器id int
-        ret[35] = systime; -- 系统时间 long
+        if type(serverid) == "number" then
+            ret[28] = BioUtl.number2bio(serverid); -- 服务器id int
+        else
+            ret[28] = serverid; -- 服务器id int
+        end
+        if type(systime) == "number" then
+            ret[35] = BioUtl.number2bio(systime); -- 系统时间 long
+        else
+            ret[35] = systime; -- 系统时间 long
+        end
         return ret
     end,
     }

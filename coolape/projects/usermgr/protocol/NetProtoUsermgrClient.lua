@@ -155,8 +155,8 @@ do
         ret[1] = NetProtoUsermgr.__sessionID
         ret[21] = userId; -- 用户名
         ret[22] = password; -- 密码
-        ret[17] = appid; -- 应用id
-        ret[25] = channel; -- 渠道号
+        ret[17] = appid; -- 应用id int
+        ret[25] = channel; -- 渠道号 string
         return ret
     end,
     -- 渠道登陆
@@ -165,8 +165,8 @@ do
         ret[0] = 40
         ret[1] = NetProtoUsermgr.__sessionID
         ret[21] = userId; -- 用户名
-        ret[17] = appid; -- 应用id
-        ret[25] = channel; -- 渠道号
+        ret[17] = appid; -- 应用id int
+        ret[25] = channel; -- 渠道号 string
         ret[26] = deviceID; -- 
         ret[27] = deviceInfor; -- 
         return ret

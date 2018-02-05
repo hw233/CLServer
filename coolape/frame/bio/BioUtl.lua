@@ -89,6 +89,19 @@ do
             return 0;
         end
     end
+
+    function BioUtl.bio2number(bytes)
+        local n = BioUtl.readObject(bytes)
+        if type(n) == "number" then
+            return n
+        else
+            return 0
+        end
+    end
+
+    function BioUtl.number2bio(n)
+        return BioUtl.writeObject(n)
+    end
     --------------------------------------------
     return BioUtl;
 end

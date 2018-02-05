@@ -390,7 +390,15 @@ do
                             add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = ".. defProtocol.name .."." .. StructHead .. pname .. ".toMap(".. pname .."); -- " .. (inputDesList[i] or ""));
                         end
                     else
-                        add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = " .. pname .. "; -- " .. (inputDesList[i] or ""));
+                        if defProtocol.isSendClientInt2bio then
+                            add(toMapStrServer, "        if type(" .. pname .. ") == \"number\" then")
+                            add(toMapStrServer, "            ret[" .. getKeyCode(pname) .. "] = BioUtl.number2bio(" .. pname .. "); -- " .. (inputDesList[i] or ""));
+                            add(toMapStrServer, "        else")
+                            add(toMapStrServer, "            ret[" .. getKeyCode(pname) .. "] = " .. pname .. "; -- " .. (inputDesList[i] or ""));
+                            add(toMapStrServer, "        end")
+                        else
+                            add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = " .. pname .. "; -- " .. (inputDesList[i] or ""));
+                        end
                     end
 
                     if isList then
@@ -534,7 +542,7 @@ do
         add(strsServer, "end");
 
         for k,v in pairs(requires) do
-            table.insert(strsServer, 3, "    local " .. k .. " = require(\"".. k .. "\")")
+            table.insert(strsServer, 4, "    local " .. k .. " = require(\"".. k .. "\")")
         end
 
         --==================

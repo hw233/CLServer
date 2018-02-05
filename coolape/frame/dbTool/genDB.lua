@@ -217,6 +217,10 @@ function genDB.genLuaFile(outPath, tableCfg)
     for i, v in ipairs(tableCfg.columns) do
         table.insert(getsetFunc, "function " .. name .. ":set" .. v[1] .. "(v)")
         table.insert(getsetFunc, "    " .. ( v[3] and "-- " .. v[3] or ""))
+        table.insert(getsetFunc, "    if self:isEmpty() then")
+        table.insert(getsetFunc, "        skynet.error(\"[" .. name .. ":set" .. v[1].. "],please init first!!\")")
+        table.insert(getsetFunc, "        return nil")
+        table.insert(getsetFunc, "    end")
         table.insert(getsetFunc, "    skynet.call(\"CLDB\", \"lua\", \"set\", self.__name__, self.__key__, \"" .. v[1] .. "\", v)")
         table.insert(getsetFunc, "end")
         table.insert(getsetFunc, "function " .. name .. ":get" .. v[1] .. "()")
@@ -463,14 +467,20 @@ function genDB.genLuaFile(outPath, tableCfg)
     else
         table.insert(str, "function " .. name .. ".instanse()")
     end
+
+    local checkNil = {}
+    local keyTmp = {}
     for i, v in ipairs(tableCfg.cacheKey) do
-        table.insert(str, "    if " .. v .. " == nil then")
-        table.insert(str, "        skynet.error(\"[" .. name .. ".instanse] " .. v .. " == nil\")")
-        table.insert(str, "        return nil")
-        table.insert(str, "    end")
+        table.insert(checkNil, v .. " == nil")
+        table.insert(keyTmp, "(" .. v .. " or \"\")")
     end
 
-    table.insert(str, "    local key = " .. table.concat(tableCfg.cacheKey, " .. \"_\" .. "))
+    table.insert(str, "    if " .. table.concat(checkNil, " and ") .. " then")
+    table.insert(str, "        skynet.error(\"[" .. name .. ".instanse] all input params == nil\")")
+    table.insert(str, "        return nil")
+    table.insert(str, "    end")
+
+    table.insert(str, "    local key = " .. table.concat(keyTmp, " .. \"_\" .. "))
     table.insert(str, "    if key == \"\" then")
     table.insert(str, "        error(\"the key is null\", 0)")
     --table.insert(str, "        return ")

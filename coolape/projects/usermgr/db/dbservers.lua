@@ -39,6 +39,10 @@ end
 
 function dbservers:setidx(v)
     -- 唯一标识
+    if self:isEmpty() then
+        skynet.error("[dbservers:setidx],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
 function dbservers:getidx()
@@ -48,6 +52,10 @@ end
 
 function dbservers:setappid(v)
     -- 应用id
+    if self:isEmpty() then
+        skynet.error("[dbservers:setappid],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
 function dbservers:getappid()
@@ -57,6 +65,10 @@ end
 
 function dbservers:setchannel(v)
     -- 渠道id
+    if self:isEmpty() then
+        skynet.error("[dbservers:setchannel],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "channel", v)
 end
 function dbservers:getchannel()
@@ -66,6 +78,10 @@ end
 
 function dbservers:setname(v)
     -- 服务器名
+    if self:isEmpty() then
+        skynet.error("[dbservers:setname],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
 end
 function dbservers:getname()
@@ -75,6 +91,10 @@ end
 
 function dbservers:setstatus(v)
     -- 状态 1:正常; 2:爆满; 3:维护
+    if self:isEmpty() then
+        skynet.error("[dbservers:setstatus],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbservers:getstatus()
@@ -84,6 +104,10 @@ end
 
 function dbservers:setisnew(v)
     -- 新服
+    if self:isEmpty() then
+        skynet.error("[dbservers:setisnew],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "isnew", v)
 end
 function dbservers:getisnew()
@@ -98,6 +122,10 @@ end
 
 function dbservers:sethost(v)
     -- ip
+    if self:isEmpty() then
+        skynet.error("[dbservers:sethost],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "host", v)
 end
 function dbservers:gethost()
@@ -107,6 +135,10 @@ end
 
 function dbservers:setport(v)
     -- port
+    if self:isEmpty() then
+        skynet.error("[dbservers:setport],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "port", v)
 end
 function dbservers:getport()
@@ -116,6 +148,10 @@ end
 
 function dbservers:setandroidVer(v)
     -- 客户端android版本
+    if self:isEmpty() then
+        skynet.error("[dbservers:setandroidVer],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "androidVer", v)
 end
 function dbservers:getandroidVer()
@@ -125,6 +161,10 @@ end
 
 function dbservers:setiosVer(v)
     -- 客户端ios版本
+    if self:isEmpty() then
+        skynet.error("[dbservers:setiosVer],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "iosVer", v)
 end
 function dbservers:getiosVer()
@@ -161,7 +201,7 @@ function dbservers.querySql(idx, appid, channel)
         table.insert(where, "`appid`=" .. appid)
     end
     if channel then
-        table.insert(where, "`channel`=" .. channel)
+        table.insert(where, "`channel`=" .. "'" .. channel  .. "'")
     end
     if #where > 0 then
         return "SELECT * FROM servers WHERE " .. table.concat(where, " and ") .. ";"
@@ -191,10 +231,10 @@ end
 
 function dbservers.instanse(idx)
     if idx == nil then
-        skynet.error("[dbservers.instanse] idx == nil")
+        skynet.error("[dbservers.instanse] all input params == nil")
         return nil
     end
-    local key = idx
+    local key = (idx or "")
     if key == "" then
         error("the key is null", 0)
     end

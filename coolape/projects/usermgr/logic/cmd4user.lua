@@ -19,20 +19,36 @@ local function getServerid(uidx, appid, channel)
     if not appid then
         return 0
     end
+    local serveridx = 0
+    ---@type dbuserserver
     local us = dbuserserver.instanse(uidx, appid)
     if us:isEmpty() then
         -- 说明该用户是第一次进来
         local list = dbservers.getList(appid)
         if list and #list > 0 then
             for i, v in ipairs(list) do
-                if v.isnew and (channel == nil or v.channel == channel) then
-                    return v.idx
+                CLUtl.dump(v)
+                print(v.isnew)
+                if v.isnew and (channel == nil or channel == "" or v.channel == channel) then
+                    serveridx = v.idx
+                    break
                 end
             end
-            return list[1].idx
+            if serveridx <= 0 then
+                serveridx = list[1].idx
+            end
+            local d= {}
+            d.appid = appid
+            d.sidx = serveridx
+            d.uidx = uidx
+            us:init(d)
+            us:release()
         end
+    else
+        serveridx = (us:getsidx() or 0)
+        us:release()
     end
-    return (us:getsidx() or 0)
+    return serveridx
 end
 
 cmd4user.CMD = {
@@ -45,7 +61,7 @@ cmd4user.CMD = {
             return NetProto.send.registAccount(ret, nil, 0, dateEx.nowMS())
         end
         ---@type dbuser
-        local myself = dbuser.instanse(m.userId, "")
+        local myself = dbuser.instanse(m.userId, nil)
         if not CLUtl.isNilOrEmpty(myself:getuid()) then
             ret.msg = "用户名已经存在";
             ret.code = Errcode.uidregisted
@@ -94,7 +110,7 @@ cmd4user.CMD = {
             return NetProto.send.loginAccount(ret)
         end
         ---@type dbuser
-        local myself = dbuser.instanse(m.userId, "")
+        local myself = dbuser.instanse(m.userId, nil)
         if myself:isEmpty() then
             -- 说明是没有数据
             local ret = {}
@@ -138,7 +154,7 @@ cmd4user.CMD = {
         end
         local ret = {}
         ---@type dbuser
-        local myself = dbuser.instanse("", m.userId)
+        local myself = dbuser.instanse(nil, m.userId)
         if myself:isEmpty() then
             -- 说明是没有数据
             --local ret = {}

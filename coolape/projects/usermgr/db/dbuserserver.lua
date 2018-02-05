@@ -39,6 +39,10 @@ end
 
 function dbuserserver:setsidx(v)
     -- 服务器id
+    if self:isEmpty() then
+        skynet.error("[dbuserserver:setsidx],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "sidx", v)
 end
 function dbuserserver:getsidx()
@@ -48,6 +52,10 @@ end
 
 function dbuserserver:setuidx(v)
     -- 用户id
+    if self:isEmpty() then
+        skynet.error("[dbuserserver:setuidx],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uidx", v)
 end
 function dbuserserver:getuidx()
@@ -57,6 +65,10 @@ end
 
 function dbuserserver:setappid(v)
     -- 应用id
+    if self:isEmpty() then
+        skynet.error("[dbuserserver:setappid],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
 function dbuserserver:getappid()
@@ -100,15 +112,11 @@ function dbuserserver.querySql(uidx, appid)
 end
 
 function dbuserserver.instanse(uidx, appid)
-    if uidx == nil then
-        skynet.error("[dbuserserver.instanse] uidx == nil")
+    if uidx == nil and appid == nil then
+        skynet.error("[dbuserserver.instanse] all input params == nil")
         return nil
     end
-    if appid == nil then
-        skynet.error("[dbuserserver.instanse] appid == nil")
-        return nil
-    end
-    local key = uidx .. "_" .. appid
+    local key = (uidx or "") .. "_" .. (appid or "")
     if key == "" then
         error("the key is null", 0)
     end

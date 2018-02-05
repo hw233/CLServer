@@ -39,6 +39,10 @@ end
 
 function dbuser:setidx(v)
     -- 唯一标识
+    if self:isEmpty() then
+        skynet.error("[dbuser:setidx],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
 function dbuser:getidx()
@@ -48,6 +52,10 @@ end
 
 function dbuser:setuidChl(v)
     -- 用户id
+    if self:isEmpty() then
+        skynet.error("[dbuser:setuidChl],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uidChl", v)
 end
 function dbuser:getuidChl()
@@ -57,6 +65,10 @@ end
 
 function dbuser:setuid(v)
     -- 用户id
+    if self:isEmpty() then
+        skynet.error("[dbuser:setuid],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uid", v)
 end
 function dbuser:getuid()
@@ -66,6 +78,10 @@ end
 
 function dbuser:setpassword(v)
     -- 用户密码
+    if self:isEmpty() then
+        skynet.error("[dbuser:setpassword],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "password", v)
 end
 function dbuser:getpassword()
@@ -75,6 +91,10 @@ end
 
 function dbuser:setcrtTime(v)
     -- 创建时间
+    if self:isEmpty() then
+        skynet.error("[dbuser:setcrtTime],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "crtTime", v)
 end
 function dbuser:getcrtTime()
@@ -84,6 +104,10 @@ end
 
 function dbuser:setlastEnTime(v)
     -- 最后登陆时间
+    if self:isEmpty() then
+        skynet.error("[dbuser:setlastEnTime],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lastEnTime", v)
 end
 function dbuser:getlastEnTime()
@@ -93,6 +117,10 @@ end
 
 function dbuser:setstatus(v)
     -- 状态 0:正常;
+    if self:isEmpty() then
+        skynet.error("[dbuser:setstatus],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbuser:getstatus()
@@ -102,6 +130,10 @@ end
 
 function dbuser:setappid(v)
     -- 应用id
+    if self:isEmpty() then
+        skynet.error("[dbuser:setappid],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
 function dbuser:getappid()
@@ -111,6 +143,10 @@ end
 
 function dbuser:setchannel(v)
     -- 渠道
+    if self:isEmpty() then
+        skynet.error("[dbuser:setchannel],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "channel", v)
 end
 function dbuser:getchannel()
@@ -120,6 +156,10 @@ end
 
 function dbuser:setdeviceid(v)
     -- 机器id
+    if self:isEmpty() then
+        skynet.error("[dbuser:setdeviceid],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "deviceid", v)
 end
 function dbuser:getdeviceid()
@@ -129,6 +169,10 @@ end
 
 function dbuser:setdeviceinfor(v)
     -- 机器信息
+    if self:isEmpty() then
+        skynet.error("[dbuser:setdeviceinfor],please init first!!")
+        return nil
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "deviceinfor", v)
 end
 function dbuser:getdeviceinfor()
@@ -175,15 +219,11 @@ function dbuser.querySql(idx, uid, uidChl)
 end
 
 function dbuser.instanse(uid, uidChl)
-    if uid == nil then
-        skynet.error("[dbuser.instanse] uid == nil")
+    if uid == nil and uidChl == nil then
+        skynet.error("[dbuser.instanse] all input params == nil")
         return nil
     end
-    if uidChl == nil then
-        skynet.error("[dbuser.instanse] uidChl == nil")
-        return nil
-    end
-    local key = uid .. "_" .. uidChl
+    local key = (uid or "") .. "_" .. (uidChl or "")
     if key == "" then
         error("the key is null", 0)
     end
