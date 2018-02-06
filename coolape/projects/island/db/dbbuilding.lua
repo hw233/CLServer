@@ -2,6 +2,7 @@ require("class")
 local skynet = require "skynet"
 
 -- 建筑表
+---@class dbbuilding
 dbbuilding = class("dbbuilding")
 
 dbbuilding.name = "building"

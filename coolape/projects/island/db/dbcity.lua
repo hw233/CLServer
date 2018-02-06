@@ -2,6 +2,7 @@ require("class")
 local skynet = require "skynet"
 
 -- 主城表
+---@class dbcity
 dbcity = class("dbcity")
 
 dbcity.name = "city"

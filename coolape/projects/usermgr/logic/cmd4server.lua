@@ -5,7 +5,7 @@ require("dbservers")
 require("Errcode")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
-local Utl = require "Utl"
+local DBUtl = require "DBUtl"
 ---@type dateEx
 local dateEx = require("dateEx")
 ---@type NetProtoUsermgr

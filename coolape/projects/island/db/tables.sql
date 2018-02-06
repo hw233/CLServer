@@ -105,7 +105,6 @@ CREATE TABLE `city` (
 DROP TABLE IF EXISTS `player`;
 CREATE TABLE `player` (
   `idx` int(11) NOT NULL,
-  `uidx` varchar(45) NOT NULL,
   `status` int(11),
   `lev` int(4),
   `money` int(11),
@@ -116,5 +115,5 @@ CREATE TABLE `player` (
   `lastEnTime` datetime,
   `channel` varchar(45),
   `deviceid` varchar(45),
-  PRIMARY KEY (`idx`, `uid`)
+  PRIMARY KEY (`idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

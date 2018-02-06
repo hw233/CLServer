@@ -2,6 +2,7 @@ require("class")
 local skynet = require "skynet"
 
 -- 玩家表
+---@class dbplayer
 dbplayer = class("dbplayer")
 
 dbplayer.name = "player"
@@ -48,19 +49,6 @@ end
 function dbplayer:getidx()
     -- 唯一标识
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
-end
-
-function dbplayer:setuidx(v)
-    -- 用户id
-    if self:isEmpty() then
-        skynet.error("[dbplayer:setuidx],please init first!!")
-        return nil
-    end
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uidx", v)
-end
-function dbplayer:getuidx()
-    -- 用户id
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "uidx")
 end
 
 function dbplayer:setstatus(v)
@@ -212,14 +200,11 @@ function dbplayer:release()
     skynet.call("CLDB", "lua", "SETTIMEOUT", self.__name__, self.__key__)
 end
 
-function dbplayer.querySql(idx, uid)
+function dbplayer.querySql(idx)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}
     if idx then
         table.insert(where, "`idx`=" .. idx)
-    end
-    if uid then
-        table.insert(where, "`uid`=" .. "'" .. uid  .. "'")
     end
     if #where > 0 then
         return "SELECT * FROM player WHERE " .. table.concat(where, " and ") .. ";"
@@ -242,7 +227,7 @@ function dbplayer.instanse(idx)
     obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbplayer.name, key)
     if d == nil then
-        d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(idx, nil))
+        d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(idx))
         if d and d.errno == nil and #d > 0 then
             if #d == 1 then
                 d = d[1]

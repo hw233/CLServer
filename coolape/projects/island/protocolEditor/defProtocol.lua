@@ -58,6 +58,11 @@ defProtocol.structs.player = {
     {
         idx = { 0, "唯一标识" },
         name = { "", "名字" },
+        status = { 0, "状态 1：正常" },
+        lev = { 0, "等级" },
+        diam = { 0, "钻石" },
+        cityidx = { 0, "城池id" },
+        unionidx = { 0, "联盟id" },
     }
 }
 --===================================================
@@ -87,14 +92,14 @@ defProtocol.cmds = {
         logic = "cmd4player";
         only4server = true,
     },
-    regist = {
-        desc = "注册"; -- 接口说明
-        input = { "uidx", "name", "icon", "channel", "deviceID" }; -- 入参
-        inputDesc = { "用户id", "名字", "头像", "渠道号", "机器码" }; -- 入参说明
-        output = { structs.retInfor, structs.player, "systime", "session" }; -- 出参
-        outputDesc = { "返回信息", "玩家信息", "系统时间 long", "会话id" }; -- 出参说明
-        logic = "cmd4player";
-    },
+--regist = {
+--    desc = "注册"; -- 接口说明
+--    input = { "uidx", "name", "icon", "channel", "deviceID" }; -- 入参
+--    inputDesc = { "用户id", "名字", "头像", "渠道号", "机器码" }; -- 入参说明
+--    output = { structs.retInfor, structs.player, "systime", "session" }; -- 出参
+--    outputDesc = { "返回信息", "玩家信息", "系统时间 long", "会话id" }; -- 出参说明
+--    logic = "cmd4player";
+--},
     login = {
         desc = "登陆"; -- 接口说明
         input = { "uidx", "channel", "deviceID" }; -- 入参

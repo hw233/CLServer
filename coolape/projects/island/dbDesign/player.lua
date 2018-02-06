@@ -3,8 +3,8 @@ local tab = {
     desc = "玩家表",
     columns = {
         { "idx", "int(11) NOT NULL", "唯一标识" },
-        { "uidx", "varchar(45) NOT NULL", "用户id" },
         { "status", "int(11)", "状态 1:正常;" },
+        { "name", "varchar(45)", "名称" },
         { "lev", "int(4)", "等级" },
         { "money", "int(11)", "充值总数" },
         { "diam", "int(11)", "钻石" },
@@ -15,7 +15,7 @@ local tab = {
         { "channel", "varchar(45)", "渠道" },
         { "deviceid", "varchar(45)", "机器id" },
     },
-    primaryKey = { "idx", "uid" },
+    primaryKey = { "idx"},
     cacheKey = { "idx" }, -- 缓存key
     groupKey = "", -- 组key
     defaultData = {}, -- 初始数据
