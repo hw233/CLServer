@@ -74,39 +74,47 @@ DELIMITER ;
 #----------------------------------------------
         
 #----------------------------------------------------
-#---- 服务器列表
-DROP TABLE IF EXISTS `servers`;
-CREATE TABLE `servers` (
+#---- 建筑表
+DROP TABLE IF EXISTS `building`;
+CREATE TABLE `building` (
   `idx` int(11) NOT NULL,
-  `appid` int(11)  NOT NULL,
-  `channel` int(11)  NOT NULL,
-  `name` varchar(45) NOT NULL,
-  `status` int(1),
-  `isnew` bool,
-  PRIMARY KEY (`idx`, `appid`, `channel`)
+  `cidx` varchar(45) NOT NULL,
+  `pos` varchar(45) NOT NULL,
+  `attrid` int(5),
+  `lev` int(5),
+  `val` int(11),
+  `val2` int(11),
+  `val3` int(11),
+  `val4` int(11),
+  PRIMARY KEY (`idx`, `cidx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
-#---- 用户表
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
+#---- 主城表
+DROP TABLE IF EXISTS `city`;
+CREATE TABLE `city` (
   `idx` int(11) NOT NULL,
-  `uid` varchar(45) NOT NULL,
-  `password` varchar(45) NOT NULL,
+  `name` varchar(45),
+  `pidx` varchar(45) NOT NULL,
+  `pos` int(11),
+  `status` int(11),
+  `lev` int(4),
+  PRIMARY KEY (`idx`, `pidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 玩家表
+DROP TABLE IF EXISTS `player`;
+CREATE TABLE `player` (
+  `idx` int(11) NOT NULL,
+  `uidx` varchar(45) NOT NULL,
+  `status` int(11),
+  `lev` int(4),
+  `money` int(11),
+  `diam` int(11),
+  `cityidx` int(11),
+  `unionidx` int(11),
   `crtTime` datetime,
   `lastEnTime` datetime,
-  `status` int(11),
-  `appid` int(11) ,
   `channel` varchar(45),
   `deviceid` varchar(45),
-  `deviceinfor` varchar(128),
   PRIMARY KEY (`idx`, `uid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-#----------------------------------------------------
-#---- 用户与服务器关系
-DROP TABLE IF EXISTS `userserver`;
-CREATE TABLE `userserver` (
-  `sidx` int(11) NOT NULL,
-  `uidx` int(11) NOT NULL,
-  `appid` int(11) NOT NULL,
-  PRIMARY KEY (`uidx`, `appid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

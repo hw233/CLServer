@@ -4,11 +4,14 @@ require "skynet.manager"    -- import skynet.register
 local sharedata = require "skynet.sharedata"
 require("CLUtl")
 require("fileEx")
+---@type json
+local json = require("json")
 
 local command = {}
 
 local sharedataKeys = {
     tablesdesign = "__tablesdesign__", -- 表设计
+    dataCfg = "__dataCfg__", -- 数据配制
 }
 --==========================================
 --==========================================
@@ -19,15 +22,51 @@ local function init()
     path = path .. "dbDesign/"
     local tables = fileEx.getFiles(path, "lua")
     for i, v in ipairs(tables) do
-        local t = dofile(path .. v );
+        local t = dofile(path .. v )
         if tablesdesign[t.name] then
-            skynet.error();
+            skynet.error()
         else
-            tablesdesign[t.name] = t;
+            tablesdesign[t.name] = t
         end
     end
-    sharedata.new(sharedataKeys.tablesdesign, tablesdesign);
+    sharedata.new(sharedataKeys.tablesdesign, tablesdesign)
 
+    -- 加载配制数据
+    local cfgDatas = {};
+    path = assert(skynet.getenv("projectPath"))
+    path = path .. "cfg/"
+    local files = fileEx.getFiles(path, "json") or {}
+    local jsonstr
+    local list
+    local cfg
+    local cfgName
+    for i, fileName in ipairs(files) do
+        cfg = {}
+        jsonstr = fileEx.readAll(path .. fileName )
+        list = json.decode(jsonstr)
+        if #list < 2 then
+            skynet.error("load data cfg error.path=[" .. path .. fileName .. "]")
+        else
+            local keys = list[1] -- 第一行是字段名
+            local count = #list - 1
+            local cellList
+            local cell = {}
+            for i = 2, count do
+                cellList = list[i]
+                for j, v in ipairs(cellList) do
+                    cell[keys[j]] = v
+                end
+                if cell.ID then
+                    cfg[cell.ID] = cell
+                else
+                    table.insert(cfg, cell)
+                end
+            end
+        end
+        cfgName = string.gsub(fileName, "%.json", "")
+        cfgDatas[cfgName] = cfg
+    end
+    sharedata.new(sharedataKeys.dataCfg, cfgDatas)
 end
 
 --==========================================
@@ -35,19 +74,19 @@ end
 -- 取得共享数据，可以传多个key
 function command.GET(key1, ...)
     local d = sharedata.query(key1)
-    local keys = {...}
+    local keys = { ... }
     if d then
         if #keys > 0 then
-            local sd = d;
+            local sd = d
             for i, k in ipairs(keys) do
                 sd = sd[k]
                 if sd == nil then
-                    return nil;
+                    return nil
                 end
             end
-            return sd;
+            return sd
         else
-            return d;
+            return d
         end
     end
     return nil
@@ -58,10 +97,15 @@ function command.GETTABLESCFG(tableName)
     return command.GET(sharedataKeys.tablesdesign, tableName)
 end
 
+-- 取得数据配制，可以传多个key
+function command.GETDATACFG(cfgName, ...)
+    return command.GET(sharedataKeys.dataCfg, cfgName, ...)
+end
+
 --==========================================
 --==========================================
 skynet.start(function()
-    init();
+    init()
 
     skynet.dispatch("lua", function(session, address, cmd, ...)
         cmd = cmd:upper()

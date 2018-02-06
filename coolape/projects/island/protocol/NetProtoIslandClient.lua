@@ -1,4 +1,5 @@
 do
+    ---@class NetProtoIsland
     NetProtoIsland = {}
     local table = table
     require("bio.BioUtl")
@@ -80,17 +81,10 @@ do
     }
     --==============================
     NetProtoIsland.send = {
-    -- 数据释放，客户端不用调用，服务器内部调用的指令
-    release = function()
+    -- 停服，客户端不用调用，服务器内部调用的指令
+    stopserver = function()
         local ret = {}
-        ret[0] = 14
-        ret[1] = NetProtoIsland.__sessionID
-        return ret
-    end,
-    -- 登陆
-    logout = function()
-        local ret = {}
-        ret[0] = 15
+        ret[0] = 25
         ret[1] = NetProtoIsland.__sessionID
         return ret
     end,
@@ -116,18 +110,26 @@ do
         ret[19] = deviceID; -- 机器码
         return ret
     end,
+    -- 数据释放，客户端不用调用，服务器内部调用的指令
+    release = function()
+        local ret = {}
+        ret[0] = 14
+        ret[1] = NetProtoIsland.__sessionID
+        return ret
+    end,
+    -- 登出
+    logout = function()
+        local ret = {}
+        ret[0] = 15
+        ret[1] = NetProtoIsland.__sessionID
+        return ret
+    end,
     }
     --==============================
     NetProtoIsland.recive = {
-    release = function(map)
+    stopserver = function(map)
         local ret = {}
-        ret.cmd = "release"
-        return ret
-    end,
-    logout = function(map)
-        local ret = {}
-        ret.cmd = "logout"
-        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.cmd = "stopserver"
         return ret
     end,
     login = function(map)
@@ -148,18 +150,31 @@ do
         ret.session = map[22]-- 会话id
         return ret
     end,
+    release = function(map)
+        local ret = {}
+        ret.cmd = "release"
+        return ret
+    end,
+    logout = function(map)
+        local ret = {}
+        ret.cmd = "logout"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        return ret
+    end,
     }
     --==============================
-    NetProtoIsland.dispatch[14]={onReceive = NetProtoIsland.recive.release, send = NetProtoIsland.send.release}
-    NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout}
+    NetProtoIsland.dispatch[25]={onReceive = NetProtoIsland.recive.stopserver, send = NetProtoIsland.send.stopserver}
     NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login}
     NetProtoIsland.dispatch[23]={onReceive = NetProtoIsland.recive.regist, send = NetProtoIsland.send.regist}
+    NetProtoIsland.dispatch[14]={onReceive = NetProtoIsland.recive.release, send = NetProtoIsland.send.release}
+    NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout}
     --==============================
     NetProtoIsland.cmds = {
-        release = "release",
-        logout = "logout",
+        stopserver = "stopserver",
         login = "login",
-        regist = "regist"
+        regist = "regist",
+        release = "release",
+        logout = "logout"
     }
     --==============================
     return NetProtoIsland

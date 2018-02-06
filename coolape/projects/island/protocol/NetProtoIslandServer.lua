@@ -1,4 +1,5 @@
 do
+    ---@class NetProtoIsland
     NetProtoIsland = {}
     local cmd4player = require("cmd4player")
     local table = table
@@ -82,17 +83,10 @@ do
     }
     --==============================
     NetProtoIsland.recive = {
-    -- 数据释放，客户端不用调用，服务器内部调用的指令
-    release = function(map)
+    -- 停服，客户端不用调用，服务器内部调用的指令
+    stopserver = function(map)
         local ret = {}
-        ret.cmd = "release"
-        ret.__session__ = map[1]
-        return ret
-    end,
-    -- 登陆
-    logout = function(map)
-        local ret = {}
-        ret.cmd = "logout"
+        ret.cmd = "stopserver"
         ret.__session__ = map[1]
         return ret
     end,
@@ -118,9 +112,62 @@ do
         ret.deviceID = map[19]-- 机器码
         return ret
     end,
+    -- 数据释放，客户端不用调用，服务器内部调用的指令
+    release = function(map)
+        local ret = {}
+        ret.cmd = "release"
+        ret.__session__ = map[1]
+        return ret
+    end,
+    -- 登出
+    logout = function(map)
+        local ret = {}
+        ret.cmd = "logout"
+        ret.__session__ = map[1]
+        return ret
+    end,
     }
     --==============================
     NetProtoIsland.send = {
+    stopserver = function()
+        local ret = {}
+        ret[0] = 25
+        return ret
+    end,
+    login = function(retInfor, player, systime, session)
+        local ret = {}
+        ret[0] = 16
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[20] = NetProtoIsland.ST_player.toMap(player); -- 玩家信息
+        if type(systime) == "number" then
+            ret[21] = BioUtl.number2bio(systime); -- 系统时间 long
+        else
+            ret[21] = systime; -- 系统时间 long
+        end
+        if type(session) == "number" then
+            ret[22] = BioUtl.number2bio(session); -- 会话id
+        else
+            ret[22] = session; -- 会话id
+        end
+        return ret
+    end,
+    regist = function(retInfor, player, systime, session)
+        local ret = {}
+        ret[0] = 23
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[20] = NetProtoIsland.ST_player.toMap(player); -- 玩家信息
+        if type(systime) == "number" then
+            ret[21] = BioUtl.number2bio(systime); -- 系统时间 long
+        else
+            ret[21] = systime; -- 系统时间 long
+        end
+        if type(session) == "number" then
+            ret[22] = BioUtl.number2bio(session); -- 会话id
+        else
+            ret[22] = session; -- 会话id
+        end
+        return ret
+    end,
     release = function()
         local ret = {}
         ret[0] = 14
@@ -132,36 +179,20 @@ do
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
         return ret
     end,
-    login = function(retInfor, player, systime, session)
-        local ret = {}
-        ret[0] = 16
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[20] = NetProtoIsland.ST_player.toMap(player); -- 玩家信息
-        ret[21] = systime; -- 系统时间 long
-        ret[22] = session; -- 会话id
-        return ret
-    end,
-    regist = function(retInfor, player, systime, session)
-        local ret = {}
-        ret[0] = 23
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[20] = NetProtoIsland.ST_player.toMap(player); -- 玩家信息
-        ret[21] = systime; -- 系统时间 long
-        ret[22] = session; -- 会话id
-        return ret
-    end,
     }
     --==============================
-    NetProtoIsland.dispatch[14]={onReceive = NetProtoIsland.recive.release, send = NetProtoIsland.send.release, logic = cmd4player}
-    NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout, logic = cmd4player}
+    NetProtoIsland.dispatch[25]={onReceive = NetProtoIsland.recive.stopserver, send = NetProtoIsland.send.stopserver, logic = cmd4player}
     NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login, logic = cmd4player}
     NetProtoIsland.dispatch[23]={onReceive = NetProtoIsland.recive.regist, send = NetProtoIsland.send.regist, logic = cmd4player}
+    NetProtoIsland.dispatch[14]={onReceive = NetProtoIsland.recive.release, send = NetProtoIsland.send.release, logic = cmd4player}
+    NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout, logic = cmd4player}
     --==============================
     NetProtoIsland.cmds = {
-        release = "release",
-        logout = "logout",
+        stopserver = "stopserver",
         login = "login",
-        regist = "regist"
+        regist = "regist",
+        release = "release",
+        logout = "logout"
     }
 
     --==============================

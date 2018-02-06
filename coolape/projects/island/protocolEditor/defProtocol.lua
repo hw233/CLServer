@@ -104,7 +104,7 @@ defProtocol.cmds = {
         logic = "cmd4player";
     },
     logout = {
-        desc = "登陆"; -- 接口说明
+        desc = "登出"; -- 接口说明
         input = { }; -- 入参
         inputDesc = { }; -- 入参说明
         output = { structs.retInfor }; -- 出参
