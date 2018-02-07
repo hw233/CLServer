@@ -13,6 +13,9 @@ function fileEx.getFiles(path, suffix)
     local ret = {}
     --io.popen 返回的是一个FILE，跟c里面的popen一样
     local s = io.popen(cmd)
+    if s == nil then
+        return {}
+    end
     local fileLists = s:read("*all")
     --print(fileLists)
 

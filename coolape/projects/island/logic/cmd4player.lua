@@ -46,8 +46,17 @@ cmd4player.CMD = {
             player.lastEnTime = dateEx.nowStr()
             player.channel = m.channel
             player.deviceid = m.deviceID
-            myself:init(player)
+            if myself:init(player) then
+                city = cmd4city.CMD.new(m.uidx)
+                myself:setcityidx(city:getidx())
+            else
+                local ret = {}
+                ret.msg = "create player err"
+                ret.code = Errcode.error
+                local ret = NetProto.send.loginAccount(ret, nil, dateEx.nowMS(), fd)
+            end
         end
+
         local ret = {}
         ret.msg = nil;
         ret.code = Errcode.ok
@@ -60,7 +69,11 @@ cmd4player.CMD = {
             myself:release();
             myself = nil;
         end
+        if cmd4city then
+            cmd4city.release()
+        end
     end,
+
     logout = function(m, fd)
         skynet.call("watchdog", "lua", "close", fd)
     end,

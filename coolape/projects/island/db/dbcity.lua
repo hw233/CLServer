@@ -1,3 +1,19 @@
+--[[
+使用时特别注意：
+1、常用方法如下，在不知道表里有没有数据时可以采用如下方法（可能会查询一次表）
+    local obj＝ dbcity.instanse(idx);
+    if obj:isEmpty() then
+        -- 没有数据
+    else
+        -- 有数据
+    end
+2、使用如下用法时，程序认为mysql已经有数据了，只会做更新操作
+    local obj＝ dbcity.new(data);
+3、使用如下用法时，程序认为mysql没有数据，会插入一条记录到表
+    local obj＝ dbcity.new();
+    obj:init(data);
+]]
+
 require("class")
 local skynet = require "skynet"
 
@@ -9,8 +25,13 @@ dbcity.name = "city"
 
 function dbcity:ctor(v)
     self.__name__ = "city"    -- 表名
-    self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-    self.__key__ = nil -- 缓存数据的key
+    if v then
+        self.__isNew__ = false -- 说明mysql里已经有数据了
+        self:init(v)
+    else
+        self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
+        self.__key__ = nil -- 缓存数据的key
+    end
 end
 
 function dbcity:init(data)
@@ -26,7 +47,7 @@ function dbcity:init(data)
         end
     end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
-    skynet.call("CLDB", "lua", "REMOVETIMEOUT", self.__name__, self.__key__)
+    skynet.call("CLDB", "lua", "SETUSE", self.__name__, self.__key__)
     return true
 end
 
@@ -132,7 +153,7 @@ function dbcity:isEmpty()
 end
 
 function dbcity:release()
-    skynet.call("CLDB", "lua", "SETTIMEOUT", self.__name__, self.__key__)
+    skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
 end
 
 function dbcity.querySql(idx, pidx)
@@ -152,7 +173,7 @@ function dbcity.querySql(idx, pidx)
 end
 
 -- 取得一个组
-function dbservers.getList(pidx, orderby)
+function dbcity.getList(pidx, orderby)
     local sql = "SELECT * FROM servers WHERE pidx=" .. "'" .. pidx .. "'" ..  (orderby and " ORDER BY" ..  orderby or "") .. ";"
     local list = skynet.call("CLMySQL", "lua", "exesql", sql)
     if list and list.errno then
@@ -200,7 +221,7 @@ function dbcity.instanse(idx)
         end
     else
         obj.__isNew__ = false
-        skynet.call("CLDB", "lua", "REMOVETIMEOUT", dbcity.name, key)
+        skynet.call("CLDB", "lua", "SETUSE", dbcity.name, key)
     end
     return obj
 end

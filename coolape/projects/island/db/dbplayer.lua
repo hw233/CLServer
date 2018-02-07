@@ -1,3 +1,19 @@
+--[[
+使用时特别注意：
+1、常用方法如下，在不知道表里有没有数据时可以采用如下方法（可能会查询一次表）
+    local obj＝ dbplayer.instanse(idx);
+    if obj:isEmpty() then
+        -- 没有数据
+    else
+        -- 有数据
+    end
+2、使用如下用法时，程序认为mysql已经有数据了，只会做更新操作
+    local obj＝ dbplayer.new(data);
+3、使用如下用法时，程序认为mysql没有数据，会插入一条记录到表
+    local obj＝ dbplayer.new();
+    obj:init(data);
+]]
+
 require("class")
 local skynet = require "skynet"
 
@@ -9,8 +25,13 @@ dbplayer.name = "player"
 
 function dbplayer:ctor(v)
     self.__name__ = "player"    -- 表名
-    self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-    self.__key__ = nil -- 缓存数据的key
+    if v then
+        self.__isNew__ = false -- 说明mysql里已经有数据了
+        self:init(v)
+    else
+        self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
+        self.__key__ = nil -- 缓存数据的key
+    end
 end
 
 function dbplayer:init(data)
@@ -26,7 +47,7 @@ function dbplayer:init(data)
         end
     end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
-    skynet.call("CLDB", "lua", "REMOVETIMEOUT", self.__name__, self.__key__)
+    skynet.call("CLDB", "lua", "SETUSE", self.__name__, self.__key__)
     return true
 end
 
@@ -62,6 +83,19 @@ end
 function dbplayer:getstatus()
     -- 状态 1:正常;
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
+end
+
+function dbplayer:setname(v)
+    -- 名称
+    if self:isEmpty() then
+        skynet.error("[dbplayer:setname],please init first!!")
+        return nil
+    end
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
+end
+function dbplayer:getname()
+    -- 名称
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "name")
 end
 
 function dbplayer:setlev(v)
@@ -197,7 +231,7 @@ function dbplayer:isEmpty()
 end
 
 function dbplayer:release()
-    skynet.call("CLDB", "lua", "SETTIMEOUT", self.__name__, self.__key__)
+    skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
 end
 
 function dbplayer.querySql(idx)
@@ -243,7 +277,7 @@ function dbplayer.instanse(idx)
         end
     else
         obj.__isNew__ = false
-        skynet.call("CLDB", "lua", "REMOVETIMEOUT", dbplayer.name, key)
+        skynet.call("CLDB", "lua", "SETUSE", dbplayer.name, key)
     end
     return obj
 end

@@ -106,6 +106,7 @@ DROP TABLE IF EXISTS `player`;
 CREATE TABLE `player` (
   `idx` int(11) NOT NULL,
   `status` int(11),
+  `name` varchar(45),
   `lev` int(4),
   `money` int(11),
   `diam` int(11),

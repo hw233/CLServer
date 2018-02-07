@@ -69,7 +69,7 @@ cmd4user.CMD = {
             return NetProto.send.registAccount(ret, nil, 0, dateEx.nowMS())
         end
         local newuser = {}
-        newuser.idx = DBUtl.nextVal("user")
+        newuser.idx = DBUtl.nextVal(DBUtl.Keys.user)
         newuser.uidChl = ""
         newuser.uid = m.userId
         newuser.password = m.password
@@ -163,7 +163,7 @@ cmd4user.CMD = {
             --return NetProto.send.loginAccount(ret, nil, 0, dateEx.nowMS())
 
             local newuser = {}
-            newuser.idx = DBUtl.nextVal("user")
+            newuser.idx = DBUtl.nextVal(DBUtl.Keys.user)
             newuser.uidChl = m.userId
             newuser.uid = ""
             newuser.password = ""

@@ -1,15 +1,37 @@
+--[[
+使用时特别注意：
+1、常用方法如下，在不知道表里有没有数据时可以采用如下方法（可能会查询一次表）
+    local obj＝ dbservers.instanse(idx);
+    if obj:isEmpty() then
+        -- 没有数据
+    else
+        -- 有数据
+    end
+2、使用如下用法时，程序认为mysql已经有数据了，只会做更新操作
+    local obj＝ dbservers.new(data);
+3、使用如下用法时，程序认为mysql没有数据，会插入一条记录到表
+    local obj＝ dbservers.new();
+    obj:init(data);
+]]
+
 require("class")
 local skynet = require "skynet"
 
 -- 服务器列表
+---@class dbservers
 dbservers = class("dbservers")
 
 dbservers.name = "servers"
 
 function dbservers:ctor(v)
     self.__name__ = "servers"    -- 表名
-    self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-    self.__key__ = nil -- 缓存数据的key
+    if v then
+        self.__isNew__ = false -- 说明mysql里已经有数据了
+        self:init(v)
+    else
+        self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
+        self.__key__ = nil -- 缓存数据的key
+    end
 end
 
 function dbservers:init(data)
@@ -25,7 +47,7 @@ function dbservers:init(data)
         end
     end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
-    skynet.call("CLDB", "lua", "REMOVETIMEOUT", self.__name__, self.__key__)
+    skynet.call("CLDB", "lua", "SETUSE", self.__name__, self.__key__)
     return true
 end
 
@@ -188,7 +210,7 @@ function dbservers:isEmpty()
 end
 
 function dbservers:release()
-    skynet.call("CLDB", "lua", "SETTIMEOUT", self.__name__, self.__key__)
+    skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
 end
 
 function dbservers.querySql(idx, appid, channel)
@@ -259,7 +281,7 @@ function dbservers.instanse(idx)
         end
     else
         obj.__isNew__ = false
-        skynet.call("CLDB", "lua", "REMOVETIMEOUT", dbservers.name, key)
+        skynet.call("CLDB", "lua", "SETUSE", dbservers.name, key)
     end
     return obj
 end

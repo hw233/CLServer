@@ -1,15 +1,37 @@
+--[[
+使用时特别注意：
+1、常用方法如下，在不知道表里有没有数据时可以采用如下方法（可能会查询一次表）
+    local obj＝ dbuserserver.instanse(uidx, appid);
+    if obj:isEmpty() then
+        -- 没有数据
+    else
+        -- 有数据
+    end
+2、使用如下用法时，程序认为mysql已经有数据了，只会做更新操作
+    local obj＝ dbuserserver.new(data);
+3、使用如下用法时，程序认为mysql没有数据，会插入一条记录到表
+    local obj＝ dbuserserver.new();
+    obj:init(data);
+]]
+
 require("class")
 local skynet = require "skynet"
 
 -- 用户与服务器关系
+---@class dbuserserver
 dbuserserver = class("dbuserserver")
 
 dbuserserver.name = "userserver"
 
 function dbuserserver:ctor(v)
     self.__name__ = "userserver"    -- 表名
-    self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-    self.__key__ = nil -- 缓存数据的key
+    if v then
+        self.__isNew__ = false -- 说明mysql里已经有数据了
+        self:init(v)
+    else
+        self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
+        self.__key__ = nil -- 缓存数据的key
+    end
 end
 
 function dbuserserver:init(data)
@@ -25,7 +47,7 @@ function dbuserserver:init(data)
         end
     end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
-    skynet.call("CLDB", "lua", "REMOVETIMEOUT", self.__name__, self.__key__)
+    skynet.call("CLDB", "lua", "SETUSE", self.__name__, self.__key__)
     return true
 end
 
@@ -92,7 +114,7 @@ function dbuserserver:isEmpty()
 end
 
 function dbuserserver:release()
-    skynet.call("CLDB", "lua", "SETTIMEOUT", self.__name__, self.__key__)
+    skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
 end
 
 function dbuserserver.querySql(uidx, appid)
@@ -141,7 +163,7 @@ function dbuserserver.instanse(uidx, appid)
         end
     else
         obj.__isNew__ = false
-        skynet.call("CLDB", "lua", "REMOVETIMEOUT", dbuserserver.name, key)
+        skynet.call("CLDB", "lua", "SETUSE", dbuserserver.name, key)
     end
     return obj
 end

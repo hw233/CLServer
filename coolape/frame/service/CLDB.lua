@@ -8,6 +8,7 @@ local CLUtl = require("CLUtl")
 local db = {}
 local db4Group = {}
 local dbTimeout = {}
+local dbUsedTimes = {}
 local command = {}
 local timeoutsec = 30 * 60;   -- 数据超时时间（秒）
 local refreshsec = 1 * 60;   -- 数据更新时间（秒）
@@ -158,6 +159,15 @@ function command.REMOVE(tableName, key)
         t[key] = nil
     end
 
+    t = dbTimeout[tableName]
+    if t then
+        t[key] = nil
+    end
+    t = dbUsedTimes[tableName]
+    if t then
+        t[key] = nil
+    end
+
     if last then
         -- 清除组里的数据
         local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
@@ -172,26 +182,48 @@ function command.REMOVE(tableName, key)
 end
 
 -- 设置数据超时
-function command.SETTIMEOUT(tableName, key)
+function command.SETUSE(tableName, key)
     local t = dbTimeout[tableName]
     if t == nil then
         t = {}
         dbTimeout[tableName] = t
+    else
+        t[key] = nil
     end
-    local last = t[key]
-    t[key] = skynet.time() + timeoutsec;
+    dbTimeout[tableName] = t
+    --==================================
+    local t2 = dbUsedTimes[tableName]
+    if t2 == nil then
+        t2 = {}
+        dbUsedTimes[tableName] = t2
+    end
+    local last = t2[key] or 0
+    t2[key] = last + 1;
     return last;
 end
 
 -- 移除数据超时
-function command.REMOVETIMEOUT(tableName, key)
+function command.SETUNUSE(tableName, key)
     local t = dbTimeout[tableName]
     if t == nil then
         t = {}
         dbTimeout[tableName] = t
     end
-    local last = t[key]
-    t[key] = nil
+    local last = t[key] or 0
+    t[key] = last - 1
+    if t[key] < 0 then
+        skynet.error("relase cache data less then 0. tableName=" .. tableName .. " key ==" .. key)
+    end
+    --==========================
+    if t[key] <= 0 then
+        local t2 = dbTimeout[tableName]
+        if t2 == nil then
+            t2 = {}
+            dbTimeout[tableName] = t2
+        end
+        t2[key] = skynet.time() + timeoutsec
+        dbTimeout[tableName] = t2
+    end
     return last;
 end
 
@@ -206,7 +238,6 @@ function command.FLUSH(tableName, key, immd)
             skynet.call("CLMySQL", "lua", "save", sql)
         end
         command.REMOVE(tableName, key)
-        command.REMOVETIMEOUT(tableName, key)
     end
 end
 
@@ -237,7 +268,7 @@ function command.NEXTVAL(key)
     local sql = "select nextval('" .. key .. "') as val;"
     local ret = skynet.call("CLMySQL", "lua", "exesql", sql)
     if ret and ret.errno then
-        skynet.error("get nextval error" .. ret.errno .. ",sql=[" .. sql .."]")
+        skynet.error("get nextval error" .. ret.errno .. ",sql=[" .. sql .. "]")
         return -1
     end
     ret = ret[1]
