@@ -4,6 +4,7 @@ local urllib = require "http.url"
 ---@type BioUtl
 local BioUtl = require("BioUtl")
 require("NetProtoUsermgrServer")
+require("CLGlobal")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
 local json = require("json")
@@ -63,7 +64,7 @@ function CMD.onrequset(url, method, header, body)
                     skynet.error(result)
                 end
             else
-                skynet.error("get post url, but body content id nil. url=" .. url)
+                printe("get post url, but body content id nil. url=" .. url)
             end
         else
             local content = parseStrBody(body)

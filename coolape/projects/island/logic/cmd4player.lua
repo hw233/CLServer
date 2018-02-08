@@ -47,23 +47,24 @@ cmd4player.CMD = {
             player.channel = m.channel
             player.deviceid = m.deviceID
             if myself:init(player) then
-                city = cmd4city.CMD.new(m.uidx)
+                city = cmd4city.new(m.uidx)
                 myself:setcityidx(city:getidx())
             else
                 local ret = {}
                 ret.msg = "create player err"
                 ret.code = Errcode.error
-                local ret = NetProto.send.loginAccount(ret, nil, dateEx.nowMS(), fd)
+                local ret = NetProto.send.login(ret, nil, dateEx.nowMS(), fd)
             end
         end
 
         local ret = {}
         ret.msg = nil;
         ret.code = Errcode.ok
-        local ret = NetProto.send.loginAccount(ret, myself:value2copy(), dateEx.nowMS(), fd)
+        local ret = NetProto.send.login(ret, myself:value2copy(), dateEx.nowMS(), fd)
         return ret
     end,
     release = function(m, fd)
+        print("player release")
         --TODO:把相关处理入库
         if myself then
             myself:release();

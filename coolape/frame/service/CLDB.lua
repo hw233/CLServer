@@ -3,6 +3,7 @@ local skynet = require "skynet"
 local sharedata = require "skynet.sharedata"
 require "skynet.manager"    -- import skynet.register
 local tablesdesign = "tablesdesign"
+require("CLGlobal")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
 local db = {}
@@ -106,7 +107,7 @@ function command.SET(tableName, key, ...)
     end
     local params = { ... }
     if #params < 1 then
-        skynet.error("[CLDB.SET] parmas error")
+        printe("[CLDB.SET] parmas error")
         return nil;
     end
     local count = #params
@@ -139,7 +140,7 @@ function command.SET(tableName, key, ...)
         -- 如果有组，则更新
         local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
         if tableCfg == nil then
-            skynet.error("[cldb.remove],get tabel config is nil==" .. tableName)
+            printe("[cldb.remove],get tabel config is nil==" .. tableName)
         end
         if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
             setGroup(tableName, d[tableCfg.groupKey], key)
@@ -172,7 +173,7 @@ function command.REMOVE(tableName, key)
         -- 清除组里的数据
         local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
         if tableCfg == nil then
-            skynet.error("[cldb.remove],get tabel config is nil==" .. tableName)
+            printe("[cldb.remove],get tabel config is nil==" .. tableName)
         end
         if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
             removeGroup(tableName, last[tableCfg.groupKey], key)
@@ -199,20 +200,24 @@ function command.SETUSE(tableName, key)
     end
     local last = t2[key] or 0
     t2[key] = last + 1;
+    dbUsedTimes[tableName] = t2
+    --print(tableName .. "=SETUSE=" .. key .. "==" .. t2[key])
     return last;
 end
 
 -- 移除数据超时
 function command.SETUNUSE(tableName, key)
-    local t = dbTimeout[tableName]
+    local t = dbUsedTimes[tableName]
     if t == nil then
         t = {}
-        dbTimeout[tableName] = t
+        dbUsedTimes[tableName] = t
     end
     local last = t[key] or 0
     t[key] = last - 1
+    dbUsedTimes[tableName] = t
+    --print(tableName .. "=SETUNUSE=" .. key .. "==" .. t[key])
     if t[key] < 0 then
-        skynet.error("relase cache data less then 0. tableName=" .. tableName .. " key ==" .. key)
+        printe("relase cache data less then 0. tableName=" .. tableName .. " key ==" .. key)
     end
     --==========================
     if t[key] <= 0 then
@@ -268,7 +273,7 @@ function command.NEXTVAL(key)
     local sql = "select nextval('" .. key .. "') as val;"
     local ret = skynet.call("CLMySQL", "lua", "exesql", sql)
     if ret and ret.errno then
-        skynet.error("get nextval error" .. ret.errno .. ",sql=[" .. sql .. "]")
+        printe("get nextval error" .. ret.errno .. ",sql=[" .. sql .. "]")
         return -1
     end
     ret = ret[1]
@@ -279,7 +284,7 @@ end
 function command.GETINSERTSQL(tableName, data)
     local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
     if tableCfg == nil then
-        skynet.error("[getUpdateSql],get tabel config is nil==" .. tableName)
+        printe("[getUpdateSql],get tabel config is nil==" .. tableName)
         return nil
     end
 
@@ -307,7 +312,7 @@ end
 function command.GETUPDATESQL(tableName, data)
     local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
     if tableCfg == nil then
-        skynet.error("[getUpdateSql],get tabel config is nil==" .. tableName)
+        printe("[getUpdateSql],get tabel config is nil==" .. tableName)
         return nil
     end
 
@@ -351,7 +356,7 @@ end
 function command.GETDELETESQL(tableName, data)
     local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
     if tableCfg == nil then
-        skynet.error("[getUpdateSql],get tabel config is nil==" .. tableName)
+        printe("[getUpdateSql],get tabel config is nil==" .. tableName)
         return nil
     end
 

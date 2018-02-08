@@ -4,6 +4,7 @@ require "skynet.manager"    -- import skynet.register
 local sharedata = require "skynet.sharedata"
 require("CLUtl")
 require("fileEx")
+require("CLGlobal")
 ---@type json
 local json = require("json")
 
@@ -24,7 +25,7 @@ local function init()
     for i, v in ipairs(tables) do
         local t = dofile(path .. v )
         if tablesdesign[t.name] then
-            skynet.error()
+            printe("allready had load the table design==" .. t.name)
         else
             tablesdesign[t.name] = t
         end
@@ -45,7 +46,7 @@ local function init()
         jsonstr = fileEx.readAll(path .. fileName )
         list = json.decode(jsonstr)
         if #list < 2 then
-            skynet.error("load data cfg error.path=[" .. path .. fileName .. "]")
+            printe("load data cfg error.path=[" .. path .. fileName .. "]")
         else
             local keys = list[1] -- 第一行是字段名
             local count = #list - 1

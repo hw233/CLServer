@@ -8,6 +8,7 @@ require "skynet.manager"    -- import skynet.register
 local mysql = require "skynet.db.mysql"
 require("CLLQueue")
 require("CLUtl")
+require("CLGlobal")
 
 local CMD = {}
 local db;
@@ -60,7 +61,7 @@ function CMD.CONNECT(cfg)
 
     db = mysql.connect(cfg)
     if not db then
-        skynet.error("failed to connect")
+        printe("failed to connect")
         return false
     end
 
@@ -81,11 +82,11 @@ end
 function CMD.EXESQL(sql)
     if db and sql and sql ~= "" then
         if isDebugSql then
-            skynet.error("sql=【" .. sql .. "】")
+            print("sql=【" .. sql .. "】")
         end
         local ret = db:query(sql)
         if ret and ret.errno then
-            skynet.error(CLUtl.dump(ret) .. ", sql=【" .. sql .. "】")
+            printe(CLUtl.dump(ret) .. ", sql=【" .. sql .. "】")
         end
         return ret;
     end
@@ -116,7 +117,7 @@ function CMD.FLUSHALL()
         if sqlstr then
             local error, result = pcall(CMD.EXESQL, sqlstr)
             if not error then
-                skynet.error(result .. "[" .. sqlstr .. "]")
+                printe(result .. "[" .. sqlstr .. "]")
             end
         end
     end

@@ -1,6 +1,7 @@
 require("dbcity")
 require("dbbuilding")
 require("DBUtl")
+require("CLGlobal")
 
 ---@class cmd4city
 cmd4city = {}
@@ -46,7 +47,7 @@ function cmd4city.newBuilding(attrid, pos, cidx)
     if building:init(b) then
         return building
     else
-        skynet.error("[cmd4city.newBuilding] new building error. attrid=" .. attrid .. "  pos==" .. pos .. "  cidx==" .. cidx)
+        printe("[cmd4city.newBuilding] new building error. attrid=" .. attrid .. "  pos==" .. pos .. "  cidx==" .. cidx)
         return nil
     end
 end
@@ -56,7 +57,7 @@ function cmd4city.getSelf(idx)
     if myself == nil then
         myself = dbcity.instanse(idx)
         if myself:isEmpty() then
-            skynet.error("[cmd4city.get].get city data is nil. idx==" .. idx)
+            printe("[cmd4city.get].get city data is nil. idx==" .. idx)
             return nil
         end
         -- 设置一次
@@ -82,12 +83,12 @@ end
 
 function cmd4city.getSelfBuildings()
     if myself == nil then
-        skynet.error("[cmd4city.getBuildings]:the city data is nil")
+        printe("[cmd4city.getBuildings]:the city data is nil")
         return nil
     end
     local list = cmd4city.queryBuildings(myself:getidx())
     if list == nil then
-        skynet.error("[cmd4city.getBuildings]:get buildings is nil. cidx=" .. myself:getidx())
+        printe("[cmd4city.getBuildings]:get buildings is nil. cidx=" .. myself:getidx())
         return nil
     end
     buildings = {}
