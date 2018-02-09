@@ -29,6 +29,7 @@ function()
 
     -- 简单缓存数据库
     skynet.uniqueservice("CLDB")
+    skynet.call("CLDB", "lua", "SETTIMEOUT", 1*60)     -- 半小时
 
     -- 监听socket
     local watchdog = skynet.uniqueservice("watchdog")

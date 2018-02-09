@@ -389,6 +389,10 @@ function command.STOP(exit)
         skynet.exit()
     end
 end
+
+function command.SETTIMEOUT(v)
+    timeoutsec = v
+end
 -- ============================================================
 skynet.start(function()
     skynet.dispatch("lua", function(session, address, cmd, ...)
