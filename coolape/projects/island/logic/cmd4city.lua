@@ -25,7 +25,7 @@ function cmd4city.new (uidx)
     -- add base buildings
     local building = cmd4city.newBuilding(1, 50050, idx)
     if building then
-        buildings[building:getidx()] = building 
+        buildings[building:getidx()] = building
     end
     return myself
 end
@@ -61,7 +61,7 @@ function cmd4city.getSelf(idx)
             return nil
         end
         -- 设置一次
-        cmd4city.getBuildings()
+        cmd4city.getSelfBuildings()
     end
     return myself
 end
@@ -86,6 +86,9 @@ function cmd4city.getSelfBuildings()
         printe("[cmd4city.getBuildings]:the city data is nil")
         return nil
     end
+    if buildings and #buildings > 0 then
+        return buildings
+    end
     local list = cmd4city.queryBuildings(myself:getidx())
     if list == nil then
         printe("[cmd4city.getBuildings]:get buildings is nil. cidx=" .. myself:getidx())
@@ -99,6 +102,24 @@ function cmd4city.getSelfBuildings()
         buildings[v.idx] = b
     end
     return buildings
+end
+
+function cmd4city.queryBuilding(idx)
+    if myself == nil then
+        printe("主城为空")
+        return nil
+    end
+    if buildings == nil or #buildings == 0 then
+        printe("建筑信息列表为空")
+        return nil
+    end
+    ---@type dbbuilding
+    local b = buildings[idx]
+    if b == nil then
+        printe("取得建筑为空")
+        return nil
+    end
+    return b
 end
 
 function cmd4city.release()
@@ -115,5 +136,71 @@ function cmd4city.release()
         myself = nil
     end
 end
+
+--＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+--＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+cmd4city.CMD = {
+    newBuilding = function(m, fd)
+        -- 新建筑
+        local ret = {}
+        if myself == nil then
+            printe("主城数据为空！")
+            ret.code = Errcode.error
+            ret.msg = "主城数据为空"
+            return NetProto.send.newBuilding(ret, nil)
+        end
+        local building = cmd4city.newBuilding(m.attrid, m.pos, myself:getidx())
+        if building == nil then
+            printe("新建建筑失败")
+            ret.code = Errcode.error
+            ret.msg = "新建建筑失败"
+            return NetProto.send.newBuilding(ret, nil)
+        end
+        buildings[building:getidx()] = building
+
+        ret.code = Errcode.ok
+        return NetProto.send.newBuilding(ret, building:value2copy())
+    end,
+    getBuilding = function(m, fd)
+        -- 取得建筑
+        local ret = {}
+        local b = cmd4city.queryBuilding(m.idx)
+        if b == nil then
+            ret.code = Errcode.error
+            ret.msg = "取得建筑为空"
+            return NetProto.send.getBuilding(ret, nil)
+        end
+        ret.code = Errcode.ok
+        return NetProto.send.getBuilding(ret, b:value2copy())
+    end,
+    moveBuilding = function(m, fd)
+        -- 移动建筑
+        local ret = {}
+        ---@type dbbuilding
+        local b = cmd4city.queryBuilding(m.idx)
+        if b == nil then
+            ret.code = Errcode.error
+            ret.msg = "取得建筑为空"
+            return NetProto.send.getBuilding(ret, nil)
+        end
+        b:setpos(m.pos)
+        ret.code = Errcode.ok
+        return NetProto.send.moveBuilding(ret)
+    end,
+    upLevBuilding = function(m,fd)
+        -- 建筑升级
+        local ret = {}
+        local b = cmd4city.queryBuilding(m.idx)
+        if b == nil then
+            ret.code = Errcode.error
+            ret.msg = "取得建筑为空"
+            return NetProto.send.getBuilding(ret, nil)
+        end
+        --TODO: check max lev
+        b:setlev(b:getlev() + 1)
+        ret.code = Errcode.ok
+        return NetProto.send.upLevBuilding(ret)
+    end,
+}
 
 return cmd4city

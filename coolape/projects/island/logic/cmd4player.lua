@@ -50,17 +50,45 @@ cmd4player.CMD = {
                 city = cmd4city.new(m.uidx)
                 myself:setcityidx(city:getidx())
             else
+                printe("create player err==" .. m.uidx)
                 local ret = {}
                 ret.msg = "create player err"
                 ret.code = Errcode.error
                 local ret = NetProto.send.login(ret, nil, dateEx.nowMS(), fd)
             end
+        else
+            -- 取得主城信息
+            city = cmd4city.getSelf(myself:getcityidx())
+            if city == nil or city:isEmpty() then
+                printe("get city is nil or empty==" .. m.uidx)
+                local ret = {}
+                ret.msg = "get city is nil or empty"
+                ret.code = Errcode.error
+                local ret = NetProto.send.login(ret, nil, dateEx.nowMS(), fd)
+            end
+        end
+
+        local cityVal = city:value2copy()
+        cityVal.buildings = {}
+        local buildings = cmd4city.getSelfBuildings()
+        if buildings == nil then
+            printe("get buildings is nil==" .. m.uidx)
+            local ret = {}
+            ret.msg = "get buildings is nil"
+            ret.code = Errcode.error
+            local ret = NetProto.send.login(ret, nil, dateEx.nowMS(), fd)
+        end
+        ---@type dbcity
+        local _building
+        for i,v in ipairs(buildings) do
+            _building = v
+            cityVal.buildings[_building:getidx()] = _building:value2copy();
         end
 
         local ret = {}
         ret.msg = nil;
         ret.code = Errcode.ok
-        local ret = NetProto.send.login(ret, myself:value2copy(), dateEx.nowMS(), fd)
+        local ret = NetProto.send.login(ret, myself:value2copy(), cityVal, dateEx.nowMS(), fd)
         return ret
     end,
     release = function(m, fd)
@@ -78,10 +106,10 @@ cmd4player.CMD = {
     logout = function(m, fd)
         skynet.call("watchdog", "lua", "close", fd)
     end,
-    stopserver = function(m, fd)
-        --  停服处理
-        skynet.send("watchdog", "lua", "stop")
-    end
+    --stopserver = function(m, fd)
+    --    --  停服处理
+    --    skynet.send("watchdog", "lua", "stop")
+    --end
 }
 
 return cmd4player

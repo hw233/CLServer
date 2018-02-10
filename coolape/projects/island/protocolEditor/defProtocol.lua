@@ -43,7 +43,7 @@ defProtocol.structs.BB = {
 }
 
 --]]
----@class defProtocol.structs
+
 defProtocol.structs = {}
 defProtocol.structs.retInfor = {
     "返回信息",
@@ -56,19 +56,46 @@ defProtocol.structs.retInfor = {
 defProtocol.structs.player = {
     "用户信息",
     {
-        idx = { 0, "唯一标识" },
+        idx = { 0, "唯一标识 int" },
         name = { "", "名字" },
-        status = { 0, "状态 1：正常" },
-        lev = { 0, "等级" },
-        diam = { 0, "钻石" },
-        cityidx = { 0, "城池id" },
-        unionidx = { 0, "联盟id" },
+        status = { 0, "状态 1：正常 int" },
+        lev = { 0, "等级 long" },
+        diam = { 0, "钻石 long" },
+        cityidx = { 0, "城池id int" },
+        unionidx = { 0, "联盟id int" },
     }
 }
+defProtocol.structs.building = {
+    "建筑信息对象",
+    {
+        idx = { 0, "唯一标识 int" },
+        cidxidx = { 0, "主城idx int" },
+        posidx = { 0, "位置，即在城的gird中的index int" },
+        attrididx = { 0, "属性配置id int" },
+        levidx = { 0, "等级 int" },
+        validx = { 0, "值。如:产量，仓库的存储量等 int" },
+        val2idx = { 0, "值2。如:产量，仓库的存储量等 int" },
+        val3idx = { 0, "值3。如:产量，仓库的存储量等 int" },
+        val4idx = { 0, "值4。如:产量，仓库的存储量等 int" },
+    }
+}
+defProtocol.structs.city = {
+    "主城",
+    {
+        idx = { 0, "唯一标识 int" },
+        name = { "", "名称" },
+        pidx = { 0, "玩家idx int" },
+        pos = { 0, "城所在世界grid的index int" },
+        statuspos = { 0, "状态 1:正常; int" },
+        levpos = { 0, "等级 int" },
+        buildings = { { buildingIdx = defProtocol.structs.building }, "建筑信息 key=idx, map" }
+    }
+}
+
 --===================================================
 --===================================================
 --===================================================
-local structs = defProtocol.structs;
+local structs = defProtocol.structs
 --===================================================
 --===================================================
 --===================================================
@@ -83,29 +110,12 @@ defProtocol.cmds = {
         logic = "cmd4player",
         only4server = true,
     },
-    stopserver = {
-        desc = "停服，客户端不用调用，服务器内部调用的指令"; -- 接口说明
-        input = { }; -- 入参
-        inputDesc = { }; -- 入参说明
-        output = { }; -- 出参
-        outputDesc = { }; -- 出参说明
-        logic = "cmd4player";
-        only4server = true,
-    },
---regist = {
---    desc = "注册"; -- 接口说明
---    input = { "uidx", "name", "icon", "channel", "deviceID" }; -- 入参
---    inputDesc = { "用户id", "名字", "头像", "渠道号", "机器码" }; -- 入参说明
---    output = { structs.retInfor, structs.player, "systime", "session" }; -- 出参
---    outputDesc = { "返回信息", "玩家信息", "系统时间 long", "会话id" }; -- 出参说明
---    logic = "cmd4player";
---},
     login = {
         desc = "登陆"; -- 接口说明
         input = { "uidx", "channel", "deviceID" }; -- 入参
         inputDesc = { "用户id", "渠道号", "机器码" }; -- 入参说明
-        output = { structs.retInfor, structs.player, "systime", "session" }; -- 出参
-        outputDesc = { "返回信息", "玩家信息", "系统时间 long", "会话id" }; -- 出参说明
+        output = { structs.retInfor, structs.player, structs.city, "systime", "session" }; -- 出参
+        outputDesc = { "返回信息", "玩家信息", "主城信息", "系统时间 long", "会话id" }; -- 出参说明
         logic = "cmd4player";
     },
     logout = {
@@ -115,6 +125,38 @@ defProtocol.cmds = {
         output = { structs.retInfor }; -- 出参
         outputDesc = { "返回信息" }; -- 出参说明
         logic = "cmd4player";
+    },
+    getBuilding = {
+        desc = "取得建筑"; -- 接口说明
+        input = { "idx" }; -- 入参
+        inputDesc = { "建筑idx int" }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.building }; -- 出参
+        outputDesc = { "返回信息", "建筑信息对象" }; -- 出参说明
+        logic = "cmd4city";
+    },
+    newBuilding = {
+        desc = "新建建筑"; -- 接口说明
+        input = { "attrid", "pos" }; -- 入参
+        inputDesc = { "建筑配置id int", "位置 int" }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.building }; -- 出参
+        outputDesc = { "返回信息", "建筑信息对象" }; -- 出参说明
+        logic = "cmd4city";
+    },
+    moveBuilding = {
+        desc = "移动建筑"; -- 接口说明
+        input = { "idx", "pos" }; -- 入参
+        inputDesc = { "建筑idx int", "位置 int" }; -- 入参说明
+        output = { structs.retInfor }; -- 出参
+        outputDesc = { "返回信息" }; -- 出参说明
+        logic = "cmd4city";
+    },
+    upLevBuilding = {
+        desc = "升级建筑"; -- 接口说明
+        input = { "idx" }; -- 入参
+        inputDesc = { "建筑idx int" }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.building }; -- 出参
+        outputDesc = { "返回信息" }; -- 出参说明
+        logic = "cmd4city";
     },
 }
 
