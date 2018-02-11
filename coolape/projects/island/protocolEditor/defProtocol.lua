@@ -152,12 +152,20 @@ defProtocol.cmds = {
         outputDesc = { "返回信息", "建筑信息对象" }; -- 出参说明
         logic = "cmd4city";
     },
+    moveTile = {
+        desc = "移动地块"; -- 接口说明
+        input = { "idx", "pos" }; -- 入参
+        inputDesc = { "地块idx int", "位置 int" }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.tile }; -- 出参
+        outputDesc = { "返回信息", "地块信息" }; -- 出参说明
+        logic = "cmd4city";
+    },
     moveBuilding = {
         desc = "移动建筑"; -- 接口说明
         input = { "idx", "pos" }; -- 入参
         inputDesc = { "建筑idx int", "位置 int" }; -- 入参说明
-        output = { structs.retInfor }; -- 出参
-        outputDesc = { "返回信息" }; -- 出参说明
+        output = { structs.retInfor, defProtocol.structs.building }; -- 出参
+        outputDesc = { "返回信息", "建筑信息" }; -- 出参说明
         logic = "cmd4city";
     },
     upLevBuilding = {
