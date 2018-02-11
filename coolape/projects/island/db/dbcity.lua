@@ -163,7 +163,7 @@ function dbcity.querySql(idx, pidx)
         table.insert(where, "`idx`=" .. idx)
     end
     if pidx then
-        table.insert(where, "`pidx`=" .. "'" .. pidx  .. "'")
+        table.insert(where, "`pidx`=" .. pidx)
     end
     if #where > 0 then
         return "SELECT * FROM city WHERE " .. table.concat(where, " and ") .. ";"
@@ -174,7 +174,7 @@ end
 
 -- 取得一个组
 function dbcity.getList(pidx, orderby)
-    local sql = "SELECT * FROM servers WHERE pidx=" .. "'" .. pidx .. "'" ..  (orderby and " ORDER BY" ..  orderby or "") .. ";"
+    local sql = "SELECT * FROM servers WHERE pidx=" .. pidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ";"
     local list = skynet.call("CLMySQL", "lua", "exesql", sql)
     if list and list.errno then
         skynet.error("[dbcity.getGroup] sql error==" .. sql)

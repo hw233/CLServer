@@ -94,7 +94,7 @@ DROP TABLE IF EXISTS `city`;
 CREATE TABLE `city` (
   `idx` int(11) NOT NULL,
   `name` varchar(45),
-  `pidx` varchar(45) NOT NULL,
+  `pidx` int(11) NOT NULL,
   `pos` int(11),
   `status` int(11),
   `lev` int(4),

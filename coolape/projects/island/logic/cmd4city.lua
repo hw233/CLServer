@@ -104,7 +104,8 @@ function cmd4city.getSelfBuildings()
     return buildings
 end
 
-function cmd4city.queryBuilding(idx)
+function cmd4city.getBuilding(idx)
+    -- 取得建筑
     if myself == nil then
         printe("主城为空")
         return nil
@@ -164,7 +165,7 @@ cmd4city.CMD = {
     getBuilding = function(m, fd)
         -- 取得建筑
         local ret = {}
-        local b = cmd4city.queryBuilding(m.idx)
+        local b = cmd4city.getBuilding(m.idx)
         if b == nil then
             ret.code = Errcode.error
             ret.msg = "取得建筑为空"
@@ -177,7 +178,7 @@ cmd4city.CMD = {
         -- 移动建筑
         local ret = {}
         ---@type dbbuilding
-        local b = cmd4city.queryBuilding(m.idx)
+        local b = cmd4city.getBuilding(m.idx)
         if b == nil then
             ret.code = Errcode.error
             ret.msg = "取得建筑为空"
@@ -190,7 +191,7 @@ cmd4city.CMD = {
     upLevBuilding = function(m,fd)
         -- 建筑升级
         local ret = {}
-        local b = cmd4city.queryBuilding(m.idx)
+        local b = cmd4city.getBuilding(m.idx)
         if b == nil then
             ret.code = Errcode.error
             ret.msg = "取得建筑为空"
