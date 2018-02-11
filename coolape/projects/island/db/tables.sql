@@ -118,3 +118,13 @@ CREATE TABLE `player` (
   `deviceid` varchar(45),
   PRIMARY KEY (`idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 地块表
+DROP TABLE IF EXISTS `tile`;
+CREATE TABLE `tile` (
+  `idx` int(11) NOT NULL,
+  `attrid` int(11) NOT NULL,
+  `cidx` int(11) NOT NULL,
+  `pos` int(11),
+  PRIMARY KEY (`idx`, `cidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

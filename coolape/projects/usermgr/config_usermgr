@@ -28,6 +28,8 @@ cpath = skynetRoot.."cservice/?.so"
 
 -- preload = "./examples/preload.lua"	-- run preload.lua before every lua service run
 thread = 1
+--logLev:日志等级  debug, warning, error
+logLev = "debug"
 logger = coolapeRoot .. "logs/error_" .. projectName .. ".log"
 --logger = nil
 logpath = "."

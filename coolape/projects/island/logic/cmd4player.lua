@@ -70,6 +70,22 @@ cmd4player.CMD = {
 
         local cityVal = city:value2copy()
         cityVal.buildings = {}
+        cityVal.tiles = {}
+        local tiles = cmd4city.getSelfTiles()
+        if tiles == nil then
+            printe("get tiles is nil==" .. m.uidx)
+            local ret = {}
+            ret.msg = "get buildings is nil"
+            ret.code = Errcode.error
+            local ret = NetProto.send.login(ret, nil, dateEx.nowMS(), fd)
+        end
+        ---@type dbcity
+        local _tile
+        for i,v in ipairs(tiles) do
+            _tile = v
+            cityVal.tiles[_tile:getidx()] = _tile:value2copy();
+        end
+
         local buildings = cmd4city.getSelfBuildings()
         if buildings == nil then
             printe("get buildings is nil==" .. m.uidx)

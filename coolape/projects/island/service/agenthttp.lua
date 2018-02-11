@@ -34,8 +34,7 @@ local printhttp = function(url, method, header, body)
     end
     table.insert(tmp, "-----body----\n" .. body)
     local ret = table.concat(tmp, "\n")
-    --print(ret)
-    skynet.error(ret)
+    print(ret)
     return ret
 end
 

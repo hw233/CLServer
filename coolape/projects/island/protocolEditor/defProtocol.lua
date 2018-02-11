@@ -69,14 +69,23 @@ defProtocol.structs.building = {
     "建筑信息对象",
     {
         idx = { 0, "唯一标识 int" },
-        cidxidx = { 0, "主城idx int" },
-        posidx = { 0, "位置，即在城的gird中的index int" },
-        attrididx = { 0, "属性配置id int" },
-        levidx = { 0, "等级 int" },
-        validx = { 0, "值。如:产量，仓库的存储量等 int" },
-        val2idx = { 0, "值2。如:产量，仓库的存储量等 int" },
-        val3idx = { 0, "值3。如:产量，仓库的存储量等 int" },
-        val4idx = { 0, "值4。如:产量，仓库的存储量等 int" },
+        cidx = { 0, "主城idx int" },
+        pos = { 0, "位置，即在城的gird中的index int" },
+        attrid = { 0, "属性配置id int" },
+        lev = { 0, "等级 int" },
+        val = { 0, "值。如:产量，仓库的存储量等 int" },
+        val2 = { 0, "值2。如:产量，仓库的存储量等 int" },
+        val3 = { 0, "值3。如:产量，仓库的存储量等 int" },
+        val4 = { 0, "值4。如:产量，仓库的存储量等 int" },
+    }
+}
+defProtocol.structs.tile = {
+    "建筑信息对象",
+    {
+        idx = { 0, "唯一标识 int" },
+        cidx = { 0, "主城idx int" },
+        attrid = { 0, "属性配置id int" },
+        pos = { 0, "位置，即在城的gird中的index int" },
     }
 }
 defProtocol.structs.city = {
@@ -86,9 +95,10 @@ defProtocol.structs.city = {
         name = { "", "名称" },
         pidx = { 0, "玩家idx int" },
         pos = { 0, "城所在世界grid的index int" },
-        statuspos = { 0, "状态 1:正常; int" },
-        levpos = { 0, "等级 int" },
-        buildings = { { buildingIdx = defProtocol.structs.building }, "建筑信息 key=idx, map" }
+        status = { 0, "状态 1:正常; int" },
+        lev = { 0, "等级 int" },
+        buildings = { { buildingIdx = defProtocol.structs.building }, "建筑信息 key=idx, map" },
+        tiles = { { tileIdx = defProtocol.structs.tile }, "地块信息 key=idx, map" },
     }
 }
 
@@ -158,6 +168,7 @@ defProtocol.cmds = {
         outputDesc = { "返回信息" }; -- 出参说明
         logic = "cmd4city";
     },
+
 }
 
 return defProtocol

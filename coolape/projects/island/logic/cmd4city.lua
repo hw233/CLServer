@@ -1,4 +1,5 @@
 require("dbcity")
+require("dbtile")
 require("dbbuilding")
 require("DBUtl")
 require("CLGlobal")
@@ -8,7 +9,8 @@ cmd4city = {}
 
 ---@type dbcity
 local myself
-local buildings = {}
+local tiles = {}        -- 地块信息
+local buildings = {}    -- 建筑信息
 
 function cmd4city.new (uidx)
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
@@ -28,6 +30,48 @@ function cmd4city.new (uidx)
         buildings[building:getidx()] = building
     end
     return myself
+end
+
+function cmd4city.newTile(pos, cidx)
+    local tile = dbtile.new()
+    local t = {}
+    t.idx = DBUtl.nextVal(DBUtl.Keys.building) --"唯一标识"
+    t.attrid = 1 "属性id"
+    t.cidx = cidx "主城idx"
+    t.pos = pos, "城所在世界grid的index"
+    if tile:init(t) then
+        return tile
+    else
+        printe("[cmd4city.newTile]==" .. CLUtl.dump(t))
+        return nil
+    end
+end
+
+function cmd4city.queryTiles(cidx)
+    return dbtile.getList(cidx)
+end
+
+function cmd4city.getSelfTiles()
+    if myself == nil then
+        printe("[cmd4city.getBuildings]:the city data is nil")
+        return nil
+    end
+    if tiles and #tiles> 0 then
+        return tiles
+    end
+    local list = cmd4city.queryTiles(myself:getidx())
+    if list == nil then
+        printe("[cmd4city.getSelfTiles]:get tiles is nil. cidx=" .. myself:getidx())
+        return nil
+    end
+    tiles = {}
+    ---@type dbbuilding
+    local t
+    for i, v in ipairs(list) do
+        t = dbtile.new(v)
+        tiles[v.idx] = t
+    end
+    return tiles
 end
 
 -- 新建筑
@@ -188,7 +232,7 @@ cmd4city.CMD = {
         ret.code = Errcode.ok
         return NetProto.send.moveBuilding(ret)
     end,
-    upLevBuilding = function(m,fd)
+    upLevBuilding = function(m, fd)
         -- 建筑升级
         local ret = {}
         local b = cmd4city.getBuilding(m.idx)

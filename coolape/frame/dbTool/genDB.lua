@@ -161,7 +161,7 @@ function genDB.genTables()
     fileEx.createDir(incSqlPath)
     local outIncSqlFile = CLUtl.combinePath(incSqlPath, incsqlDumpFile)
     writeFile(outIncSqlFile, table.concat(incsqlStr, "\n"));
-    print("success：SQL outfiles==" .. outIncSqlFile)
+    print("success：increment SQL outfiles==" .. outIncSqlFile)
     print("success：SQL outfiles==" .. outSqlFile)
 end
 
