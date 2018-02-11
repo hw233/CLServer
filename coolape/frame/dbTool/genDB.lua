@@ -11,6 +11,7 @@ require("fileEx")
 
 genDB = {}
 local sqlDumpFile = "tables.sql";
+local incsqlDumpFile = "tablesInc.sql";
 
 function genDB.getFiles()
     return fileEx.getFiles(arg[1], "lua")
@@ -125,6 +126,7 @@ function genDB.genTables()
         return "";
     end
     local sqlStr = {};
+    local incsqlStr = {};
     local rootPath = arg[1]
     local outPath = arg[2]
     if rootPath == nil then
@@ -143,10 +145,57 @@ function genDB.genTables()
         t = dofile(rootPath .. "/" .. v );
         table.insert(sqlStr, genDB.genSql(t));
         genDB.genLuaFile(outPath, t);
+        -- 生成增量sql
+        local alertSql = genDB.genIncrementSql(rootPath .. "/preVer/" .. v, t)
+        if alertSql then
+            table.insert(incsqlStr, alertSql)
+        end
+        -- 保存上一版本
+        fileEx.createDir(rootPath .. "/preVer/")
+        local content = fileEx.readAll(rootPath .. "/" .. v)
+        fileEx.writeAll(rootPath .. "/preVer/" .. v, content)
     end
     local outSqlFile = CLUtl.combinePath(outPath, sqlDumpFile)
     writeFile(outSqlFile, table.concat(sqlStr, "\n"));
+    local incSqlPath = rootPath .. "/" .. os.date("%Y_%m_%d_%H_%M_%S") .. "/"
+    fileEx.createDir(incSqlPath)
+    local outIncSqlFile = CLUtl.combinePath(incSqlPath, incsqlDumpFile)
+    writeFile(outIncSqlFile, table.concat(incsqlStr, "\n"));
+    print("success：SQL outfiles==" .. outIncSqlFile)
     print("success：SQL outfiles==" .. outSqlFile)
+end
+
+--增量sql
+function genDB.genIncrementSql(oldPath, t)
+    if not fileEx.exist(oldPath) then
+        return nil
+    end
+    local oldt = dofile(oldPath)
+    if oldt == nil then
+        return nil
+    end
+    local columnsMap = {}
+    for k, v in ipairs(oldt.columns) do
+        columnsMap[v[1]] = v
+    end
+    local ret = {}
+    local colName
+    local oldCol
+    for i, v in ipairs(t.columns) do
+        colName = v[1]
+        oldCol = columnsMap[colName]
+        if oldCol == nil then
+            -- 说明是新增字段
+            table.insert(ret, "alter table " .. t.name .. " ADD " .. colName .. " " .. v[2] .. " # " .. v[3])
+        elseif v[2] ~= oldCol[2] then
+            -- 说明有修改
+            table.insert(ret, "alter table " .. t.name .. " MODIFY " .. colName .. " " .. v[2] .. " # " .. v[3])
+        end
+    end
+    if #ret > 0 then
+        return table.concat(ret, "\n")
+    end
+    return nil
 end
 
 function genDB.genSql(tableCfg)

@@ -2,6 +2,20 @@
 ---@class fileEx
 fileEx = {}
 
+-- 文件是否存在
+function fileEx.exist(path)
+    local f = io.open(path, "r")
+    if f == nil then
+        return false
+    end
+    return true
+end
+
+function fileEx.createDir(path)
+    if path == nil or path == "" then return end
+    os.execute("mkdir -p " .. path)
+end
+
 -- 取得目录下文件列表
 function fileEx.getFiles(path, suffix)
     local cmd = ""
