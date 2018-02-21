@@ -1,5 +1,6 @@
+require("sys.Vector3")
 local zero = Vector3.zero
-
+---@class Bounds
 Bounds = 
 {
 	center = zero,

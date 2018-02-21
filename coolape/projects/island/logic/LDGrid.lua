@@ -1,8 +1,9 @@
 ---网格
+require("sys.Vector3")
 require("sys.Math")
 require("sys.Bounds")
-require("sys.Vector3")
 require("numEx")
+---@class LDGrid
 local LDGrid = {}
 
 local m_numberOfRows
@@ -117,13 +118,13 @@ function LDGrid.GetCellBounds(index)
     local cellCenterPos = LDGrid.GetCellPosition(index);
     cellCenterPos.x = cellCenterPos.x + ( m_cellSize / 2.0);
     cellCenterPos.z = cellCenterPos.z + ( m_cellSize / 2.0 );
-    local cellBounds = Bounds(cellCenterPos, Vector3(m_cellSize, kDepth, m_cellSize));
+    local cellBounds = Bounds.New(cellCenterPos, Vector3(m_cellSize, kDepth, m_cellSize));
     return cellBounds;
 end
 
 function LDGrid.GetGridBounds()
     local gridCenter = Origin + (LDGrid.Width / 2.0) * kXAxis + (LDGrid.Height / 2.0) * kZAxis;
-    local gridBounds = Bounds(gridCenter, Vector3(LDGrid.Width, kDepth, LDGrid.Height));
+    local gridBounds = Bounds.New(gridCenter, Vector3(LDGrid.Width, kDepth, LDGrid.Height));
     return gridBounds;
 end
 
@@ -137,7 +138,7 @@ function LDGrid.GetColumn(index)
     return col;
 end
 
-function LDGrid.IsInBounds()
+function LDGrid.IsInBounds(...)
     local paras = { ... }
     if #paras > 1 then
         local col, row

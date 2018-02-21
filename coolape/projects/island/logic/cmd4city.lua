@@ -53,9 +53,9 @@ function cmd4city.newTile(pos, cidx)
     local tile = dbtile.new()
     local t = {}
     t.idx = DBUtl.nextVal(DBUtl.Keys.building) --"唯一标识"
-    t.attrid = 1 "属性id"
-    t.cidx = cidx "主城idx"
-    t.pos = pos, "城所在世界grid的index"
+    t.attrid = 1 --"属性id"
+    t.cidx = cidx --"主城idx"
+    t.pos = pos -- "城所在世界grid的index"
     if tile:init(t) then
         return tile
     else
