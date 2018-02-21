@@ -173,8 +173,8 @@ function dbcity.querySql(idx, pidx)
 end
 
 -- 取得一个组
-function dbcity.getList(pidx, orderby)
-    local sql = "SELECT * FROM servers WHERE pidx=" .. pidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ";"
+function dbcity.getList(pidx, orderby, limitOffset, limitNum)
+    local sql = "SELECT * FROM servers WHERE pidx=" .. pidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
     local list = skynet.call("CLMySQL", "lua", "exesql", sql)
     if list and list.errno then
         skynet.error("[dbcity.getGroup] sql error==" .. sql)

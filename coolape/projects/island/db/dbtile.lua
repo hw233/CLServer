@@ -72,19 +72,6 @@ function dbtile:getidx()
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
 end
 
-function dbtile:setattrid(v)
-    -- 属性id
-    if self:isEmpty() then
-        skynet.error("[dbtile:setattrid],please init first!!")
-        return nil
-    end
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "attrid", v)
-end
-function dbtile:getattrid()
-    -- 属性id
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "attrid")
-end
-
 function dbtile:setcidx(v)
     -- 主城idx
     if self:isEmpty() then
@@ -96,6 +83,19 @@ end
 function dbtile:getcidx()
     -- 主城idx
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cidx")
+end
+
+function dbtile:setattrid(v)
+    -- 属性id
+    if self:isEmpty() then
+        skynet.error("[dbtile:setattrid],please init first!!")
+        return nil
+    end
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "attrid", v)
+end
+function dbtile:getattrid()
+    -- 属性id
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "attrid")
 end
 
 function dbtile:setpos(v)
@@ -147,8 +147,8 @@ function dbtile.querySql(idx, cidx)
 end
 
 -- 取得一个组
-function dbtile.getList(cidx, orderby)
-    local sql = "SELECT * FROM servers WHERE cidx=" .. cidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ";"
+function dbtile.getList(cidx, orderby, limitOffset, limitNum)
+    local sql = "SELECT * FROM servers WHERE cidx=" .. cidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
     local list = skynet.call("CLMySQL", "lua", "exesql", sql)
     if list and list.errno then
         skynet.error("[dbtile.getGroup] sql error==" .. sql)

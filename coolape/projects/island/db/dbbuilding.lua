@@ -212,8 +212,8 @@ function dbbuilding.querySql(idx, cidx)
 end
 
 -- 取得一个组
-function dbbuilding.getList(cidx, orderby)
-    local sql = "SELECT * FROM servers WHERE cidx=" .. "'" .. cidx .. "'" ..  (orderby and " ORDER BY" ..  orderby or "") .. ";"
+function dbbuilding.getList(cidx, orderby, limitOffset, limitNum)
+    local sql = "SELECT * FROM servers WHERE cidx=" .. "'" .. cidx .. "'" ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
     local list = skynet.call("CLMySQL", "lua", "exesql", sql)
     if list and list.errno then
         skynet.error("[dbbuilding.getGroup] sql error==" .. sql)
