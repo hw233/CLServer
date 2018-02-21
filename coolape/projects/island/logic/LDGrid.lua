@@ -1,8 +1,9 @@
 ---网格
+require("sys.Math")
 require("sys.Bounds")
 require("sys.Vector3")
 require("numEx")
-LDGrid = {}
+local LDGrid = {}
 
 local m_numberOfRows
 local m_numberOfColumns
@@ -106,8 +107,8 @@ function LDGrid.GetCellIndexClamped(pos)
     local row = numEx.getIntPart(pos.z / m_cellSize);
 
     --//make sure the position is in range.
-    col = numEx.getIntPart(numEx.clamp(col, 0, m_numberOfColumns - 1));
-    row = numEx.getIntPart(numEx.clamp(row, 0, m_numberOfRows - 1));
+    col = numEx.getIntPart(math.clamp(col, 0, m_numberOfColumns - 1));
+    row = numEx.getIntPart(math.clamp(row, 0, m_numberOfRows - 1));
 
     return (row * m_numberOfColumns + col);
 end
