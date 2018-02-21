@@ -1,7 +1,7 @@
 ---网格
-require("sys.Vector3")
-require("sys.Math")
-require("sys.Bounds")
+require("Math")
+require("Vector3")
+require("Bounds")
 require("numEx")
 ---@class LDGrid
 local LDGrid = {}

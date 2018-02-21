@@ -1,9 +1,14 @@
-require("dbcity")
-require("dbtile")
-require("dbbuilding")
 require("DBUtl")
 require("CLGlobal")
 
+require("dbcity")
+require("dbtile")
+require("dbbuilding")
+---@type LDGrid
+local grid = require("LDGrid")
+
+local gridSize = 50
+local cellSize = 1
 ---@class cmd4city
 cmd4city = {}
 
@@ -13,13 +18,15 @@ local tiles = {}        -- 地块信息
 local buildings = {}    -- 建筑信息
 
 function cmd4city.new (uidx)
+    grid.init(Vector3.zero, gridSize, gridSize, cellSize)
+
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
     myself = dbcity.new()
     local d = {}
     d.idx = idx
     d.name = "new city"
     d.pidx = uidx
-    d.pos = 0
+    d.pos = skynet.call("LDSWorld", "lua", "getIdleIdx")
     d.status = 1
     d.lev = 0
     myself:init(d)

@@ -31,6 +31,9 @@ function()
     skynet.uniqueservice("CLDB")
     skynet.call("CLDB", "lua", "SETTIMEOUT", 1*60)     -- 半小时
 
+    -- world Grid
+    skynet.uniqueservice("LDSWorld")
+
     -- 监听socket
     local watchdog = skynet.uniqueservice("watchdog")
     skynet.call(watchdog, "lua", "start", {
