@@ -4,8 +4,8 @@ require("CLGlobal")
 require("dbcity")
 require("dbtile")
 require("dbbuilding")
----@type LDGrid
-local grid = require("LDGrid")
+---@type Grid
+local grid = require("Grid")
 
 local gridSize = 50
 local cellSize = 1

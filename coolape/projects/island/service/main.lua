@@ -1,4 +1,5 @@
 local skynet = require "skynet"
+require("public.include")
 
 local max_client = 1024*1024
 
@@ -29,7 +30,7 @@ function()
 
     -- 简单缓存数据库
     skynet.uniqueservice("CLDB")
-    skynet.call("CLDB", "lua", "SETTIMEOUT", 1*60)     -- 半小时
+    skynet.call("CLDB", "lua", "SETTIMEOUT", 30*60)     -- 半小时
 
     -- world Grid
     skynet.uniqueservice("LDSWorld")
