@@ -1,4 +1,6 @@
 -- 曲线
+
+---@class curve
 local curve = {
     _VERSION = 'curve 2.1.1',
     _DESCRIPTION = 'tweening for lua',
@@ -382,6 +384,7 @@ end
 --end
 
 -- Curve methods
+---@class Curve
 local Curve = {}
 local Curve_mt = { __index = Curve }
 
@@ -389,7 +392,7 @@ function Curve:current()
     return self.value
 end
 function Curve:get(time)
-    assert(type(clock) == 'number', "clock must be a positive number or 0")
+    assert(type(time) == 'number', "clock must be a positive number or 0")
     return self.easing(time, self.from, self.change, self.duration)
 end
 
@@ -427,6 +430,10 @@ function Curve:update(dt)
 end
 
 -- Public interface
+---@param duration number
+---@param from number
+---@param to number
+---@param easing curve.easing.xxx
 function curve.new(duration, from, to, easing)
     easing = getEasingFunction(easing)
     -- checkNewParams(duration, subject, target, easing)
