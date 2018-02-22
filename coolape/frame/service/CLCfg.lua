@@ -42,6 +42,7 @@ local function init()
     local cfg
     local cfgName
     for i, fileName in ipairs(files) do
+        print("load cfg fileName==" .. fileName)
         cfg = {}
         jsonstr = fileEx.readAll(path .. fileName )
         list = json.decode(jsonstr)

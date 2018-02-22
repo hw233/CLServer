@@ -20,11 +20,6 @@ skynet.start(function()
     -- 初始化网格
     grid.init(Vector3.zero, gridSize, gridSize, cellSize)
 
-    local list = grid.getCells(0, 4)
-    for i=1,#list do
-        print(list[i])
-    end
-
     skynet.dispatch("lua", function(_, _, command, ...)
         local f = CMD[command]
         skynet.ret(skynet.pack(f(...)))
