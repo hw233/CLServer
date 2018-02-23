@@ -8,8 +8,8 @@ require("dbbuilding")
 local gridSize = 50
 local cellSize = 1
 ---@type Grid
-local grid = require("Grid")
-grid.init(Vector3.zero, gridSize, gridSize, cellSize)
+local grid = Grid.new()
+grid:init(Vector3.zero, gridSize, gridSize, cellSize)
 
 ---@class cmd4city
 cmd4city = {}
@@ -45,12 +45,14 @@ end
 -- 初始化地块
 ---@param city dbcity
 function cmd4city.initTiles(city)
-    local cfg = cfgUtl.getHeadquartersLevsByID(city:getlev())
-    if cfg == nil then
+    local headquartersLevsAttr = cfgUtl.getHeadquartersLevsByID(city:getlev())
+    if headquartersLevsAttr == nil then
         printe("get DBCFHeadquartersLevsData attr is nil. key=" .. city:getlev())
         return nil
     end
-    local tileCount = cfg.Tiles
+    local tileCount = headquartersLevsAttr.Tiles
+    local range = headquartersLevsAttr.Range
+    local gridCells = grid:getCells(grid:GetCellIndex(50/2-1, 50/2-1), range)
 end
 
 function cmd4city.getSelf(idx)

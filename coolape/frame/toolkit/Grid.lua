@@ -1,10 +1,11 @@
 ---网格
+require("class")
 require("Math")
 require("Vector3")
 require("Bounds")
 require("numEx")
 ---@class Grid
-local Grid = {}
+Grid = class("Grid")
 
 local table = table
 local m_numberOfRows
@@ -15,25 +16,25 @@ local kInvalidIndex = -1 -- 无效的单元index
 local kXAxis = Vector3(1, 0, 0)
 local kZAxis = Vector3(0, 0, 1)
 local kDepth = 1
-Grid.Width = 0
-Grid.Height = 0
-Grid.NumberOfCells = 0
+--Grid.Width = 0
+--Grid.Height = 0
+--Grid.NumberOfCells = 0
 --===================================================
-function Grid.init(origin, numRows, numCols, cellSize)
+function Grid:init(origin, numRows, numCols, cellSize)
     Origin = origin or Vector3.zero
     m_numberOfRows = numRows
     m_numberOfColumns = numCols
     m_cellSize = cellSize or 1
-    Grid.Width = m_numberOfColumns * m_cellSize
-    Grid.Height = m_numberOfRows * m_cellSize
-    Grid.NumberOfCells = m_numberOfRows * m_numberOfColumns
+    self.Width = m_numberOfColumns * m_cellSize
+    self.Height = m_numberOfRows * m_cellSize
+    self.NumberOfCells = m_numberOfRows * m_numberOfColumns
 end
 
 -- pos is in world space coordinates. The returned position is also in world space coordinates.
 ---@return Vector3
-function Grid.GetNearestCellCenter(pos)
-    local index = Grid.GetCellIndex(pos)
-    local cellPos = Grid.GetCellPosition( index )
+function Grid:GetNearestCellCenter(pos)
+    local index = self:GetCellIndex(pos)
+    local cellPos = self:GetCellPosition( index )
     cellPos.x = cellPos.x + ( m_cellSize / 2.0)
     cellPos.z = cellPos.z + ( m_cellSize / 2.0)
     return cellPos
@@ -41,22 +42,22 @@ end
 
 -- returns a position in world space coordinates.
 ---@return Vector3
-function Grid.GetCellCenterByIndex(index)
-    local cellPosition = Grid.GetCellPosition(index)
+function Grid:GetCellCenterByIndex(index)
+    local cellPosition = self:GetCellPosition(index)
     cellPosition.x = cellPosition.x + ( m_cellSize / 2.0)
     cellPosition.z = cellPosition.z + ( m_cellSize / 2.0)
     return cellPosition
 end
-function Grid.GetCellCenter(...)
+function Grid:GetCellCenter(...)
     local paras = { ... }
     if #paras > 1 then
         local col, row
         col = paras[1]
         row = paras[2]
-        return Grid.GetCellCenterByIndex(Grid.GetCellIndex(col, row))
+        return self:GetCellCenterByIndex(self:GetCellIndex(col, row))
     else
         local index = paras[1]
-        return Grid.GetCellCenterByIndex(index)
+        return self:GetCellCenterByIndex(index)
     end
 end
 
@@ -67,9 +68,9 @@ end
 /// <param name = "index">index to the grid cell to consider</param>
 /// <returns>Lower left position of the grid cell (origin position of the grid cell), in world space coordinates</returns>
 ]]
-function Grid.GetCellPosition(index)
-    local row = Grid.GetRow(index)
-    local col = Grid.GetColumn(index)
+function Grid:GetCellPosition(index)
+    local row = self:GetRow(index)
+    local col = self:GetColumn(index)
     local x = col * m_cellSize
     local z = row * m_cellSize
     local cellPosition = Origin + Vector3(x, 0, z)
@@ -77,8 +78,8 @@ function Grid.GetCellPosition(index)
 end
 
 -- pass in world space coords. Get the tile index at the passed position
-function Grid.GetCellIndexByPos(pos)
-    if ( not Grid.IsInBounds(pos) ) then
+function Grid:GetCellIndexByPos(pos)
+    if ( not self:IsInBounds(pos) ) then
         return kInvalidIndex
     end
     pos = pos - Origin
@@ -88,7 +89,7 @@ function Grid.GetCellIndexByPos(pos)
     return row * m_numberOfColumns + col
 end
 
-function Grid.GetCellIndex(...)
+function Grid:GetCellIndex(...)
     local paras = { ... }
     if #paras > 1 then
         local col, row
@@ -97,12 +98,12 @@ function Grid.GetCellIndex(...)
         return (row * m_numberOfColumns + col)
     else
         local pos = paras[1]
-        return Grid.GetCellIndexByPos(pos)
+        return self:GetCellIndexByPos(pos)
     end
 end
 
 --// pass in world space coords. Get the tile index at the passed position, clamped to be within the grid.
-function Grid.GetCellIndexClamped(pos)
+function Grid:GetCellIndexClamped(pos)
     pos = pos - Origin
 
     local col = numEx.getIntPart(pos.x / m_cellSize)
@@ -115,31 +116,31 @@ function Grid.GetCellIndexClamped(pos)
     return (row * m_numberOfColumns + col)
 end
 
-function Grid.GetCellBounds(index)
-    local cellCenterPos = Grid.GetCellPosition(index)
+function Grid:GetCellBounds(index)
+    local cellCenterPos = self:GetCellPosition(index)
     cellCenterPos.x = cellCenterPos.x + ( m_cellSize / 2.0)
     cellCenterPos.z = cellCenterPos.z + ( m_cellSize / 2.0 )
     local cellBounds = Bounds.New(cellCenterPos, Vector3(m_cellSize, kDepth, m_cellSize))
     return cellBounds
 end
 
-function Grid.GetGridBounds()
-    local gridCenter = Origin + (Grid.Width / 2.0) * kXAxis + (Grid.Height / 2.0) * kZAxis
-    local gridBounds = Bounds.New(gridCenter, Vector3(Grid.Width, kDepth, Grid.Height))
+function Grid:GetGridBounds()
+    local gridCenter = Origin + (self.Width / 2.0) * kXAxis + (self.Height / 2.0) * kZAxis
+    local gridBounds = Bounds.New(gridCenter, Vector3(self.Width, kDepth, self.Height))
     return gridBounds
 end
 
-function Grid.GetRow(index)
+function Grid:GetRow(index)
     local row = numEx.getIntPart(index / m_numberOfColumns)
     return row
 end
 
-function Grid.GetColumn(index)
+function Grid:GetColumn(index)
     local col = numEx.getIntPart(index % m_numberOfColumns)
     return col
 end
 
-function Grid.IsInBounds(...)
+function Grid:IsInBounds(...)
     local paras = { ... }
     if #paras > 1 then
         local col, row
@@ -151,18 +152,17 @@ function Grid.IsInBounds(...)
             return false
         else
             return true
-
         end
     else
         local index = paras[1]
-        return ( index >= 0 and index < Grid.NumberOfCells )
+        return ( index >= 0 and index < self.NumberOfCells )
     end
 end
 
 --// pass in world space coords
-function Grid.IsPosInBounds(pos)
-    local index = Grid.GetCellIndex(pos)
-    return Grid.IsInBounds(index)
+function Grid:IsPosInBounds(pos)
+    local index = self:GetCellIndex(pos)
+    return self:IsInBounds(index)
 end
 
 --[[
@@ -179,7 +179,7 @@ end
 /// Size. Size * Size的范围
 /// </param>
 ]]
-function Grid.getCells ( center, size)
+function Grid:getCells ( center, size)
     local ret = {}
     if (center < 0) then
         return ret

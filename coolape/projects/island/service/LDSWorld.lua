@@ -2,14 +2,12 @@
 local skynet = require "skynet"
 require "skynet.manager"    -- import skynet.register
 ---@type Grid
-local grid = require("Grid")
+require("Grid")
+local grid = Grid.new()
 local gridSize = 1000
 local cellSize = 55
 
 local CMD = {}
-function CMD.getGrid()
-    return grid
-end
 
 -- 取得空闲位置的index
 function CMD.getIdleIdx()
@@ -18,7 +16,7 @@ end
 
 skynet.start(function()
     -- 初始化网格
-    grid.init(Vector3.zero, gridSize, gridSize, cellSize)
+    grid:init(Vector3.zero, gridSize, gridSize, cellSize)
 
     skynet.dispatch("lua", function(_, _, command, ...)
         local f = CMD[command]
