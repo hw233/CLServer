@@ -39,11 +39,10 @@ local function init()
     local files = fileEx.getFiles(path, "json") or {}
     local jsonstr
     local list
-    local cfg
     local cfgName
     for i, fileName in ipairs(files) do
         print("load cfg fileName==" .. fileName)
-        cfg = {}
+        local cfg = {}
         jsonstr = fileEx.readAll(path .. fileName )
         list = json.decode(jsonstr)
         if #list < 2 then
@@ -52,9 +51,9 @@ local function init()
             local keys = list[1] -- 第一行是字段名
             local count = #list - 1
             local cellList
-            local cell = {}
             for i = 2, count do
                 cellList = list[i]
+                local cell = {}
                 for j, v in ipairs(cellList) do
                     cell[keys[j]] = v
                 end

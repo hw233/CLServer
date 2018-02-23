@@ -16,3 +16,6 @@ require("fileEx")
 
 --sys
 require("Math")
+
+-- island
+require("public.cfgUtl")

@@ -1,8 +1,8 @@
 do
     ---@class NetProtoIsland
     NetProtoIsland = {}
-    local cmd4city = require("cmd4city")
-    local cmd4player = require("cmd4player")
+    local cmd4city = require("logic.cmd4city")
+    local cmd4player = require("logic.cmd4player")
     local table = table
     local skynet = require "skynet"
 
@@ -184,6 +184,14 @@ do
         ret.pos = map[33]-- 位置 int
         return ret
     end,
+    -- 升级建筑
+    upLevBuilding = function(map)
+        local ret = {}
+        ret.cmd = "upLevBuilding"
+        ret.__session__ = map[1]
+        ret.idx = map[12]-- 建筑idx int
+        return ret
+    end,
     -- 登陆
     login = function(map)
         local ret = {}
@@ -194,12 +202,13 @@ do
         ret.deviceID = map[19]-- 机器码
         return ret
     end,
-    -- 升级建筑
-    upLevBuilding = function(map)
+    -- 移动建筑
+    moveBuilding = function(map)
         local ret = {}
-        ret.cmd = "upLevBuilding"
+        ret.cmd = "moveBuilding"
         ret.__session__ = map[1]
         ret.idx = map[12]-- 建筑idx int
+        ret.pos = map[33]-- 位置 int
         return ret
     end,
     -- 数据释放，客户端不用调用，服务器内部调用的指令
@@ -224,12 +233,12 @@ do
         ret.idx = map[12]-- 建筑idx int
         return ret
     end,
-    -- 移动建筑
-    moveBuilding = function(map)
+    -- 移动地块
+    moveTile = function(map)
         local ret = {}
-        ret.cmd = "moveBuilding"
+        ret.cmd = "moveTile"
         ret.__session__ = map[1]
-        ret.idx = map[12]-- 建筑idx int
+        ret.idx = map[12]-- 地块idx int
         ret.pos = map[33]-- 位置 int
         return ret
     end,
@@ -241,6 +250,13 @@ do
         ret[0] = 52
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息对象
+        return ret
+    end,
+    upLevBuilding = function(retInfor, building)
+        local ret = {}
+        ret[0] = 54
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 
         return ret
     end,
     login = function(retInfor, player, city, systime, session)
@@ -261,11 +277,11 @@ do
         end
         return ret
     end,
-    upLevBuilding = function(retInfor, building)
+    moveBuilding = function(retInfor, building)
         local ret = {}
-        ret[0] = 54
+        ret[0] = 56
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 
+        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
         return ret
     end,
     release = function()
@@ -286,30 +302,33 @@ do
         ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息对象
         return ret
     end,
-    moveBuilding = function(retInfor)
+    moveTile = function(retInfor, tile)
         local ret = {}
-        ret[0] = 56
+        ret[0] = 57
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[58] = NetProtoIsland.ST_tile.toMap(tile); -- 地块信息
         return ret
     end,
     }
     --==============================
     NetProtoIsland.dispatch[52]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding, logic = cmd4city}
-    NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login, logic = cmd4player}
     NetProtoIsland.dispatch[54]={onReceive = NetProtoIsland.recive.upLevBuilding, send = NetProtoIsland.send.upLevBuilding, logic = cmd4city}
+    NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login, logic = cmd4player}
+    NetProtoIsland.dispatch[56]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding, logic = cmd4city}
     NetProtoIsland.dispatch[14]={onReceive = NetProtoIsland.recive.release, send = NetProtoIsland.send.release, logic = cmd4player}
     NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout, logic = cmd4player}
     NetProtoIsland.dispatch[55]={onReceive = NetProtoIsland.recive.getBuilding, send = NetProtoIsland.send.getBuilding, logic = cmd4city}
-    NetProtoIsland.dispatch[56]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding, logic = cmd4city}
+    NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.moveTile, send = NetProtoIsland.send.moveTile, logic = cmd4city}
     --==============================
     NetProtoIsland.cmds = {
         newBuilding = "newBuilding",
-        login = "login",
         upLevBuilding = "upLevBuilding",
+        login = "login",
+        moveBuilding = "moveBuilding",
         release = "release",
         logout = "logout",
         getBuilding = "getBuilding",
-        moveBuilding = "moveBuilding"
+        moveTile = "moveTile"
     }
 
     --==============================

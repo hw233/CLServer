@@ -151,13 +151,13 @@ function genDB.genTables()
             table.insert(incsqlStr, alertSql)
         end
         -- 保存上一版本
-        fileEx.createDir(rootPath .. "/preVer/")
-        local content = fileEx.readAll(rootPath .. "/" .. v)
-        fileEx.writeAll(rootPath .. "/preVer/" .. v, content)
+        fileEx.createDir(CLUtl.combinePath(rootPath , "/preVer/"))
+        local content = fileEx.readAll(CLUtl.combinePath(rootPath , v))
+        fileEx.writeAll(CLUtl.combinePath(rootPath , "/preVer/" .. v), content)
     end
     local outSqlFile = CLUtl.combinePath(outPath, sqlDumpFile)
     writeFile(outSqlFile, table.concat(sqlStr, "\n"));
-    local incSqlPath = rootPath .. "/" .. os.date("%Y_%m_%d_%H_%M_%S") .. "/"
+    local incSqlPath = CLUtl.combinePath(rootPath , "/" .. os.date("%Y_%m_%d_%H_%M_%S") .. "/")
     fileEx.createDir(incSqlPath)
     local outIncSqlFile = CLUtl.combinePath(incSqlPath, incsqlDumpFile)
     writeFile(outIncSqlFile, table.concat(incsqlStr, "\n"));

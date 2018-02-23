@@ -542,7 +542,7 @@ do
         add(strsServer, "end");
 
         for k,v in pairs(requires) do
-            table.insert(strsServer, 4, "    local " .. k .. " = require(\"".. k .. "\")")
+            table.insert(strsServer, 4, "    local " .. k .. " = require(\"logic.".. k .. "\")")
         end
 
         --==================

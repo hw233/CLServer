@@ -1,4 +1,5 @@
 -- 曲线
+require("sys.Math")
 
 ---@class curve
 local curve = {
@@ -388,14 +389,18 @@ end
 local Curve = {}
 local Curve_mt = { __index = Curve }
 
-function Curve:current()
-    return self.value
-end
-function Curve:get(time)
+-- 根据时间求值
+function Curve:evaluate(time)
     assert(type(time) == 'number', "clock must be a positive number or 0")
     return self.easing(time, self.from, self.change, self.duration)
 end
 
+--取得当前值
+function Curve:get()
+    return self.value
+end
+
+--设置当时间
 function Curve:set(clock)
     assert(type(clock) == 'number', "clock must be a positive number or 0")
 

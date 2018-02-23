@@ -181,6 +181,14 @@ do
         ret[33] = pos; -- 位置 int
         return ret
     end,
+    -- 升级建筑
+    upLevBuilding = function(idx)
+        local ret = {}
+        ret[0] = 54
+        ret[1] = NetProtoIsland.__sessionID
+        ret[12] = idx; -- 建筑idx int
+        return ret
+    end,
     -- 登陆
     login = function(uidx, channel, deviceID)
         local ret = {}
@@ -191,12 +199,13 @@ do
         ret[19] = deviceID; -- 机器码
         return ret
     end,
-    -- 升级建筑
-    upLevBuilding = function(idx)
+    -- 移动建筑
+    moveBuilding = function(idx, pos)
         local ret = {}
-        ret[0] = 54
+        ret[0] = 56
         ret[1] = NetProtoIsland.__sessionID
         ret[12] = idx; -- 建筑idx int
+        ret[33] = pos; -- 位置 int
         return ret
     end,
     -- 数据释放，客户端不用调用，服务器内部调用的指令
@@ -221,12 +230,12 @@ do
         ret[12] = idx; -- 建筑idx int
         return ret
     end,
-    -- 移动建筑
-    moveBuilding = function(idx, pos)
+    -- 移动地块
+    moveTile = function(idx, pos)
         local ret = {}
-        ret[0] = 56
+        ret[0] = 57
         ret[1] = NetProtoIsland.__sessionID
-        ret[12] = idx; -- 建筑idx int
+        ret[12] = idx; -- 地块idx int
         ret[33] = pos; -- 位置 int
         return ret
     end,
@@ -240,6 +249,13 @@ do
         ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息对象
         return ret
     end,
+    upLevBuilding = function(map)
+        local ret = {}
+        ret.cmd = "upLevBuilding"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 
+        return ret
+    end,
     login = function(map)
         local ret = {}
         ret.cmd = "login"
@@ -250,11 +266,11 @@ do
         ret.session = map[22]-- 会话id
         return ret
     end,
-    upLevBuilding = function(map)
+    moveBuilding = function(map)
         local ret = {}
-        ret.cmd = "upLevBuilding"
+        ret.cmd = "moveBuilding"
         ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 
+        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
         return ret
     end,
     release = function(map)
@@ -275,30 +291,33 @@ do
         ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息对象
         return ret
     end,
-    moveBuilding = function(map)
+    moveTile = function(map)
         local ret = {}
-        ret.cmd = "moveBuilding"
+        ret.cmd = "moveTile"
         ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.tile = NetProtoIsland.ST_tile.parse(map[58]) -- 地块信息
         return ret
     end,
     }
     --==============================
     NetProtoIsland.dispatch[52]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding}
-    NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login}
     NetProtoIsland.dispatch[54]={onReceive = NetProtoIsland.recive.upLevBuilding, send = NetProtoIsland.send.upLevBuilding}
+    NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login}
+    NetProtoIsland.dispatch[56]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding}
     NetProtoIsland.dispatch[14]={onReceive = NetProtoIsland.recive.release, send = NetProtoIsland.send.release}
     NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout}
     NetProtoIsland.dispatch[55]={onReceive = NetProtoIsland.recive.getBuilding, send = NetProtoIsland.send.getBuilding}
-    NetProtoIsland.dispatch[56]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding}
+    NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.moveTile, send = NetProtoIsland.send.moveTile}
     --==============================
     NetProtoIsland.cmds = {
         newBuilding = "newBuilding",
-        login = "login",
         upLevBuilding = "upLevBuilding",
+        login = "login",
+        moveBuilding = "moveBuilding",
         release = "release",
         logout = "logout",
         getBuilding = "getBuilding",
-        moveBuilding = "moveBuilding"
+        moveTile = "moveTile"
     }
     --==============================
     return NetProtoIsland

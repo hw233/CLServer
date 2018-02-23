@@ -1,14 +1,16 @@
 require("DBUtl")
 require("CLGlobal")
-
+require("public.cfgUtl")
 require("dbcity")
 require("dbtile")
 require("dbbuilding")
----@type Grid
-local grid = require("Grid")
 
 local gridSize = 50
 local cellSize = 1
+---@type Grid
+local grid = require("Grid")
+grid.init(Vector3.zero, gridSize, gridSize, cellSize)
+
 ---@class cmd4city
 cmd4city = {}
 
@@ -18,8 +20,6 @@ local tiles = {}        -- 地块信息
 local buildings = {}    -- 建筑信息
 
 function cmd4city.new (uidx)
-    grid.init(Vector3.zero, gridSize, gridSize, cellSize)
-
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
     myself = dbcity.new()
     local d = {}
@@ -28,9 +28,10 @@ function cmd4city.new (uidx)
     d.pidx = uidx
     d.pos = skynet.call("LDSWorld", "lua", "getIdleIdx")
     d.status = 1
-    d.lev = 0
+    d.lev = 1
     myself:init(d)
-    --TODO: 初始化地块
+    --初始化地块
+    cmd4city.initTiles(myself)
 
     --TODO: 初始化建筑
     -- add base buildings
@@ -39,6 +40,17 @@ function cmd4city.new (uidx)
         buildings[building:getidx()] = building
     end
     return myself
+end
+
+-- 初始化地块
+---@param city dbcity
+function cmd4city.initTiles(city)
+    local cfg = cfgUtl.getHeadquartersLevsByID(city:getlev())
+    if cfg == nil then
+        printe("get DBCFHeadquartersLevsData attr is nil. key=" .. city:getlev())
+        return nil
+    end
+    local tileCount = cfg.Tiles
 end
 
 function cmd4city.getSelf(idx)
