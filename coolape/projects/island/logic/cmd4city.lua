@@ -36,7 +36,7 @@ function cmd4city.new (uidx)
 
     --TODO: 初始化建筑
     -- add base buildings
-    local building = cmd4city.newBuilding(1, 50050, idx)
+    local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize/2), numEx.getIntPart(gridSize/2)), idx)
     if building then
         buildings[building:getidx()] = building
     end
@@ -52,8 +52,25 @@ function cmd4city.initTiles(city)
         return nil
     end
     local tileCount = headquartersLevsAttr.Tiles
-    local range = headquartersLevsAttr.Range
+    --local range = headquartersLevsAttr.Range
+    local range = math.ceil(math.sqrt(tileCount))
     local gridCells = grid:getCells(grid:GetCellIndex(50 / 2 - 1, 50 / 2 - 1), range)
+    for i, v in ipairs(gridCells) do
+        local tile = cmd4city.newTile(city:getidx(), v)
+        tiles[tile:getidx()] = tile
+    end
+end
+
+function cmd4city.newTile(cidx, pos)
+    local tile = dbtile.new()
+    local d = {}
+    local idx = DBUtl.nextVal(DBUtl.Keys.building)
+    d.idx = idx -- "唯一标识"
+    d.cidx = cidx-- "主城idx"
+    d.attrid = 1 --  "属性id"
+    d.pos = pos -- "城所在世界grid的index"
+    tile:init(d)
+    return tile
 end
 
 function cmd4city.getSelf(idx)
@@ -219,6 +236,14 @@ function cmd4city.release()
         b:release()
     end
     buildings = {}
+
+    ---@type dbtile
+    local t
+    for k, v in pairs(tiles) do
+        t = v
+        t:release()
+    end
+    tiles = {}
 
     if myself and (not myself:isEmpty()) then
         myself:release()

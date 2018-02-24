@@ -13,8 +13,12 @@ genDB = {}
 local sqlDumpFile = "tables.sql";
 local incsqlDumpFile = "tablesInc.sql";
 
+local databaseName
+local rootPath
+local outPath
+
 function genDB.getFiles()
-    return fileEx.getFiles(arg[1], "lua")
+    return fileEx.getFiles(arg[2], "lua")
 end
 
 function getFile(file_name)
@@ -127,15 +131,20 @@ function genDB.genTables()
     end
     local sqlStr = {};
     local incsqlStr = {};
-    local rootPath = arg[1]
-    local outPath = arg[2]
+    databaseName = arg[1]
+    rootPath = arg[2]
+    outPath = arg[3]
     if rootPath == nil then
         rootPath = "."
     end
     if outPath == nil then
         outPath = "."
     end
-
+    -- 建库
+    table.insert(sqlStr, "create database if not exists `" .. databaseName .. "`;")
+    table.insert(sqlStr, "use `" .. databaseName .. "`;")
+    table.insert(incsqlStr, "create database if not exists `" .. databaseName .. "`;")
+    table.insert(incsqlStr, "use `" .. databaseName .. "`;")
     --建序列
     table.insert(sqlStr, genDB.createSequence());
 
@@ -151,13 +160,13 @@ function genDB.genTables()
             table.insert(incsqlStr, alertSql)
         end
         -- 保存上一版本
-        fileEx.createDir(CLUtl.combinePath(rootPath , "/preVer/"))
-        local content = fileEx.readAll(CLUtl.combinePath(rootPath , v))
-        fileEx.writeAll(CLUtl.combinePath(rootPath , "/preVer/" .. v), content)
+        fileEx.createDir(CLUtl.combinePath(rootPath, "/preVer/"))
+        local content = fileEx.readAll(CLUtl.combinePath(rootPath, v))
+        fileEx.writeAll(CLUtl.combinePath(rootPath, "/preVer/" .. v), content)
     end
     local outSqlFile = CLUtl.combinePath(outPath, sqlDumpFile)
     writeFile(outSqlFile, table.concat(sqlStr, "\n"));
-    local incSqlPath = CLUtl.combinePath(rootPath , "/" .. os.date("%Y_%m_%d_%H_%M_%S") .. "/")
+    local incSqlPath = CLUtl.combinePath(rootPath, os.date("%Y_%m_%d_%H_%M_%S") .. "/")
     fileEx.createDir(incSqlPath)
     local outIncSqlFile = CLUtl.combinePath(incSqlPath, incsqlDumpFile)
     writeFile(outIncSqlFile, table.concat(incsqlStr, "\n"));
@@ -593,8 +602,8 @@ function genDB.genLuaFile(outPath, tableCfg)
     print("out lua file==" .. outFile)
 end
 --------------------------------------------
-if #arg < 2 then
-    print("err:参数错误！！第一个参数是表配置目录，第二个参数是相关lua文件输出目录。")
+if #arg < 3 then
+    print("err:参数错误！！第一个参数是database名， 第二个参数是表配置目录，第三个参数是相关lua文件输出目录。")
     return
 end
 genDB.genTables();

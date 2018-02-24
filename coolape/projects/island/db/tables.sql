@@ -1,3 +1,5 @@
+create database if not exists `island`;
+use `island`;
 #--DROP TABLE IF EXISTS sequence;
 CREATE TABLE IF NOT EXISTS sequence (
      name VARCHAR(50) NOT NULL,
