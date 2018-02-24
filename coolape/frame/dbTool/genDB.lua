@@ -513,7 +513,7 @@ function genDB.genLuaFile(outPath, tableCfg)
         end
         table.insert(str, "-- 取得一个组")
         table.insert(str, "function " .. name .. ".getList(" .. tableCfg.groupKey .. ", orderby, limitOffset, limitNum)")
-        table.insert(str, "    local sql = \"SELECT * FROM servers WHERE " .. tableCfg.groupKey .. "=\"" .. where .. " (orderby and \" ORDER BY\" ..  orderby or \"\") .. ((limitOffset and limitNum) and (\" LIMIT \" ..  limitOffset .. \",\" .. limitNum) or \"\") .. \";\"")
+        table.insert(str, "    local sql = \"SELECT * FROM " .. tableCfg.name .. " WHERE " .. tableCfg.groupKey .. "=\"" .. where .. " (orderby and \" ORDER BY\" ..  orderby or \"\") .. ((limitOffset and limitNum) and (\" LIMIT \" ..  limitOffset .. \",\" .. limitNum) or \"\") .. \";\"")
         table.insert(str, "    local list = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", sql)")
         table.insert(str, "    if list and list.errno then")
         table.insert(str, "        skynet.error(\"[" .. name .. ".getGroup] sql error==\" .. sql)")

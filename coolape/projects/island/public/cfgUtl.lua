@@ -3,11 +3,7 @@ local skynet = require "skynet"
 cfgUtl = {}
 
 function cfgUtl.getHeadquartersLevsByID(id)
-    local d = skynet.call("CLCfg", "lua", "getDataCfg", "DBCFHeadquartersLevsData", id)
-    for k,v in pairs(d) do
-        print(k.."=="..v)
-    end
-    return d
+    return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFHeadquartersLevsData", id)
 end
 
 return cfgUtl

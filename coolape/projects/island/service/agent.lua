@@ -1,3 +1,4 @@
+require("public.include")
 local skynet = require "skynet"
 local socket = require "skynet.socket"
 local BioUtl = require("BioUtl")

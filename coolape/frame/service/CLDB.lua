@@ -12,7 +12,7 @@ local dbTimeout = {}
 local dbUsedTimes = {}
 local command = {}
 local timeoutsec = 30 * 60;   -- 数据超时时间（秒）
-local refreshsec = 1 * 60;   -- 数据更新时间（秒）
+local refreshsec = 1 * 60 *100;   -- 数据更新时间（秒*100）
 local insert = table.insert
 local concat = table.concat
 
@@ -207,6 +207,10 @@ end
 
 -- 移除数据超时
 function command.SETUNUSE(tableName, key)
+    if  key == nil then
+        printe("command.SETUNUSE err, key is nil. tableName == " .. tableName)
+        return
+    end
     local t = dbUsedTimes[tableName]
     if t == nil then
         t = {}
@@ -390,7 +394,11 @@ function command.STOP(exit)
     end
 end
 
+-- 设置数据缓存时间
 function command.SETTIMEOUT(v)
+    if v < 1000 then
+        printw("[command.SETTIMEOUT] maybe the ")
+    end
     timeoutsec = v
 end
 -- ============================================================

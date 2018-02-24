@@ -1,5 +1,5 @@
-require("DBUtl")
-require("CLGlobal")
+local skynet = require("skynet")
+require("public.include")
 require("public.cfgUtl")
 require("dbcity")
 require("dbtile")
@@ -21,6 +21,7 @@ local buildings = {}    -- 建筑信息
 
 function cmd4city.new (uidx)
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
+
     myself = dbcity.new()
     local d = {}
     d.idx = idx
@@ -52,7 +53,7 @@ function cmd4city.initTiles(city)
     end
     local tileCount = headquartersLevsAttr.Tiles
     local range = headquartersLevsAttr.Range
-    local gridCells = grid:getCells(grid:GetCellIndex(50/2-1, 50/2-1), range)
+    local gridCells = grid:getCells(grid:GetCellIndex(50 / 2 - 1, 50 / 2 - 1), range)
 end
 
 function cmd4city.getSelf(idx)
@@ -219,7 +220,7 @@ function cmd4city.release()
     end
     buildings = {}
 
-    if myself then
+    if myself and (not myself:isEmpty()) then
         myself:release()
         myself = nil
     end
