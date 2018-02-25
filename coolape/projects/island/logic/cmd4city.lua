@@ -4,13 +4,16 @@ require("public.cfgUtl")
 require("dbcity")
 require("dbtile")
 require("dbbuilding")
+local math = math
+local table = table
 
 local gridSize = 50
 local cellSize = 1
 ---@type Grid
 local grid = Grid.new()
 grid:init(Vector3.zero, gridSize, gridSize, cellSize)
-
+-- 网格状态
+local gridState = {}
 ---@class cmd4city
 cmd4city = {}
 
@@ -36,11 +39,46 @@ function cmd4city.new (uidx)
 
     --TODO: 初始化建筑
     -- add base buildings
-    local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize/2), numEx.getIntPart(gridSize/2)), idx)
+    local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2), numEx.getIntPart(gridSize / 2)), idx)
     if building then
         buildings[building:getidx()] = building
+        gridState[building:getpos()] = true
     end
+
+    -- 初始化树
+    cmd4city.initTree()
+
     return myself
+end
+
+-- 取得一定范围内可用的地块
+---@param rangeV4 Vector4
+function cmd4city.getFreeGridIdx(rangeV4)
+    local x1 = rangeV4.x > rangeV4.z and rangeV4.z or rangeV4.x
+    local x2 = rangeV4.x > rangeV4.z and rangeV4.x or rangeV4.z
+    local y1 = rangeV4.y > rangeV4.w and rangeV4.w or rangeV4.y
+    local y2 = rangeV4.y > rangeV4.w and rangeV4.y or rangeV4.w
+    local cells = {}
+    for i = x1, x2 do
+        for j = y1, y2 do
+            table.insert(cells, grid:GetCellIndex(i, j))
+        end
+    end
+
+    -- TODO:
+end
+
+-- 初始化树
+---@param dbcity
+function cmd4city.initTree(city)
+    local max = math.random(5, 12)
+    for i = 1, max do
+        local pos = cmd4city.getFreeGridIdx()
+        local treeAttrid = math.random(32, 36)
+        local tree = cmd4city.newBuilding(treeAttrid, pos, city:getidx())
+        buildings[tree:getidx()] = tree
+        gridState[tree:getpos()] = true
+    end
 end
 
 -- 初始化地块
@@ -56,23 +94,17 @@ function cmd4city.initTiles(city)
     local range = math.ceil(math.sqrt(tileCount))
     local gridCells = grid:getCells(grid:GetCellIndex(50 / 2 - 1, 50 / 2 - 1), range)
     for i, v in ipairs(gridCells) do
-        local tile = cmd4city.newTile(city:getidx(), v)
-        tiles[tile:getidx()] = tile
+        if i <= tileCount then
+            local tile = cmd4city.newTile(v, city:getidx())
+            tiles[tile:getidx()] = tile
+            gridState[tile:getpos()] = true
+        else
+            break
+        end
     end
 end
 
-function cmd4city.newTile(cidx, pos)
-    local tile = dbtile.new()
-    local d = {}
-    local idx = DBUtl.nextVal(DBUtl.Keys.building)
-    d.idx = idx -- "唯一标识"
-    d.cidx = cidx-- "主城idx"
-    d.attrid = 1 --  "属性id"
-    d.pos = pos -- "城所在世界grid的index"
-    tile:init(d)
-    return tile
-end
-
+---@param idx 城的idx
 function cmd4city.getSelf(idx)
     -- 取得城数据
     if myself == nil then
@@ -88,6 +120,9 @@ function cmd4city.getSelf(idx)
     return myself
 end
 
+-- 新建地块
+---@param pos grid地块的idx
+---@param cidx 城idx
 function cmd4city.newTile(pos, cidx)
     local tile = dbtile.new()
     local t = {}
@@ -150,6 +185,9 @@ function cmd4city.getSelfTiles()
 end
 
 -- 新建筑
+---@param attrid 建筑的配置id
+---@param pos grid地块idx
+---@param cidx 城idx
 function cmd4city.newBuilding(attrid, pos, cidx)
     local building = dbbuilding.new()
     local b = {}
@@ -228,6 +266,7 @@ function cmd4city.getSelfBuilding(idx)
     return b
 end
 
+-- 释放数据
 function cmd4city.release()
     ---@type dbbuilding
     local b
