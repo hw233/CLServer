@@ -64,8 +64,14 @@ function cmd4city.getFreeGridIdx(rangeV4)
             table.insert(cells, grid:GetCellIndex(i, j))
         end
     end
+    local startIdx = math.random(1, #cells)
 
-    -- TODO:
+
+    local i = startIdx + 1
+    while true do
+
+    end
+    return -1
 end
 
 -- 初始化树
