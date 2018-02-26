@@ -9,6 +9,11 @@ local cellSize = 55
 
 local CMD = {}
 
+-- 初始化
+function CMD.init()
+
+end
+
 -- 取得空闲位置的index
 function CMD.getIdleIdx()
     return 0
