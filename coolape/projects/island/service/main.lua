@@ -34,6 +34,7 @@ skynet.start(
 
             -- world Grid
             skynet.uniqueservice("LDSWorld")
+            skynet.call("LDSWorld", "lua", "init")
 
             -- 监听socket
             local watchdog = skynet.uniqueservice("watchdog")
