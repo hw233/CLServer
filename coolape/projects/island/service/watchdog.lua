@@ -12,12 +12,12 @@ local timeOutSec = 20;     -- socket超时时间(秒)
 local function close_agent(fd)
     local a = agent[fd]
     agent[fd] = nil
-    fdLastMsgTime[fd] = nil
     if a then
         skynet.call(gate, "lua", "kick", fd)
         -- disconnect never return
         skynet.send(a, "lua", "disconnect")
     end
+    fdLastMsgTime[fd] = nil
 end
 
 local checkTimeOut = function(fdLastMsgTime)
@@ -34,8 +34,9 @@ local checkTimeOut = function(fdLastMsgTime)
 end
 
 function SOCKET.open(fd, addr)
-    skynet.error("New client from : " .. addr)
+    skynet.error("New client from : " .. addr .. " fd==" .. fd)
     agent[fd] = skynet.newservice("agent")
+    CMD.alivefd(fd)
     skynet.call(agent[fd], "lua", "start", { gate = gate, client = fd, mysql = mysql, watchdog = skynet.self() })
 end
 
@@ -77,12 +78,12 @@ end
 
 -- 停服
 function CMD.stop()
-    -- 先把网关停掉，以免有新的fd进来
-    skynet.kill(gate)
     -- 踢掉所有fd
     for fd, lasttime in pairs(fdLastMsgTime) do
         close_agent(fd)
     end
+    -- 把网关停掉，以免有新的fd进来
+    skynet.kill(gate)
 
     skynet.call("CLDB", "lua", "stop")
     skynet.call("CLMySQL", "lua", "stop")
