@@ -155,7 +155,7 @@ do
         add(ret, "  --==================================")
 
         for name, val in pairs(map) do
-            add(ret, "    -- " .. val[1]);
+            add(ret, "    ---@class ".. getStName(name) .. " " .. val[1]);
             add(ret, "    ".. getStName(name) .. " = {");
             add(ret, "        toMap = function(m)")
             add(ret, "            local r = {}")

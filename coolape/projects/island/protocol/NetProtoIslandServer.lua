@@ -48,7 +48,7 @@ do
     end
   --==================================
   --==================================
-    -- 返回信息
+    ---@class NetProtoIsland.ST_retInfor 返回信息
     NetProtoIsland.ST_retInfor = {
         toMap = function(m)
             local r = {}
@@ -65,7 +65,7 @@ do
             return r;
         end,
     }
-    -- 用户信息
+    ---@class NetProtoIsland.ST_player 用户信息
     NetProtoIsland.ST_player = {
         toMap = function(m)
             local r = {}
@@ -73,10 +73,10 @@ do
             r[12] =  BioUtl.int2bio(m.idx)  -- 唯一标识 int int
             r[29] =  BioUtl.int2bio(m.diam)  -- 钻石 long int
             r[13] = m.name  -- 名字 string
-            r[27] =  BioUtl.int2bio(m.unionidx)  -- 联盟id int int
-            r[28] =  BioUtl.int2bio(m.cityidx)  -- 城池id int int
-            r[30] =  BioUtl.int2bio(m.lev)  -- 等级 long int
             r[26] =  BioUtl.int2bio(m.status)  -- 状态 1：正常 int int
+            r[28] =  BioUtl.int2bio(m.cityidx)  -- 城池id int int
+            r[27] =  BioUtl.int2bio(m.unionidx)  -- 联盟id int int
+            r[30] =  BioUtl.int2bio(m.lev)  -- 等级 long int
             return r;
         end,
         parse = function(m)
@@ -85,14 +85,14 @@ do
             r.idx = m[12] --  int
             r.diam = m[29] --  int
             r.name = m[13] --  string
-            r.unionidx = m[27] --  int
-            r.cityidx = m[28] --  int
-            r.lev = m[30] --  int
             r.status = m[26] --  int
+            r.cityidx = m[28] --  int
+            r.unionidx = m[27] --  int
+            r.lev = m[30] --  int
             return r;
         end,
     }
-    -- 主城
+    ---@class NetProtoIsland.ST_city 主城
     NetProtoIsland.ST_city = {
         toMap = function(m)
             local r = {}
@@ -100,9 +100,9 @@ do
             r[12] =  BioUtl.int2bio(m.idx)  -- 唯一标识 int int
             r[45] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
             r[13] = m.name  -- 名称 string
+            r[26] =  BioUtl.int2bio(m.status)  -- 状态 1:正常; int int
             r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
             r[30] =  BioUtl.int2bio(m.lev)  -- 等级 int int
-            r[26] =  BioUtl.int2bio(m.status)  -- 状态 1:正常; int int
             r[33] =  BioUtl.int2bio(m.pos)  -- 城所在世界grid的index int int
             r[35] =  BioUtl.int2bio(m.pidx)  -- 玩家idx int int
             return r;
@@ -113,15 +113,15 @@ do
             r.idx = m[12] --  int
             r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
             r.name = m[13] --  string
+            r.status = m[26] --  int
             r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
             r.lev = m[30] --  int
-            r.status = m[26] --  int
             r.pos = m[33] --  int
             r.pidx = m[35] --  int
             return r;
         end,
     }
-    -- 建筑信息对象
+    ---@class NetProtoIsland.ST_tile 建筑信息对象
     NetProtoIsland.ST_tile = {
         toMap = function(m)
             local r = {}
@@ -142,7 +142,7 @@ do
             return r;
         end,
     }
-    -- 建筑信息对象
+    ---@class NetProtoIsland.ST_building 建筑信息对象
     NetProtoIsland.ST_building = {
         toMap = function(m)
             local r = {}

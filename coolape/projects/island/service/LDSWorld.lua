@@ -13,6 +13,15 @@ local currScreenOrder = 1
 
 local CMD = {}
 
+--取得下屏的order
+local getNextScreenOrder = function()
+    currScreenOrder = currScreenOrder + 1
+    if currScreenOrder > #screenCneterIndexs then
+        currScreenOrder = 1
+    end
+end
+
+--============================================
 -- 初始化
 function CMD.init()
     local center
