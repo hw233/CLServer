@@ -396,9 +396,6 @@ end
 
 -- 设置数据缓存时间
 function command.SETTIMEOUT(v)
-    if v < 1000 then
-        printw("[command.SETTIMEOUT] maybe the ")
-    end
     timeoutsec = v
 end
 -- ============================================================

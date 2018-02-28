@@ -81,7 +81,7 @@ cmd4player.CMD = {
         end
         ---@type dbcity
         local _tile
-        for i, v in ipairs(tiles) do
+        for i, v in pairs(tiles) do
             _tile = v
             cityVal.tiles[_tile:getidx()] = _tile:value2copy();
         end
@@ -96,7 +96,7 @@ cmd4player.CMD = {
         end
         ---@type dbcity
         local _building
-        for i, v in ipairs(buildings) do
+        for i, v in pairs(buildings) do
             _building = v
             cityVal.buildings[_building:getidx()] = _building:value2copy();
         end

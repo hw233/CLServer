@@ -226,7 +226,7 @@ do
                             stName = nil
                             stName = getKeyByVal(defProtocol.structs, v[1][1]);
                             if stName then
-                                add(ret, "            r." .. k .." = ".. defProtocol.name .."._parseList(" .. getStName(stName) .. ", m." .. k .. ")  -- " .. (v[2] or ""))
+                                add(ret, "            r." .. k .." = ".. defProtocol.name .."._parseList(" .. getStName(stName) .. ", m[" .. getKeyCode(k) .. "])  -- " .. (v[2] or ""))
                             else
                                 add(ret, "            r." .. k .." = m[" .. getKeyCode(k) .."] -- "  .. " " .. typeName )
                             end
@@ -237,7 +237,7 @@ do
                                 break;
                             end
                             if stName then
-                                add(ret, "            r." .. k .." = ".. defProtocol.name .."._parseMap(" .. getStName(stName) .. ", m." .. k .. ")  -- " .. (v[2] or ""))
+                                add(ret, "            r." .. k .." = ".. defProtocol.name .."._parseMap(" .. getStName(stName) .. ", m[" .. getKeyCode(k) .. "])  -- " .. (v[2] or ""))
                             else
                                 add(ret, "            r." .. k .." = m[" .. getKeyCode(k) .."] -- "  .. " " .. typeName )
                             end

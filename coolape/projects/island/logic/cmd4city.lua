@@ -20,8 +20,8 @@ cmd4city = {}
 
 ---@type dbcity
 local myself
-local tiles = {}        -- 地块信息
-local buildings = {}    -- 建筑信息
+local tiles = {}        -- 地块信息 key=idx
+local buildings = {}    -- 建筑信息 key=idx
 
 function cmd4city.new (uidx)
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
@@ -47,7 +47,7 @@ function cmd4city.new (uidx)
     end
 
     -- 初始化树
-    cmd4city.initTree()
+    cmd4city.initTree(myself)
 
     return myself
 end
@@ -109,7 +109,7 @@ end
 function cmd4city.initTree(city)
     local max = math.random(5, 12)
     for i = 1, max do
-        local pos = cmd4city.getFreeGridIdx(Vector4(20,20,30,30) , true)
+        local pos = cmd4city.getFreeGridIdx(Vector4.New(20,20,30,30) , true)
         -- attrid 32到36都是树的配制
         local treeAttrid = math.random(32, 36)
         local tree = cmd4city.newBuilding(treeAttrid, pos, city:getidx())
@@ -135,8 +135,10 @@ function cmd4city.initTiles(city)
     for i, v in ipairs(gridCells) do
         if i <= tileCount then
             local tile = cmd4city.newTile(v, city:getidx())
-            tiles[tile:getidx()] = tile
-            gridState4Tile[tile:getpos()] = true
+            if tile then
+                tiles[tile:getidx()] = tile
+                gridState4Tile[tile:getpos()] = true
+            end
         else
             break
         end
@@ -163,7 +165,7 @@ end
 ---@param pos grid地块的idx
 ---@param cidx 城idx
 function cmd4city.newTile(pos, cidx)
-    if cmd4city.canPlace(pos, false) then
+    if not cmd4city.canPlace(pos, false) then
         printe("该位置不能放置建筑, pos ==" .. pos)
         return nil
     end
@@ -234,7 +236,7 @@ end
 ---@param pos grid地块idx
 ---@param cidx 城idx
 function cmd4city.newBuilding(attrid, pos, cidx)
-    if cmd4city.canPlace(pos, true) then
+    if not cmd4city.canPlace(pos, true) then
         printe("该位置不能放置建筑, pos ==" .. pos)
         return nil
     end
