@@ -10,8 +10,11 @@ local table = table
 local gridSize = 50
 local cellSize = 1
 ---@type Grid
-local grid = Grid.new()
-grid:init(Vector3.zero, gridSize, gridSize, cellSize)
+local grid4Building = Grid.new()
+grid4Building:init(Vector3.zero, gridSize, gridSize, cellSize)
+---@type Grid 地块的网格
+local grid4Tile = Grid.new()
+grid4Tile:init(Vector3.zero, gridSize / 2, gridSize / 2, cellSize * 2)
 -- 网格状态
 local gridState4Tile = {}
 local gridState4Building = {}
@@ -40,7 +43,7 @@ function cmd4city.new (uidx)
 
     --TODO: 初始化建筑
     -- add base buildings
-    local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2), numEx.getIntPart(gridSize / 2)), idx)
+    local building = cmd4city.newBuilding(1, grid4Building:GetCellIndex(numEx.getIntPart(gridSize / 2), numEx.getIntPart(gridSize / 2)), idx)
     if building then
         buildings[building:getidx()] = building
         gridState4Building[building:getpos()] = true
@@ -52,27 +55,24 @@ function cmd4city.new (uidx)
     return myself
 end
 
+
+function cmd4city.canPlaceBuilding(index)
+    return (not gridState4Building[index])
+end
+
+function cmd4city.canPlaceTile(index)
+    return (not gridState4Tile[index])
+end
+
 function cmd4city.canPlace(index, is4Building)
     if is4Building then
-        return (not gridState4Building[index])
+        return cmd4city.canPlaceBuilding(index)
     else
-        return (not gridState4Tile[index])
+        return cmd4city.canPlaceTile(index)
     end
 end
 
--- 取得一定范围内可用的地块
----@param rangeV4 Vector4
-function cmd4city.getFreeGridIdx4Tile(rangeV4)
-    return cmd4city.getFreeGridIdx(rangeV4, false)
-end
-
--- 取得一定范围内可用的地块
----@param rangeV4 Vector4
-function cmd4city.getFreeGridIdx4Building(rangeV4)
-    return cmd4city.getFreeGridIdx(rangeV4, true)
-end
-
-function cmd4city.getFreeGridIdx(rangeV4, is4Building)
+function getFreeGridIdx(rangeV4, grid, is4Building)
     local x1 = rangeV4.x > rangeV4.z and rangeV4.z or rangeV4.x
     local x2 = rangeV4.x > rangeV4.z and rangeV4.x or rangeV4.z
     local y1 = rangeV4.y > rangeV4.w and rangeV4.w or rangeV4.y
@@ -96,7 +96,7 @@ function cmd4city.getFreeGridIdx(rangeV4, is4Building)
         if i == startIdx then
             break
         end
-        if canPlace(cells[i], is4Building) then
+        if cmd4city.canPlace(cells[i], is4Building) then
             return cells[i]
         end
         i = i + 1
@@ -104,12 +104,24 @@ function cmd4city.getFreeGridIdx(rangeV4, is4Building)
     return -1
 end
 
+-- 取得一定范围内可用的地块
+---@param rangeV4 Vector4
+function cmd4city.getFreeGridIdx4Tile(rangeV4)
+    return cmd4city.getFreeGridIdx(rangeV4, grid4Tile)
+end
+
+-- 取得一定范围内可用的地块
+---@param rangeV4 Vector4
+function cmd4city.getFreeGridIdx4Building(rangeV4)
+    return cmd4city.getFreeGridIdx(rangeV4, grid4Building, true)
+end
+
 -- 初始化树
 ---@param dbcity
 function cmd4city.initTree(city)
     local max = math.random(5, 12)
     for i = 1, max do
-        local pos = cmd4city.getFreeGridIdx(Vector4.New(20,20,30,30) , true)
+        local pos = cmd4city.getFreeGridIdx4Building(Vector4.New(20, 20, 30, 30))
         -- attrid 32到36都是树的配制
         local treeAttrid = math.random(32, 36)
         local tree = cmd4city.newBuilding(treeAttrid, pos, city:getidx())
@@ -128,10 +140,11 @@ function cmd4city.initTiles(city)
         printe("get DBCFHeadquartersLevsData attr is nil. key=" .. city:getlev())
         return nil
     end
+
     local tileCount = headquartersLevsAttr.Tiles
     --local range = headquartersLevsAttr.Range
     local range = math.ceil(math.sqrt(tileCount))
-    local gridCells = grid:getCells(grid:GetCellIndex(50 / 2 - 1, 50 / 2 - 1), range)
+    local gridCells = grid4Tile:getCells(grid4Tile:GetCellIndex(50 / 2 - 1, 50 / 2 - 1), range)
     for i, v in ipairs(gridCells) do
         if i <= tileCount then
             local tile = cmd4city.newTile(v, city:getidx())
