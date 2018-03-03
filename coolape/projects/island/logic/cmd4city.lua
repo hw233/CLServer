@@ -162,6 +162,10 @@ function cmd4city.initTiles(city)
     end
 end
 
+function cmd4city.setTilesAttr(tiles)
+    
+end
+
 ---@param idx 城的idx
 function cmd4city.getSelf(idx)
     -- 取得城数据

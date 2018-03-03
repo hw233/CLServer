@@ -140,6 +140,99 @@ function Grid:GetColumn(index)
     return col
 end
 
+function Grid:Left(index)
+    local col = self:GetColumn(index)
+    local row = self:GetRow(index)
+    col = col - 1
+    if self:IsInBounds(col, row) then
+        return self:GetCellIndex(col, row)
+    else
+        return -1
+    end
+end
+
+function Grid:Right(index)
+    local col = self:GetColumn(index)
+    local row = self:GetRow(index)
+    col = col + 1
+    if self:IsInBounds(col, row) then
+        return self:GetCellIndex(col, row)
+    else
+        return -1
+    end
+end
+
+function Grid:Up(index)
+    local col = self:GetColumn(index)
+    local row = self:GetRow(index)
+    row = row + 1
+    if self:IsInBounds(col, row) then
+        return self:GetCellIndex(col, row)
+    else
+        return -1
+    end
+end
+
+function Grid:Down(index)
+    local col = self:GetColumn(index)
+    local row = self:GetRow(index)
+    row = row - 1
+    if self:IsInBounds(col, row) then
+        return self:GetCellIndex(col, row)
+    else
+        return -1
+    end
+end
+
+
+function Grid:LeftUp(index)
+    local col = self:GetColumn(index)
+    local row = self:GetRow(index)
+    col = col - 1
+    row = row + 1
+    if self:IsInBounds(col, row) then
+        return self:GetCellIndex(col, row)
+    else
+        return -1
+    end
+end
+
+function Grid:RightUp(index)
+    local col = self:GetColumn(index)
+    local row = self:GetRow(index)
+    col = col + 1
+    row = row + 1
+    if self:IsInBounds(col, row) then
+        return self:GetCellIndex(col, row)
+    else
+        return -1
+    end
+end
+
+function Grid:LeftDown(index)
+    local col = self:GetColumn(index)
+    local row = self:GetRow(index)
+    col = col - 1
+    row = row - 1
+    if self:IsInBounds(col, row) then
+        return self:GetCellIndex(col, row)
+    else
+        return -1
+    end
+end
+
+function Grid:RightDown(index)
+    local col = self:GetColumn(index)
+    local row = self:GetRow(index)
+    col = col + 1
+    row = row - 1
+    if self:IsInBounds(col, row) then
+        return self:GetCellIndex(col, row)
+    else
+        return -1
+    end
+end
+
 function Grid:IsInBounds(...)
     local paras = { ... }
     if #paras > 1 then
