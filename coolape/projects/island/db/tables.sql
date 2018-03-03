@@ -81,7 +81,7 @@ DROP TABLE IF EXISTS `building`;
 CREATE TABLE `building` (
   `idx` int(11) NOT NULL,
   `cidx` varchar(45) NOT NULL,
-  `pos` varchar(45) NOT NULL,
+  `pos` int(8) NOT NULL,
   `attrid` int(5),
   `lev` int(5),
   `val` int(11),

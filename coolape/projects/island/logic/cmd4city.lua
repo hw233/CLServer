@@ -7,7 +7,7 @@ require("dbbuilding")
 local math = math
 local table = table
 
-local gridSize = 50
+local gridSize = 48
 local cellSize = 1
 ---@type Grid
 local grid4Building = Grid.new()
@@ -27,6 +27,9 @@ local tiles = {}        -- 地块信息 key=idx
 local buildings = {}    -- 建筑信息 key=idx
 
 function cmd4city.new (uidx)
+    tiles = {}        -- 地块信息 key=idx
+    buildings = {}    -- 建筑信息 key=idx
+
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
 
     myself = dbcity.new()
@@ -54,7 +57,6 @@ function cmd4city.new (uidx)
 
     return myself
 end
-
 
 function cmd4city.canPlaceBuilding(index)
     return (not gridState4Building[index])
@@ -107,13 +109,13 @@ end
 -- 取得一定范围内可用的地块
 ---@param rangeV4 Vector4
 function cmd4city.getFreeGridIdx4Tile(rangeV4)
-    return cmd4city.getFreeGridIdx(rangeV4, grid4Tile)
+    return getFreeGridIdx(rangeV4, grid4Tile)
 end
 
 -- 取得一定范围内可用的地块
 ---@param rangeV4 Vector4
 function cmd4city.getFreeGridIdx4Building(rangeV4)
-    return cmd4city.getFreeGridIdx(rangeV4, grid4Building, true)
+    return getFreeGridIdx(rangeV4, grid4Building, true)
 end
 
 -- 初始化树
@@ -122,12 +124,14 @@ function cmd4city.initTree(city)
     local max = math.random(5, 12)
     for i = 1, max do
         local pos = cmd4city.getFreeGridIdx4Building(Vector4.New(20, 20, 30, 30))
-        -- attrid 32到36都是树的配制
-        local treeAttrid = math.random(32, 36)
-        local tree = cmd4city.newBuilding(treeAttrid, pos, city:getidx())
-        if tree then
-            buildings[tree:getidx()] = tree
-            gridState4Building[tree:getpos()] = true
+        if pos >= 0 then
+            -- attrid 32到36都是树的配制
+            local treeAttrid = math.random(32, 36)
+            local tree = cmd4city.newBuilding(treeAttrid, pos, city:getidx())
+            if tree then
+                buildings[tree:getidx()] = tree
+                gridState4Building[tree:getpos()] = true
+            end
         end
     end
 end
@@ -144,7 +148,7 @@ function cmd4city.initTiles(city)
     local tileCount = headquartersLevsAttr.Tiles
     --local range = headquartersLevsAttr.Range
     local range = math.ceil(math.sqrt(tileCount))
-    local gridCells = grid4Tile:getCells(grid4Tile:GetCellIndex(50 / 2 - 1, 50 / 2 - 1), range)
+    local gridCells = grid4Tile:getCells(grid4Tile:GetCellIndex( numEx.getIntPart(gridSize / 4 - 1), numEx.getIntPart(gridSize / 4 - 1)), range)
     for i, v in ipairs(gridCells) do
         if i <= tileCount then
             local tile = cmd4city.newTile(v, city:getidx())
@@ -168,8 +172,8 @@ function cmd4city.getSelf(idx)
             return nil
         end
         -- 设置一次
-        cmd4city.getSelfTiles()
-        cmd4city.getSelfBuildings()
+        cmd4city.setSelfTiles()
+        cmd4city.setSelfBuildings()
     end
     return myself
 end
@@ -179,7 +183,7 @@ end
 ---@param cidx 城idx
 function cmd4city.newTile(pos, cidx)
     if not cmd4city.canPlace(pos, false) then
-        printe("该位置不能放置建筑, pos ==" .. pos)
+        printe("【cmd4city.newTile】该位置不能放置地块, pos ==" .. pos)
         return nil
     end
     local tile = dbtile.new()
@@ -220,26 +224,26 @@ function cmd4city.getSelfTile(idx)
     return t
 end
 
-function cmd4city.getSelfTiles()
-    if myself == nil then
-        printe("[cmd4city.getSelfTiles]:the city data is nil")
-        return nil
-    end
-    if tiles and #tiles > 0 then
-        return tiles
-    end
+function cmd4city.setSelfTiles()
     local list = cmd4city.queryTiles(myself:getidx())
     if list == nil then
         printe("[cmd4city.getSelfTiles]:get tiles is nil. cidx=" .. myself:getidx())
-        return nil
+        return
     end
     tiles = {}
-    ---@type dbbuilding
+    ---@type dbtile
     local t
     for i, v in ipairs(list) do
         t = dbtile.new(v)
         tiles[v.idx] = t
         gridState4Tile[t:getpos()] = true
+    end
+end
+
+function cmd4city.getSelfTiles()
+    if myself == nil then
+        printe("[cmd4city.getSelfTiles]:the city data is nil")
+        return nil
     end
     return tiles
 end
@@ -289,18 +293,15 @@ function cmd4city.queryBuildings(cidx)
     return dbbuilding.getList(cidx)
 end
 
-function cmd4city.getSelfBuildings()
+function cmd4city.setSelfBuildings()
     if myself == nil then
         printe("[cmd4city.getSelfBuildings]:the city data is nil")
-        return nil
-    end
-    if buildings and #buildings > 0 then
-        return buildings
+        return
     end
     local list = cmd4city.queryBuildings(myself:getidx())
     if list == nil then
         printe("[cmd4city.getSelfBuildings]:get buildings is nil. cidx=" .. myself:getidx())
-        return nil
+        return
     end
     buildings = {}
     ---@type dbbuilding
@@ -309,6 +310,13 @@ function cmd4city.getSelfBuildings()
         b = dbbuilding.new(v)
         buildings[v.idx] = b
         gridState4Building[b:getpos()] = true
+    end
+end
+
+function cmd4city.getSelfBuildings()
+    if myself == nil then
+        printe("[cmd4city.getSelfBuildings]:the city data is nil")
+        return nil
     end
     return buildings
 end

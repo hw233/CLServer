@@ -1,6 +1,10 @@
 ﻿-- 工具
 ---@class CLUtl
 CLUtl = {}
+
+local smatch = string.match
+local sfind = string.find
+
 function CLUtl.strSplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -12,6 +16,11 @@ function CLUtl.strSplit(inputstr, sep)
         i = i + 1
     end
     return t;
+end
+
+function CLUtl.trim(s)
+    -- return (s:gsub("^%s*(.-)%s*$", "%1"))
+    return smatch(s, '^()%s*$') and '' or smatch(s, '^%s*(.*%S)') -- 性能略优
 end
 
 function CLUtl.isArray(t)
