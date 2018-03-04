@@ -151,7 +151,7 @@ function cmd4city.initTiles(city)
     local gridCells = grid4Tile:getCells(grid4Tile:GetCellIndex( numEx.getIntPart(gridSize / 4 - 1), numEx.getIntPart(gridSize / 4 - 1)), range)
     for i, v in ipairs(gridCells) do
         if i <= tileCount then
-            local tile = cmd4city.newTile(v, city:getidx())
+            local tile = cmd4city.newTile(v, 0, city:getidx())
             if tile then
                 tiles[tile:getidx()] = tile
                 gridState4Tile[tile:getpos()] = true
@@ -160,10 +160,68 @@ function cmd4city.initTiles(city)
             break
         end
     end
+
+    cmd4city.setTilesAttr(tiles)
 end
 
+-- 设置tile属性
 function cmd4city.setTilesAttr(tiles)
-    
+    ---@type dbtile
+    local tile
+    local attrid
+    ---@type dbtile
+    local left,right,up,down
+    for idx, t in pairs(tiles) do
+        tile = t
+        left = grid4Tile:Left(tile:getpos())
+        right = grid4Tile:Right(tile:getpos())
+        up = grid4Tile:Up(tile:getpos())
+        down = grid4Tile:Down(tile:getpos())
+        attrid = cmd4city.getTileAttrWithAround(
+                left and left:getattrid() or 0,
+                right and right:getattrid() or 0,
+                up and up:getattrid() or 0,
+                down and down:getattrid() or 0
+        )
+        tile:setattrid(attrid)
+    end
+end
+
+function cmd4city.getTileAttrWithAround(leftAttrId, righAttrId, upAttrId, downAttrId)
+    local all = {1,2,3,4,5,6,7}
+    local ret1 = all
+    local ret2 = all
+    local ret3 = all
+    local ret4 = all
+    local attr
+    if leftAttrId > 0 then
+        attr = cfgUtl.getTileByID(leftAttrId)
+        ret1 = attr.Right
+    end
+    if righAttrId > 0 then
+        attr = cfgUtl.getTileByID(righAttrId)
+        ret2 = attr.Left
+    end
+    if upAttrId > 0 then
+        attr = cfgUtl.getTileByID(upAttrId)
+        ret3 = attr.Down
+    end
+    if downAttrId > 0 then
+        attr = cfgUtl.getTileByID(downAttrId)
+        ret3 = attr.Up
+    end
+
+    local ret = {}
+    for i,v in ipairs(all) do
+        if ret1[v] and ret2[v] and ret3[v] and ret4[v] then
+            table.insert(ret, v)
+        end
+    end
+    if #ret > 0 then
+        return ret[math.random(1, #ret)]
+    else
+        return 1
+    end
 end
 
 ---@param idx 城的idx
@@ -185,7 +243,7 @@ end
 -- 新建地块
 ---@param pos grid地块的idx
 ---@param cidx 城idx
-function cmd4city.newTile(pos, cidx)
+function cmd4city.newTile(pos, attrid, cidx)
     if not cmd4city.canPlace(pos, false) then
         printe("【cmd4city.newTile】该位置不能放置地块, pos ==" .. pos)
         return nil
@@ -193,7 +251,7 @@ function cmd4city.newTile(pos, cidx)
     local tile = dbtile.new()
     local t = {}
     t.idx = DBUtl.nextVal(DBUtl.Keys.building) --"唯一标识"
-    t.attrid = 1 --"属性id"
+    t.attrid = attrid --"属性id"
     t.cidx = cidx --"主城idx"
     t.pos = pos -- "城所在世界grid的index"
     if tile:init(t) then
