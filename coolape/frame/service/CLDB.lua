@@ -27,8 +27,9 @@ local function checktimeout(db, dbTimeout)
                     -- 超时数据
                     local val = command.GET(tName, key)
                     if val then
-                        local sql = command.GETUPDATESQL(tName, val)
-                        skynet.call("CLMySQL", "lua", "save", sql)
+                        -- 数据更新到mysql（目前来看不需要更新，因为每次更新时都已经更新了）
+                        --local sql = command.GETUPDATESQL(tName, val)
+                        --skynet.call("CLMySQL", "lua", "save", sql)
                         timoutList[key] = nil;
                         command.REMOVE(tName, key)
                         hasTimeout = true;
@@ -37,9 +38,9 @@ local function checktimeout(db, dbTimeout)
             end
         end
 
-        if hasTimeout then
-            skynet.call("CLMySQL", "lua", "FLUSHAll")
-        end
+        --if hasTimeout then
+        --    skynet.call("CLMySQL", "lua", "FLUSHAll")
+        --end
 
         skynet.sleep(refreshsec)
     end
@@ -388,7 +389,7 @@ function command.GETDELETESQL(tableName, data)
 end
 
 function command.STOP(exit)
-    command.FLUSHALL(true)
+    --command.FLUSHALL(false)
     if exit then
         skynet.exit()
     end

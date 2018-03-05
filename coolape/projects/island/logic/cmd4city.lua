@@ -174,9 +174,13 @@ function cmd4city.setTilesAttr(tiles)
     for idx, t in pairs(tiles) do
         tile = t
         left = grid4Tile:Left(tile:getpos())
+        left = tiles[left]
         right = grid4Tile:Right(tile:getpos())
+        right = tiles[right]
         up = grid4Tile:Up(tile:getpos())
+        up = tiles[up]
         down = grid4Tile:Down(tile:getpos())
+        down = tiles[down]
         attrid = cmd4city.getTileAttrWithAround(
                 left and left:getattrid() or 0,
                 right and right:getattrid() or 0,

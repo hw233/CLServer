@@ -25,6 +25,7 @@ local function storeData(db)
         if db and (not sqlQueue:isEmpty()) then
             sql = {}
             i = 1
+            -- 每次最多处理100条
             while (not sqlQueue:isEmpty()) and i < 100 do
                 table.insert(sql, sqlQueue:deQueue())
                 i = i + 1
