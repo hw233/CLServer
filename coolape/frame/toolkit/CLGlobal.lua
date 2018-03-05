@@ -16,7 +16,7 @@ function parseBackTrace(traceInfor, level)
             local file = sList[1]
             local line = sList[2]
             local func = sList[3] or ""
-            file = string.match(file, "/%a+%.%a+") or ""
+            --file = string.match(file, "/%a+%.%a+") or ""
             func = string.match(func, "'%a+'") or ""
             return file .. ":" .. line .. ":" .. func
         end
@@ -30,7 +30,7 @@ function print(msg)
         return
     end
     msg = msg or ""
-    skynet.error("[debug:" .. parseBackTrace(trace, 3) .. "]:" .. msg)
+    skynet.error("[debug:" .. parseBackTrace(trace, 3) .. "]:\n" .. msg)
 end
 
 function printw(msg)
@@ -38,7 +38,7 @@ function printw(msg)
         return
     end
     msg = msg or ""
-    skynet.error("[warn:" .. parseBackTrace(trace, 3) .. "]:" .. msg)
+    skynet.error("[warn:" .. parseBackTrace(trace, 3) .. "]:\n" .. msg)
 end
 
 function printe(msg)
@@ -46,7 +46,7 @@ function printe(msg)
         return
     end
     msg = msg or ""
-    skynet.error("[err:" .. parseBackTrace(trace, 3) .. "]:" .. msg)
+    skynet.error("[err:" .. parseBackTrace(trace, 3) .. "]:\n" .. msg)
 end
 
 
