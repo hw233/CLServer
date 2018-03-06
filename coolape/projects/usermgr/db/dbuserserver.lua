@@ -117,6 +117,13 @@ function dbuserserver:release()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
 end
 
+function dbuserserver:delete()
+    skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
+    skynet.call("CLDB", "lua", "REMOVE", self.__name__, self.__key__)
+    local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, self:value2copy())
+    return skynet.call("CLMySql", "lua", "EXESQL", sql)
+end
+
 function dbuserserver.querySql(uidx, appid)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}

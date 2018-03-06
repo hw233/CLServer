@@ -440,6 +440,13 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "end")
     table.insert(str, "")
 
+    table.insert(str, "function " .. name .. ":delete()")
+    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"SETUNUSE\", self.__name__, self.__key__)")
+    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"REMOVE\", self.__name__, self.__key__)")
+    table.insert(str, "    local sql = skynet.call(\"CLDB\", \"lua\", \"GETDELETESQL\", self.__name__, self:value2copy())")
+    table.insert(str, "    return skynet.call(\"CLMySql\", \"lua\", \"EXESQL\", sql)")
+    table.insert(str, "end")
+    table.insert(str, "")
 
     --table.insert(str, "function " .. name .. ":insertSql()")
     --table.insert(str, "    local sql = \"INSERT INTO `" .. tableCfg.name .. "` (" .. table.concat(columns, ",") .. ")\"")
