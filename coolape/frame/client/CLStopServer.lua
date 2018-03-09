@@ -8,7 +8,7 @@ local httpc = require("CLHttpc")
 --httpc.timeout = 500	-- set timeout 1 second
 
 if #arg < 3 then
-    print("err:参数错误！！第一个参数是工程名，第二个参数是端口。")
+    print("err:参数错误！！第一个参数是工程名，第二个参数ip，第三个参数是端口，第四个参数是强制停服(不是必须)")
     return
 end
 local projectName = arg[1]
