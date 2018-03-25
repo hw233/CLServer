@@ -24,27 +24,32 @@ function parseBackTrace(traceInfor, level)
     return ""
 end
 
-function print(msg)
-    local trace = debug.traceback("")
+function print(...)
     if logLev < LogLev.debug then
         return
     end
+    local trace = debug.traceback("")
+    local msg = table.concat({...}, "|")
     msg = msg or ""
     skynet.error("[debug:" .. parseBackTrace(trace, 3) .. "]:\n" .. msg)
 end
 
-function printw(msg)
+function printw(...)
     if logLev < LogLev.warning then
         return
     end
+    local trace = debug.traceback("")
+    local msg = table.concat({...}, "|")
     msg = msg or ""
     skynet.error("[warn:" .. parseBackTrace(trace, 3) .. "]:\n" .. msg)
 end
 
-function printe(msg)
+function printe(...)
     if logLev < LogLev.error then
         return
     end
+    local trace = debug.traceback("")
+    local msg = table.concat({...}, "|")
     msg = msg or ""
     skynet.error("[err:" .. parseBackTrace(trace, 3) .. "]:\n" .. msg)
 end

@@ -8,10 +8,10 @@ require("numEx")
 Grid = class("Grid")
 
 local table = table
-local m_numberOfRows
-local m_numberOfColumns
-local m_cellSize
-local Origin = Vector3.zero
+--local m_numberOfRows
+--local m_numberOfColumns
+--local m_cellSize
+--local Origin = Vector3.zero
 local kInvalidIndex = -1 -- 无效的单元index
 local kXAxis = Vector3(1, 0, 0)
 local kZAxis = Vector3(0, 0, 1)
@@ -21,13 +21,13 @@ local kDepth = 1
 --Grid.NumberOfCells = 0
 --===================================================
 function Grid:init(origin, numRows, numCols, cellSize)
-    Origin = origin or Vector3.zero
-    m_numberOfRows = numRows
-    m_numberOfColumns = numCols
-    m_cellSize = cellSize or 1
-    self.Width = m_numberOfColumns * m_cellSize
-    self.Height = m_numberOfRows * m_cellSize
-    self.NumberOfCells = m_numberOfRows * m_numberOfColumns
+    self.Origin = origin or Vector3.zero
+    self.m_numberOfRows = numRows
+    self.m_numberOfColumns = numCols
+    self.m_cellSize = cellSize or 1
+    self.Width = self.m_numberOfColumns * self.m_cellSize
+    self.Height = self.m_numberOfRows * self.m_cellSize
+    self.NumberOfCells = self.m_numberOfRows * self.m_numberOfColumns
 end
 
 -- pos is in world space coordinates. The returned position is also in world space coordinates.
@@ -35,8 +35,8 @@ end
 function Grid:GetNearestCellCenter(pos)
     local index = self:GetCellIndex(pos)
     local cellPos = self:GetCellPosition( index )
-    cellPos.x = cellPos.x + ( m_cellSize / 2.0)
-    cellPos.z = cellPos.z + ( m_cellSize / 2.0)
+    cellPos.x = cellPos.x + ( self.m_cellSize / 2.0)
+    cellPos.z = cellPos.z + ( self.m_cellSize / 2.0)
     return cellPos
 end
 
@@ -44,8 +44,8 @@ end
 ---@return Vector3
 function Grid:GetCellCenterByIndex(index)
     local cellPosition = self:GetCellPosition(index)
-    cellPosition.x = cellPosition.x + ( m_cellSize / 2.0)
-    cellPosition.z = cellPosition.z + ( m_cellSize / 2.0)
+    cellPosition.x = cellPosition.x + ( self.m_cellSize / 2.0)
+    cellPosition.z = cellPosition.z + ( self.m_cellSize / 2.0)
     return cellPosition
 end
 function Grid:GetCellCenter(...)
@@ -71,9 +71,9 @@ end
 function Grid:GetCellPosition(index)
     local row = self:GetRow(index)
     local col = self:GetColumn(index)
-    local x = col * m_cellSize
-    local z = row * m_cellSize
-    local cellPosition = Origin + Vector3(x, 0, z)
+    local x = col * self.m_cellSize
+    local z = row * self.m_cellSize
+    local cellPosition = self.Origin + Vector3(x, 0, z)
     return cellPosition
 end
 
@@ -82,20 +82,21 @@ function Grid:GetCellIndexByPos(pos)
     if ( not self:IsInBounds(pos) ) then
         return kInvalidIndex
     end
-    pos = pos - Origin
+    pos = pos - self.Origin
     local col, row
-    col = numEx.getIntPart(pos.x / m_cellSize)
-    row = numEx.getIntPart(pos.z / m_cellSize)
-    return row * m_numberOfColumns + col
+    col = numEx.getIntPart(pos.x / self.m_cellSize)
+    row = numEx.getIntPart(pos.z / self.m_cellSize)
+    return row * self.m_numberOfColumns + col
 end
 
+---@param ... 可以传两个参数，分别x，y；也可以直接传一个Vector3坐标
 function Grid:GetCellIndex(...)
     local paras = { ... }
     if #paras > 1 then
         local col, row
         col = paras[1]
         row = paras[2]
-        return (row * m_numberOfColumns + col)
+        return (row * self.m_numberOfColumns + col)
     else
         local pos = paras[1]
         return self:GetCellIndexByPos(pos)
@@ -104,39 +105,39 @@ end
 
 --// pass in world space coords. Get the tile index at the passed position, clamped to be within the grid.
 function Grid:GetCellIndexClamped(pos)
-    pos = pos - Origin
+    pos = pos - self.Origin
 
-    local col = numEx.getIntPart(pos.x / m_cellSize)
-    local row = numEx.getIntPart(pos.z / m_cellSize)
+    local col = numEx.getIntPart(pos.x / self.m_cellSize)
+    local row = numEx.getIntPart(pos.z / self.m_cellSize)
 
     --//make sure the position is in range.
-    col = numEx.getIntPart(math.clamp(col, 0, m_numberOfColumns - 1))
-    row = numEx.getIntPart(math.clamp(row, 0, m_numberOfRows - 1))
+    col = numEx.getIntPart(math.clamp(col, 0, self.m_numberOfColumns - 1))
+    row = numEx.getIntPart(math.clamp(row, 0, self.m_numberOfRows - 1))
 
-    return (row * m_numberOfColumns + col)
+    return (row * self.m_numberOfColumns + col)
 end
 
 function Grid:GetCellBounds(index)
     local cellCenterPos = self:GetCellPosition(index)
-    cellCenterPos.x = cellCenterPos.x + ( m_cellSize / 2.0)
-    cellCenterPos.z = cellCenterPos.z + ( m_cellSize / 2.0 )
-    local cellBounds = Bounds.New(cellCenterPos, Vector3(m_cellSize, kDepth, m_cellSize))
+    cellCenterPos.x = cellCenterPos.x + ( self.m_cellSize / 2.0)
+    cellCenterPos.z = cellCenterPos.z + ( self.m_cellSize / 2.0 )
+    local cellBounds = Bounds.New(cellCenterPos, Vector3(self.m_cellSize, kDepth, self.m_cellSize))
     return cellBounds
 end
 
 function Grid:GetGridBounds()
-    local gridCenter = Origin + (self.Width / 2.0) * kXAxis + (self.Height / 2.0) * kZAxis
+    local gridCenter = self.Origin + (self.Width / 2.0) * kXAxis + (self.Height / 2.0) * kZAxis
     local gridBounds = Bounds.New(gridCenter, Vector3(self.Width, kDepth, self.Height))
     return gridBounds
 end
 
 function Grid:GetRow(index)
-    local row = numEx.getIntPart(index / m_numberOfColumns)
+    local row = numEx.getIntPart(index / self.m_numberOfColumns)
     return row
 end
 
 function Grid:GetColumn(index)
-    local col = numEx.getIntPart(index % m_numberOfColumns)
+    local col = numEx.getIntPart(index % self.m_numberOfColumns)
     return col
 end
 
@@ -239,9 +240,9 @@ function Grid:IsInBounds(...)
         local col, row
         col = paras[1]
         row = paras[2]
-        if (col < 0 or col >= m_numberOfColumns) then
+        if (col < 0 or col >= self.m_numberOfColumns) then
             return false
-        elseif (row < 0 or row >= m_numberOfRows) then
+        elseif (row < 0 or row >= self.m_numberOfRows) then
             return false
         else
             return true
@@ -278,7 +279,7 @@ function Grid:getCells ( center, size)
         return ret
     end
     local tpindex
-    local numRows = m_numberOfRows
+    local numRows = self.m_numberOfRows
     local half = numEx.getIntPart(size / 2)
     if (size % 2 == 0) then
         for row = 0, half do

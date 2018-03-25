@@ -49,13 +49,48 @@ function cmd4city.new (uidx)
     local building = cmd4city.newBuilding(1, grid4Building:GetCellIndex(numEx.getIntPart(gridSize / 2), numEx.getIntPart(gridSize / 2)), idx)
     if building then
         buildings[building:getidx()] = building
-        gridState4Building[building:getpos()] = true
+        cmd4city.placeBuilding(building)
     end
 
     -- 初始化树
     cmd4city.initTree(myself)
 
     return myself
+end
+
+---@param building dbbuilding
+function cmd4city.placeBuilding(building)
+    local center = building:getpos()
+    local attr = cfgUtl.getBuildingByID(building:getattrid())
+    local size = attr.Size
+    --gridState4Building[center] = true
+    local indexs = grid4Building:getCells(center, size)
+    for i,index in ipairs(indexs) do
+        gridState4Building[index] = true
+    end
+end
+
+---@param building dbbuilding
+function cmd4city.unPlaceBuilding(building)
+    local center = building:getpos()
+    local attr = cfgUtl.getBuildingByID(building:getattrid())
+    local size = attr.Size
+    --gridState4Building[center] = nil
+    local indexs = grid4Building:getCells(center, size)
+    for i,index in ipairs(indexs) do
+        gridState4Building[index] = nil
+    end
+end
+
+---@param tile dbtile
+function cmd4city.placeTile(tile)
+    local center = tile:getpos()
+    gridState4Tile[center] = true
+end
+---@param tile dbtile
+function cmd4city.unPlaceTile(tile)
+    local center = tile:getpos()
+    gridState4Tile[center] = nil
 end
 
 function cmd4city.canPlaceBuilding(index)
@@ -74,6 +109,7 @@ function cmd4city.canPlace(index, is4Building)
     end
 end
 
+---@param grid Grid
 function getFreeGridIdx(rangeV4, grid, is4Building)
     local x1 = rangeV4.x > rangeV4.z and rangeV4.z or rangeV4.x
     local x2 = rangeV4.x > rangeV4.z and rangeV4.x or rangeV4.z
@@ -86,8 +122,8 @@ function getFreeGridIdx(rangeV4, grid, is4Building)
         end
     end
     local startIdx = math.random(1, #cells)
-    if cmd4city.canPlace(startIdx, is4Building) then
-        return startIdx
+    if cmd4city.canPlace(cells[startIdx], is4Building) then
+        return cells[startIdx]
     end
 
     local i = startIdx + 1
@@ -130,7 +166,7 @@ function cmd4city.initTree(city)
             local tree = cmd4city.newBuilding(treeAttrid, pos, city:getidx())
             if tree then
                 buildings[tree:getidx()] = tree
-                gridState4Building[tree:getpos()] = true
+                --gridState4Building[tree:getpos()] = true
             end
         end
     end
@@ -154,7 +190,6 @@ function cmd4city.initTiles(city)
             local tile = cmd4city.newTile(v, 0, city:getidx())
             if tile then
                 tiles[tile:getidx()] = tile
-                gridState4Tile[tile:getpos()] = true
             end
         else
             break
@@ -259,7 +294,7 @@ function cmd4city.newTile(pos, attrid, cidx)
     t.cidx = cidx --"主城idx"
     t.pos = pos -- "城所在世界grid的index"
     if tile:init(t) then
-        gridState4Tile[pos] = true
+        cmd4city.placeTile(tile)
         return tile
     else
         printe("[cmd4city.newTile]==" .. CLUtl.dump(t))
@@ -302,7 +337,7 @@ function cmd4city.setSelfTiles()
     for i, v in ipairs(list) do
         t = dbtile.new(v)
         tiles[v.idx] = t
-        gridState4Tile[t:getpos()] = true
+        cmd4city.placeTile(t)
     end
 end
 
@@ -336,7 +371,7 @@ function cmd4city.newBuilding(attrid, pos, cidx)
     b.val4 = 0 -- 值。如:产量，仓库的存储量等
 
     if building:init(b) then
-        gridState4Building[pos] = true
+        cmd4city.placeBuilding(building)
         return building
     else
         printe("[cmd4city.newBuilding] new building error. attrid=" .. attrid .. "  pos==" .. pos .. "  cidx==" .. cidx)
@@ -375,7 +410,7 @@ function cmd4city.setSelfBuildings()
     for i, v in ipairs(list) do
         b = dbbuilding.new(v)
         buildings[v.idx] = b
-        gridState4Building[b:getpos()] = true
+        cmd4city.placeBuilding(b)
     end
 end
 
@@ -458,7 +493,6 @@ cmd4city.CMD = {
             return NetProto.send.newBuilding(ret, nil)
         end
         buildings[building:getidx()] = building
-        gridState4Building[building:getpos()] = true
 
         ret.code = Errcode.ok
         return NetProto.send.newBuilding(ret, building:value2copy())
@@ -485,9 +519,9 @@ cmd4city.CMD = {
             ret.msg = "取得地块为空"
             return NetProto.send.moveTile(ret, nil)
         end
-        gridState4Tile[t:getpos()] = nil
+        cmd4city.unPlaceTile(t)
         t:setpos(m.pos)
-        gridState4Tile[m.pos] = true
+        cmd4city.placeTile(t)
         ret.code = Errcode.ok
         return NetProto.send.moveTile(ret, t:value2copy())
     end,
@@ -502,10 +536,10 @@ cmd4city.CMD = {
             return NetProto.send.moveBuilding(ret, nil)
         end
         -- 先释放之前的网格状态
-        gridState4Building[b:getpos()] = nil
+        cmd4city.unPlaceBuilding(b)
         b:setpos(m.pos)
         -- 设置新的网格的状态
-        gridState4Building[m.pos] = true
+        cmd4city.placeBuilding(b)
         ret.code = Errcode.ok
         return NetProto.send.moveBuilding(ret. b:value2copy())
     end,
