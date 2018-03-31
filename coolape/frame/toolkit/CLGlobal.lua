@@ -31,7 +31,7 @@ function print(...)
     local trace = debug.traceback("")
     local msg = table.concat({...}, "|")
     msg = msg or ""
-    skynet.error("[debug:" .. parseBackTrace(trace, 3) .. "]:\n" .. msg)
+    skynet.error("[debug]:" .. msg .. "\n" .. parseBackTrace(trace, 3))
 end
 
 function printw(...)
@@ -41,7 +41,7 @@ function printw(...)
     local trace = debug.traceback("")
     local msg = table.concat({...}, "|")
     msg = msg or ""
-    skynet.error("[warn:" .. parseBackTrace(trace, 3) .. "]:\n" .. msg)
+    skynet.error("[warn]:" .. msg .. "\n" .. parseBackTrace(trace, 3))
 end
 
 function printe(...)
@@ -51,7 +51,7 @@ function printe(...)
     local trace = debug.traceback("")
     local msg = table.concat({...}, "|")
     msg = msg or ""
-    skynet.error("[err:" .. parseBackTrace(trace, 3) .. "]:\n" .. msg)
+    skynet.error("[err]:" .. msg .. "\n" .. parseBackTrace(trace, 3))
 end
 
 
