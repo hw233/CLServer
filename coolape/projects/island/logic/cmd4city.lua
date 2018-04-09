@@ -18,6 +18,10 @@ grid4Tile:init(Vector3.zero, gridSize / 2, gridSize / 2, cellSize * 2)
 -- 网格状态
 local gridState4Tile = {}
 local gridState4Building = {}
+
+---@type NetProtoIsland
+local NetProto = NetProtoIsland
+
 ---@class cmd4city
 cmd4city = {}
 
@@ -428,7 +432,7 @@ function cmd4city.getSelfBuilding(idx)
         printe("主城为空")
         return nil
     end
-    if buildings == nil or #buildings == 0 then
+    if buildings == nil then
         printe("建筑信息列表为空")
         return nil
     end
@@ -541,7 +545,7 @@ cmd4city.CMD = {
         -- 设置新的网格的状态
         cmd4city.placeBuilding(b)
         ret.code = Errcode.ok
-        return NetProto.send.moveBuilding(ret. b:value2copy())
+        return NetProto.send.moveBuilding(ret, b:value2copy())
     end,
     upLevBuilding = function(m, fd)
         -- 建筑升级
