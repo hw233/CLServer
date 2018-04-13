@@ -1,4 +1,6 @@
-
+if cmd4com ~= nil then
+    return cmd4com
+end
 local skynet = require("skynet")
 require("Errcode")
 ---@type CLUtl

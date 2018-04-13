@@ -31,6 +31,7 @@ cpath = skynetRoot.."cservice/?.so"
 thread = 1
 --logLev:日志等级  debug, warning, error
 logLev = "debug"
+logTraceLev = -1
 -- logger = coolapeRoot .. "logs/error_" .. projectName .. ".log"
 logger = nil
 logpath = "."

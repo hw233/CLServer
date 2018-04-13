@@ -1,3 +1,6 @@
+if cmd4player ~= nil then
+    return cmd4player
+end
 -- 玩家的逻辑处理
 local skynet = require("skynet")
 require("Errcode")
@@ -9,11 +12,14 @@ local dateEx = require("dateEx")
 ---@type NetProtoIsland
 local NetProto = NetProtoIsland
 require("dbplayer")
-require("cmd4city")
+--if cmd4city == nil then
+--    -- 保证一次会话只有一个cmd4city
+    require("cmd4city")
+--end
 
 local table = table
 
-local cmd4player = {}
+cmd4player = {}
 ---@type dbplayer
 local myself;
 ---@type dbcity

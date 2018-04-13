@@ -1,3 +1,6 @@
+if cmd4city ~= nil then
+    return cmd4city
+end
 local skynet = require("skynet")
 require("public.include")
 require("public.cfgUtl")

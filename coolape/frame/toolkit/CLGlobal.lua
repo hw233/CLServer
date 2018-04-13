@@ -6,6 +6,7 @@ local LogLev = {
     debug = 3,
 }
 local logLev = LogLev[skynet.getenv("logLev") or "debug"] or LogLev.debug
+local logTraceLev = tonumber(skynet.getenv("logTraceLev") or 3)
 
 function parseBackTrace(traceInfor, level)
     if traceInfor and level > 1 then
@@ -21,7 +22,7 @@ function parseBackTrace(traceInfor, level)
             return file .. ":" .. line .. ":" .. func
         end
     end
-    return ""
+    return traceInfor or ""
 end
 
 function print(...)
@@ -31,7 +32,7 @@ function print(...)
     local trace = debug.traceback("")
     local msg = table.concat({...}, "|")
     msg = msg or ""
-    skynet.error("[debug]:" .. msg .. "\n" .. parseBackTrace(trace, 3))
+    skynet.error("[debug]:" .. msg .. "\n" .. parseBackTrace(trace, logTraceLev))
 end
 
 function printw(...)
@@ -41,7 +42,7 @@ function printw(...)
     local trace = debug.traceback("")
     local msg = table.concat({...}, "|")
     msg = msg or ""
-    skynet.error("[warn]:" .. msg .. "\n" .. parseBackTrace(trace, 3))
+    skynet.error("[warn]:" .. msg .. "\n" .. parseBackTrace(trace, logTraceLev))
 end
 
 function printe(...)
@@ -51,7 +52,7 @@ function printe(...)
     local trace = debug.traceback("")
     local msg = table.concat({...}, "|")
     msg = msg or ""
-    skynet.error("[err]:" .. msg .. "\n" .. parseBackTrace(trace, 3))
+    skynet.error("[err]:" .. msg .. "\n" .. parseBackTrace(trace, logTraceLev))
 end
 
 
