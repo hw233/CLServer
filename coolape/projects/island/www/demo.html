@@ -1,0 +1,17 @@
+<html>
+<script type="text/javascript" src="jquery-3.3.1.min.js"></script>
+<script>
+ $.when(
+  $.ready
+).done(function() {
+	var _url = "https://code.jquery.com/jquery-3.3.1.min.js";
+	var _data = {};
+	$.getJSON( _url,_data,function(data){
+		$("#m_content").html(data);
+	});
+});
+</script>
+<body>
+<div id="m_content"></div>
+</body>
+</html>
