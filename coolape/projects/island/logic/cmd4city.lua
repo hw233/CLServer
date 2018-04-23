@@ -1,6 +1,9 @@
 if cmd4city ~= nil then
     return cmd4city
 end
+
+---@class cmd4city
+cmd4city = {}
 local skynet = require("skynet")
 require("public.include")
 require("public.cfgUtl")
@@ -25,8 +28,6 @@ local gridState4Building = {}
 ---@type NetProtoIsland
 local NetProto = NetProtoIsland
 
----@class cmd4city
-cmd4city = {}
 
 ---@type dbcity
 local myself
@@ -68,6 +69,7 @@ end
 ---@param building dbbuilding
 function cmd4city.placeBuilding(building)
     local center = building:getpos()
+    print(building:getattrid())
     local attr = cfgUtl.getBuildingByID(building:getattrid())
     local size = attr.Size
     --gridState4Building[center] = true
@@ -169,7 +171,7 @@ function cmd4city.initTree(city)
         local pos = cmd4city.getFreeGridIdx4Building(Vector4.New(20, 20, 30, 30))
         if pos >= 0 then
             -- attrid 32到36都是树的配制
-            local treeAttrid = math.random(32, 36)
+            local treeAttrid = math.random(30, 34)
             local tree = cmd4city.newBuilding(treeAttrid, pos, city:getidx())
             if tree then
                 buildings[tree:getidx()] = tree

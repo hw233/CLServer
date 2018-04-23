@@ -1,7 +1,10 @@
 if cmd4player ~= nil then
     return cmd4player
 end
+
 -- 玩家的逻辑处理
+cmd4player = {}
+
 local skynet = require("skynet")
 require("Errcode")
 ---@type CLUtl
@@ -19,7 +22,6 @@ require("dbplayer")
 
 local table = table
 
-cmd4player = {}
 ---@type dbplayer
 local myself;
 ---@type dbcity

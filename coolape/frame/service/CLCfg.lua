@@ -49,7 +49,7 @@ local function init()
             printe("load data cfg error.path=[" .. path .. fileName .. "]")
         else
             local keys = list[1] -- 第一行是字段名
-            local count = #list - 1
+            local count = #list
             local cellList
             for i = 2, count do
                 cellList = list[i]
