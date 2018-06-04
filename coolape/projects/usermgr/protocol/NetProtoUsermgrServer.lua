@@ -1,11 +1,11 @@
 do
     ---@class NetProtoUsermgr
-    NetProtoUsermgr = {}
-    local cmd4server = require("cmd4server")
-    local cmd4user = require("cmd4user")
+    local NetProtoUsermgr = {}
     local table = table
+    local CMD = {}
     local skynet = require "skynet"
 
+    require "skynet.manager"    -- import skynet.register
     require("BioUtl")
 
     NetProtoUsermgr.dispatch = {}
@@ -48,7 +48,7 @@ do
     end
   --==================================
   --==================================
-    -- 返回信息
+    ---@class NetProtoUsermgr.ST_retInfor 返回信息
     NetProtoUsermgr.ST_retInfor = {
         toMap = function(m)
             local r = {}
@@ -65,7 +65,7 @@ do
             return r;
         end,
     }
-    -- 服务器
+    ---@class NetProtoUsermgr.ST_server 服务器
     NetProtoUsermgr.ST_server = {
         toMap = function(m)
             local r = {}
@@ -74,10 +74,10 @@ do
             r[41] =  BioUtl.int2bio(m.port)  -- 端口 int
             r[14] = m.name  -- 名称 string
             r[42] = m.host  -- ip地址 string
+            r[15] =  BioUtl.int2bio(m.status)  -- 状态 1:正常; 2:爆满; 3:维护 int
             r[38] = m.iosVer  -- 客户端ios版本 string
             r[39] = m.androidVer  -- 客户端android版本 string
             r[34] = m.isnew  -- 新服 boolean
-            r[15] =  BioUtl.int2bio(m.status)  -- 状态 1:正常; 2:爆满; 3:维护 int
             return r;
         end,
         parse = function(m)
@@ -87,14 +87,14 @@ do
             r.port = m[41] --  int
             r.name = m[14] --  string
             r.host = m[42] --  string
+            r.status = m[15] --  int
             r.iosVer = m[38] --  string
             r.androidVer = m[39] --  string
             r.isnew = m[34] --  boolean
-            r.status = m[15] --  int
             return r;
         end,
     }
-    -- 用户信息
+    ---@class NetProtoUsermgr.ST_userInfor 用户信息
     NetProtoUsermgr.ST_userInfor = {
         toMap = function(m)
             local r = {}
@@ -250,12 +250,12 @@ do
     end,
     }
     --==============================
-    NetProtoUsermgr.dispatch[36]={onReceive = NetProtoUsermgr.recive.registAccount, send = NetProtoUsermgr.send.registAccount, logic = cmd4user}
-    NetProtoUsermgr.dispatch[16]={onReceive = NetProtoUsermgr.recive.getServers, send = NetProtoUsermgr.send.getServers, logic = cmd4server}
-    NetProtoUsermgr.dispatch[32]={onReceive = NetProtoUsermgr.recive.getServerInfor, send = NetProtoUsermgr.send.getServerInfor, logic = cmd4server}
-    NetProtoUsermgr.dispatch[29]={onReceive = NetProtoUsermgr.recive.setEnterServer, send = NetProtoUsermgr.send.setEnterServer, logic = cmd4server}
-    NetProtoUsermgr.dispatch[37]={onReceive = NetProtoUsermgr.recive.loginAccount, send = NetProtoUsermgr.send.loginAccount, logic = cmd4user}
-    NetProtoUsermgr.dispatch[40]={onReceive = NetProtoUsermgr.recive.loginAccountChannel, send = NetProtoUsermgr.send.loginAccountChannel, logic = cmd4user}
+    NetProtoUsermgr.dispatch[36]={onReceive = NetProtoUsermgr.recive.registAccount, send = NetProtoUsermgr.send.registAccount, logicName = "cmd4user"}
+    NetProtoUsermgr.dispatch[16]={onReceive = NetProtoUsermgr.recive.getServers, send = NetProtoUsermgr.send.getServers, logicName = "cmd4server"}
+    NetProtoUsermgr.dispatch[32]={onReceive = NetProtoUsermgr.recive.getServerInfor, send = NetProtoUsermgr.send.getServerInfor, logicName = "cmd4server"}
+    NetProtoUsermgr.dispatch[29]={onReceive = NetProtoUsermgr.recive.setEnterServer, send = NetProtoUsermgr.send.setEnterServer, logicName = "cmd4server"}
+    NetProtoUsermgr.dispatch[37]={onReceive = NetProtoUsermgr.recive.loginAccount, send = NetProtoUsermgr.send.loginAccount, logicName = "cmd4user"}
+    NetProtoUsermgr.dispatch[40]={onReceive = NetProtoUsermgr.recive.loginAccountChannel, send = NetProtoUsermgr.send.loginAccountChannel, logicName = "cmd4user"}
     --==============================
     NetProtoUsermgr.cmds = {
         registAccount = "registAccount",
@@ -267,7 +267,7 @@ do
     }
 
     --==============================
-    function NetProtoUsermgr.dispatcher(map, client_fd)
+    function CMD.dispatcher(agent, map, client_fd)
         if map == nil then
             skynet.error("[dispatcher] mpa == nil")
             return nil
@@ -283,13 +283,25 @@ do
             return nil;
         end
         local m = dis.onReceive(map)
-        local logicCMD = assert(dis.logic.CMD)
+        local logicCMD = skynet.call(agent, "lua", "getLogic", m.logicName)
         local f = assert(logicCMD[m.cmd])
         if f then
             return f(m, client_fd)
         end
-        return nil;
+        return nil
     end
     --==============================
-    return NetProtoUsermgr
+    skynet.start(function()
+        skynet.dispatch("lua", function(_, _, command, command2, ...)
+            if command == "send" then
+                local f = NetProtoUsermgr.send[command2]
+                skynet.ret(skynet.pack(f(...)))
+            else
+                local f = CMD[command]
+                skynet.ret(skynet.pack(f(command2, ...)))
+            end
+        end)
+    
+        skynet.register("NetProtoUsermgrServer")
+    end)
 end

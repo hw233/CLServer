@@ -3,15 +3,12 @@ local socket = require "skynet.socket"
 local urllib = require "http.url"
 ---@type BioUtl
 local BioUtl = require("BioUtl")
-require("NetProtoIslandServer")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
 local json = require("json")
 local table = table
 local string = string
 
----@type NetProtoUsermgr
-local NetProto = NetProtoUsermgr
 local CMD = {}
 
 -- ======================================================
@@ -53,11 +50,9 @@ function CMD.onrequset(url, method, header, body)
         if path and path:lower() == "/island/postbio" then
             if body then
                 local map = BioUtl.readObject(body)
-                local ok, result = pcall(NetProto.dispatcher, map, nil)
-                if ok then
-                    if result then
-                        return BioUtl.writeObject(result)
-                    end
+                local result = skynet.call("NetProtoIslandServer", "lua", "dispatcher", skynet.self(), map, nil)
+                if result then
+                    return BioUtl.writeObject(result)
                 else
                     skynet.error(result)
                 end

@@ -45,7 +45,7 @@ do
     end
   --==================================
   --==================================
-    -- 返回信息
+    ---@class NetProtoUsermgr.ST_retInfor 返回信息
     NetProtoUsermgr.ST_retInfor = {
         toMap = function(m)
             local r = {}
@@ -62,7 +62,7 @@ do
             return r;
         end,
     }
-    -- 服务器
+    ---@class NetProtoUsermgr.ST_server 服务器
     NetProtoUsermgr.ST_server = {
         toMap = function(m)
             local r = {}
@@ -71,10 +71,10 @@ do
             r[41] = m.port  -- 端口 int
             r[14] = m.name  -- 名称 string
             r[42] = m.host  -- ip地址 string
+            r[15] = m.status  -- 状态 1:正常; 2:爆满; 3:维护 int
             r[38] = m.iosVer  -- 客户端ios版本 string
             r[39] = m.androidVer  -- 客户端android版本 string
             r[34] = m.isnew  -- 新服 boolean
-            r[15] = m.status  -- 状态 1:正常; 2:爆满; 3:维护 int
             return r;
         end,
         parse = function(m)
@@ -84,14 +84,14 @@ do
             r.port = m[41] --  int
             r.name = m[14] --  string
             r.host = m[42] --  string
+            r.status = m[15] --  int
             r.iosVer = m[38] --  string
             r.androidVer = m[39] --  string
             r.isnew = m[34] --  boolean
-            r.status = m[15] --  int
             return r;
         end,
     }
-    -- 用户信息
+    ---@class NetProtoUsermgr.ST_userInfor 用户信息
     NetProtoUsermgr.ST_userInfor = {
         toMap = function(m)
             local r = {}

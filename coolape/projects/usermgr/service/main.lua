@@ -27,6 +27,9 @@ function()
         isDebug = true,
     })
 
+    -- 网络接口
+    skynet.uniqueservice("NetProtoUsermgrServer")
+
     -- 简单缓存数据库
     skynet.uniqueservice("CLDB")
     -- 服务器管理

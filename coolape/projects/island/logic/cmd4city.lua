@@ -1,5 +1,5 @@
 if cmd4city ~= nil then
-    return cmd4city
+    printe("this logic may not entry")
 end
 
 ---@class cmd4city
@@ -15,6 +15,8 @@ local table = table
 
 local gridSize = 48
 local cellSize = 1
+
+local NetProtoIsland = "NetProtoIslandServer"
 ---@type Grid
 local grid4Building = Grid.new()
 grid4Building:init(Vector3.zero, gridSize, gridSize, cellSize)
@@ -24,10 +26,6 @@ grid4Tile:init(Vector3.zero, gridSize / 2, gridSize / 2, cellSize * 2)
 -- 网格状态
 local gridState4Tile = {}
 local gridState4Building = {}
-
----@type NetProtoIsland
-local NetProto = NetProtoIsland
-
 
 ---@type dbcity
 local myself
@@ -486,25 +484,25 @@ cmd4city.CMD = {
             printe("主城数据为空！")
             ret.code = Errcode.error
             ret.msg = "主城数据为空"
-            return NetProto.send.newBuilding(ret, nil)
+            return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, nil)
         end
         if not cmd4city.canPlace(m.pos, true) then
             printe("该位置不能放置建筑！pos==" .. m.pos)
             ret.code = Errcode.error
             ret.msg = "该位置不能放置建筑"
-            return NetProto.send.newBuilding(ret, nil)
+            return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, nil)
         end
         local building = cmd4city.newBuilding(m.attrid, m.pos, myself:getidx())
         if building == nil then
             printe("新建建筑失败")
             ret.code = Errcode.error
             ret.msg = "新建建筑失败"
-            return NetProto.send.newBuilding(ret, nil)
+            return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, nil)
         end
         buildings[building:getidx()] = building
 
         ret.code = Errcode.ok
-        return NetProto.send.newBuilding(ret, building:value2copy())
+        return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, building:value2copy())
     end,
     getBuilding = function(m, fd)
         -- 取得建筑
@@ -513,10 +511,10 @@ cmd4city.CMD = {
         if b == nil then
             ret.code = Errcode.error
             ret.msg = "取得建筑为空"
-            return NetProto.send.getBuilding(ret, nil)
+            return skynet.call(NetProtoIsland, "lua", "send", "getBuilding", ret, nil)
         end
         ret.code = Errcode.ok
-        return NetProto.send.getBuilding(ret, b:value2copy())
+        return skynet.call(NetProtoIsland, "lua", "send", "getBuilding", ret, b:value2copy())
     end,
     moveTile = function(m, fd)
         -- 移动地块
@@ -526,13 +524,13 @@ cmd4city.CMD = {
         if t == nil then
             ret.code = Errcode.error
             ret.msg = "取得地块为空"
-            return NetProto.send.moveTile(ret, nil)
+            return skynet.call(NetProtoIsland, "lua", "send", "moveTile", ret, nil)
         end
         cmd4city.unPlaceTile(t)
         t:setpos(m.pos)
         cmd4city.placeTile(t)
         ret.code = Errcode.ok
-        return NetProto.send.moveTile(ret, t:value2copy())
+        return skynet.call(NetProtoIsland, "lua", "send", "moveTile", ret, t:value2copy())
     end,
     moveBuilding = function(m, fd)
         -- 移动建筑
@@ -542,7 +540,7 @@ cmd4city.CMD = {
         if b == nil then
             ret.code = Errcode.error
             ret.msg = "取得建筑为空"
-            return NetProto.send.moveBuilding(ret, nil)
+            return skynet.call(NetProtoIsland, "lua", "send", "moveBuilding", ret, nil)
         end
         -- 先释放之前的网格状态
         cmd4city.unPlaceBuilding(b)
@@ -550,7 +548,7 @@ cmd4city.CMD = {
         -- 设置新的网格的状态
         cmd4city.placeBuilding(b)
         ret.code = Errcode.ok
-        return NetProto.send.moveBuilding(ret, b:value2copy())
+        return skynet.call(NetProtoIsland, "lua", "send", "moveBuilding", ret, b:value2copy())
     end,
     upLevBuilding = function(m, fd)
         -- 建筑升级
@@ -559,12 +557,12 @@ cmd4city.CMD = {
         if b == nil then
             ret.code = Errcode.error
             ret.msg = "取得建筑为空"
-            return NetProto.send.upLevBuilding(ret, nil)
+            return skynet.call(NetProtoIsland, "lua", "send", "upLevBuilding", ret)
         end
         --TODO: check max lev
         b:setlev(b:getlev() + 1)
         ret.code = Errcode.ok
-        return NetProto.send.upLevBuilding(ret)
+        return skynet.call(NetProtoIsland, "lua", "send", "upLevBuilding", ret)
     end,
 }
 

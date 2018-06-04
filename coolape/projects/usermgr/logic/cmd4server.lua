@@ -8,8 +8,8 @@ local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"
 ---@type dateEx
 local dateEx = require("dateEx")
----@type NetProtoUsermgr
-local NetProto = NetProtoUsermgr
+
+local NetProto = "NetProtoUsermgrServer"
 local table = table
 
 local cmd4server = {}
@@ -25,7 +25,7 @@ cmd4server.CMD = {
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return NetProto.send.setEnterServer(ret)
+            return skynet.call(NetProto, "lua", "send", "setEnterServer", ret)
         end
 
         local us = dbuserserver.instanse(uidx, appid)
@@ -40,7 +40,7 @@ cmd4server.CMD = {
         local ret = {}
         ret.msg = nil;
         ret.code = Errcode.ok
-        return NetProto.send.setEnterServer(ret)
+        return skynet.call(NetProto, "lua", "send", "setEnterServer", ret)
     end,
 
     getServerInfor = function(m, fd)
@@ -49,7 +49,7 @@ cmd4server.CMD = {
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return NetProto.send.getServerInfor(ret)
+            return skynet.call(NetProto, "lua", "send", "getServerInfor", ret)
         end
 
         local s = dbservers.instanse(m.idx)
@@ -58,7 +58,7 @@ cmd4server.CMD = {
             local ret = {}
             ret.msg = "未找到数据";
             ret.code = Errcode.error
-            return NetProto.send.getServerInfor(ret, nil)
+            return skynet.call(NetProto, "lua", "send", "getServerInfor", ret, nil)
         end
         local ret = {}
         ret.msg = nil
@@ -67,7 +67,7 @@ cmd4server.CMD = {
         s:setisnew(false)
         result.isnew = s:getisnew()
         s:release()
-        return NetProto.send.getServerInfor(ret, result)
+        return skynet.call(NetProto, "lua", "send", "getServerInfor", ret, result)
     end,
 
     getServers = function(m, fg)
@@ -78,7 +78,7 @@ cmd4server.CMD = {
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return NetProto.send.getServers(ret)
+            return skynet.call(NetProto, "lua", "send", "getServers", ret)
         end
 
         local list = skynet.call("servermgr", "lua", "getServers", appid, channel)
@@ -86,7 +86,7 @@ cmd4server.CMD = {
         local ret = {}
         ret.msg = nil
         ret.code = Errcode.ok
-        return NetProto.send.getServers(ret, list)
+        return skynet.call(NetProto, "lua", "send", "getServers", ret, list)
     end
 }
 

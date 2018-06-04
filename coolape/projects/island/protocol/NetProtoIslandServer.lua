@@ -1,12 +1,10 @@
-do
     ---@class NetProtoIsland
-    NetProtoIsland = {}
-    local cmd4city = require("logic.cmd4city")
-    local cmd4player = require("logic.cmd4player")
-    local cmd4com = require("logic.cmd4com")
+    local NetProtoIsland = {}
     local table = table
+    local CMD = {}
     local skynet = require "skynet"
 
+    require "skynet.manager"    -- import skynet.register
     require("BioUtl")
 
     NetProtoIsland.dispatch = {}
@@ -72,11 +70,11 @@ do
             local r = {}
             if m == nil then return r end
             r[12] =  BioUtl.int2bio(m.idx)  -- 唯一标识 int int
-            r[29] =  BioUtl.int2bio(m.diam)  -- 钻石 long int
-            r[13] = m.name  -- 名字 string
             r[26] =  BioUtl.int2bio(m.status)  -- 状态 1：正常 int int
-            r[28] =  BioUtl.int2bio(m.cityidx)  -- 城池id int int
+            r[13] = m.name  -- 名字 string
             r[27] =  BioUtl.int2bio(m.unionidx)  -- 联盟id int int
+            r[28] =  BioUtl.int2bio(m.cityidx)  -- 城池id int int
+            r[29] =  BioUtl.int2bio(m.diam)  -- 钻石 long int
             r[30] =  BioUtl.int2bio(m.lev)  -- 等级 long int
             return r;
         end,
@@ -84,11 +82,11 @@ do
             local r = {}
             if m == nil then return r end
             r.idx = m[12] --  int
-            r.diam = m[29] --  int
-            r.name = m[13] --  string
             r.status = m[26] --  int
-            r.cityidx = m[28] --  int
+            r.name = m[13] --  string
             r.unionidx = m[27] --  int
+            r.cityidx = m[28] --  int
+            r.diam = m[29] --  int
             r.lev = m[30] --  int
             return r;
         end,
@@ -99,9 +97,9 @@ do
             local r = {}
             if m == nil then return r end
             r[12] =  BioUtl.int2bio(m.idx)  -- 唯一标识 int int
-            r[45] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
-            r[13] = m.name  -- 名称 string
             r[26] =  BioUtl.int2bio(m.status)  -- 状态 1:正常; int int
+            r[13] = m.name  -- 名称 string
+            r[45] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
             r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
             r[30] =  BioUtl.int2bio(m.lev)  -- 等级 int int
             r[33] =  BioUtl.int2bio(m.pos)  -- 城所在世界grid的index int int
@@ -112,9 +110,9 @@ do
             local r = {}
             if m == nil then return r end
             r.idx = m[12] --  int
-            r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[45])  -- 地块信息 key=idx, map
-            r.name = m[13] --  string
             r.status = m[26] --  int
+            r.name = m[13] --  string
+            r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[45])  -- 地块信息 key=idx, map
             r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[32])  -- 建筑信息 key=idx, map
             r.lev = m[30] --  int
             r.pos = m[33] --  int
@@ -324,15 +322,15 @@ do
     end,
     }
     --==============================
-    NetProtoIsland.dispatch[56]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding, logic = cmd4city}
-    NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout, logic = cmd4player}
-    NetProtoIsland.dispatch[52]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding, logic = cmd4city}
-    NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login, logic = cmd4player}
-    NetProtoIsland.dispatch[59]={onReceive = NetProtoIsland.recive.heart, send = NetProtoIsland.send.heart, logic = cmd4com}
-    NetProtoIsland.dispatch[14]={onReceive = NetProtoIsland.recive.release, send = NetProtoIsland.send.release, logic = cmd4player}
-    NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.moveTile, send = NetProtoIsland.send.moveTile, logic = cmd4city}
-    NetProtoIsland.dispatch[55]={onReceive = NetProtoIsland.recive.getBuilding, send = NetProtoIsland.send.getBuilding, logic = cmd4city}
-    NetProtoIsland.dispatch[54]={onReceive = NetProtoIsland.recive.upLevBuilding, send = NetProtoIsland.send.upLevBuilding, logic = cmd4city}
+    NetProtoIsland.dispatch[56]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout, logicName = "cmd4player"}
+    NetProtoIsland.dispatch[52]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login, logicName = "cmd4player"}
+    NetProtoIsland.dispatch[59]={onReceive = NetProtoIsland.recive.heart, send = NetProtoIsland.send.heart, logicName = "cmd4com"}
+    NetProtoIsland.dispatch[14]={onReceive = NetProtoIsland.recive.release, send = NetProtoIsland.send.release, logicName = "cmd4player"}
+    NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.moveTile, send = NetProtoIsland.send.moveTile, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[55]={onReceive = NetProtoIsland.recive.getBuilding, send = NetProtoIsland.send.getBuilding, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[54]={onReceive = NetProtoIsland.recive.upLevBuilding, send = NetProtoIsland.send.upLevBuilding, logicName = "cmd4city"}
     --==============================
     NetProtoIsland.cmds = {
         moveBuilding = "moveBuilding",
@@ -347,7 +345,7 @@ do
     }
 
     --==============================
-    function NetProtoIsland.dispatcher(map, client_fd)
+    function CMD.dispatcher(agent, map, client_fd)
         if map == nil then
             skynet.error("[dispatcher] mpa == nil")
             return nil
@@ -363,13 +361,24 @@ do
             return nil;
         end
         local m = dis.onReceive(map)
-        local logicCMD = assert(dis.logic.CMD)
+        local logicCMD = skynet.call(agent, "lua", "getLogic", m.logicName)
         local f = assert(logicCMD[m.cmd])
         if f then
             return f(m, client_fd)
         end
-        return nil;
+        return nil
     end
     --==============================
-    return NetProtoIsland
-end
+    skynet.start(function()
+        skynet.dispatch("lua", function(_, _, command, command2, ...)
+            if command == "send" then
+                local f = NetProtoIsland.send[command2]
+                skynet.ret(skynet.pack(f(...)))
+            else
+                local f = CMD[command]
+                skynet.ret(skynet.pack(f(command2, ...)))
+            end
+        end)
+    
+        skynet.register ("NetProtoIsland")
+    end)

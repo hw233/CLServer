@@ -105,14 +105,14 @@ do
     end
 
     local getStName = function(stName)
-        return defProtocol.name .."." ..  StructHead.. stName;
+        return defProtocol.name .. "." .. StructHead .. stName;
     end
     --===================================================
     --===================================================
     local function makeStruct(map, isInt2bio)
         local ret = {}
         add(ret, "    -- public toMap")
-        add(ret, "    ".. defProtocol.name .."._toMap = function(stuctobj, m)");
+        add(ret, "    " .. defProtocol.name .. "._toMap = function(stuctobj, m)");
         add(ret, "        local ret = {}");
         add(ret, "        if m == nil then return ret end");
         add(ret, "        for k,v in pairs(m) do");
@@ -122,7 +122,7 @@ do
         add(ret, "    end");
 
         add(ret, "    -- public toList")
-        add(ret, "    ".. defProtocol.name .."._toList = function(stuctobj, m)");
+        add(ret, "    " .. defProtocol.name .. "._toList = function(stuctobj, m)");
         add(ret, "        local ret = {}");
         add(ret, "        if m == nil then return ret end");
         add(ret, "        for i,v in ipairs(m) do");
@@ -133,7 +133,7 @@ do
 
 
         add(ret, "    -- public parse")
-        add(ret, "    ".. defProtocol.name .."._parseMap = function(stuctobj, m)");
+        add(ret, "    " .. defProtocol.name .. "._parseMap = function(stuctobj, m)");
         add(ret, "        local ret = {}");
         add(ret, "        if m == nil then return ret end");
         add(ret, "        for k,v in pairs(m) do");
@@ -143,7 +143,7 @@ do
         add(ret, "    end");
 
         add(ret, "    -- public parse")
-        add(ret, "    ".. defProtocol.name .."._parseList = function(stuctobj, m)");
+        add(ret, "    " .. defProtocol.name .. "._parseList = function(stuctobj, m)");
         add(ret, "        local ret = {}");
         add(ret, "        if m == nil then return ret end");
         add(ret, "        for i,v in ipairs(m) do");
@@ -155,27 +155,27 @@ do
         add(ret, "  --==================================")
 
         for name, val in pairs(map) do
-            add(ret, "    ---@class ".. getStName(name) .. " " .. val[1]);
-            add(ret, "    ".. getStName(name) .. " = {");
+            add(ret, "    ---@class " .. getStName(name) .. " " .. val[1]);
+            add(ret, "    " .. getStName(name) .. " = {");
             add(ret, "        toMap = function(m)")
             add(ret, "            local r = {}")
             add(ret, "            if m == nil then return r end");
             local typeName = ""
             for k, v in pairs(val[2]) do
                 typeName = type(v[1])
-                if typeName =="table" then
+                if typeName == "table" then
                     local stName = getKeyByVal(defProtocol.structs, v[1]);
                     if stName then
-                        add(ret, "            r[" .. getKeyCode(k) .."] = ".. getStName(stName) .. ".toMap(m." .. k .. ") -- " .. (v[2] or "" ))
+                        add(ret, "            r[" .. getKeyCode(k) .. "] = " .. getStName(stName) .. ".toMap(m." .. k .. ") -- " .. (v[2] or "" ))
                     else
                         local isList = isArray(v[1])
                         if isList then
                             stName = nil
                             stName = getKeyByVal(defProtocol.structs, v[1][1]);
                             if stName then
-                                add(ret, "            r[" .. getKeyCode(k) .."] = ".. defProtocol.name .."._toList(" .. getStName(stName) .. ", m." .. k .. ")  -- " .. (v[2] or ""))
+                                add(ret, "            r[" .. getKeyCode(k) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(stName) .. ", m." .. k .. ")  -- " .. (v[2] or ""))
                             else
-                                add(ret, "            r[" .. getKeyCode(k) .."] = m." .. k .. "  -- " .. (v[2] or ""))
+                                add(ret, "            r[" .. getKeyCode(k) .. "] = m." .. k .. "  -- " .. (v[2] or ""))
                             end
                         else
                             stName = nil;
@@ -184,27 +184,27 @@ do
                                 break;
                             end
                             if stName then
-                                add(ret, "            r[" .. getKeyCode(k) .."] = ".. defProtocol.name .."._toMap(" .. getStName(stName) .. ", m." .. k .. ")  -- " .. (v[2] or ""))
+                                add(ret, "            r[" .. getKeyCode(k) .. "] = " .. defProtocol.name .. "._toMap(" .. getStName(stName) .. ", m." .. k .. ")  -- " .. (v[2] or ""))
                             else
-                                add(ret, "            r[" .. getKeyCode(k) .."] = m." .. k .. "  -- " .. (v[2] or ""))
+                                add(ret, "            r[" .. getKeyCode(k) .. "] = m." .. k .. "  -- " .. (v[2] or ""))
                             end
                         end
                     end
-                elseif typeName =="number" then
+                elseif typeName == "number" then
                     local minInt = math.floor(v[1]);
                     if minInt == v[1] then
                         -- 说明是整数
                         if isInt2bio then
                             -- 需要保存成bio形式
-                            add(ret, "            r[" .. getKeyCode(k) .."] =  BioUtl.int2bio(m." .. k .. ")  -- " .. (v[2] or "") .. " int")
+                            add(ret, "            r[" .. getKeyCode(k) .. "] =  BioUtl.int2bio(m." .. k .. ")  -- " .. (v[2] or "") .. " int")
                         else
-                            add(ret, "            r[" .. getKeyCode(k) .."] = m." .. k .. "  -- " .. (v[2] or "") .. " int")
+                            add(ret, "            r[" .. getKeyCode(k) .. "] = m." .. k .. "  -- " .. (v[2] or "") .. " int")
                         end
                     else
-                        add(ret, "            r[" .. getKeyCode(k) .."] = m." .. k .. "  -- " .. (v[2] or "") .. " number")
+                        add(ret, "            r[" .. getKeyCode(k) .. "] = m." .. k .. "  -- " .. (v[2] or "") .. " number")
                     end
                 else
-                    add(ret, "            r[" .. getKeyCode(k) .."] = m." .. k .. "  -- " .. (v[2] or " ") .. " " .. typeName)
+                    add(ret, "            r[" .. getKeyCode(k) .. "] = m." .. k .. "  -- " .. (v[2] or " ") .. " " .. typeName)
                 end
             end
             add(ret, "            return r;")
@@ -215,20 +215,20 @@ do
             add(ret, "            if m == nil then return r end");
             for k, v in pairs(val[2]) do
                 typeName = type(v[1])
-                if typeName =="table" then
+                if typeName == "table" then
                     local stName = getKeyByVal(defProtocol.structs, v[1]);
                     --assert(stName, "get struct name is null")
                     if stName then
-                        add(ret, "            r." .. k .." = ".. defProtocol.name .."." ..  StructHead.. stName .. ".parse(m[" .. getKeyCode(k) .."]) -- " .. " " .. typeName )
+                        add(ret, "            r." .. k .. " = " .. defProtocol.name .. "." .. StructHead .. stName .. ".parse(m[" .. getKeyCode(k) .. "]) -- " .. " " .. typeName )
                     else
                         local isList = isArray(v[1])
                         if isList then
                             stName = nil
                             stName = getKeyByVal(defProtocol.structs, v[1][1]);
                             if stName then
-                                add(ret, "            r." .. k .." = ".. defProtocol.name .."._parseList(" .. getStName(stName) .. ", m[" .. getKeyCode(k) .. "])  -- " .. (v[2] or ""))
+                                add(ret, "            r." .. k .. " = " .. defProtocol.name .. "._parseList(" .. getStName(stName) .. ", m[" .. getKeyCode(k) .. "])  -- " .. (v[2] or ""))
                             else
-                                add(ret, "            r." .. k .." = m[" .. getKeyCode(k) .."] -- "  .. " " .. typeName )
+                                add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] -- " .. " " .. typeName )
                             end
                         else
                             stName = nil;
@@ -237,21 +237,21 @@ do
                                 break;
                             end
                             if stName then
-                                add(ret, "            r." .. k .." = ".. defProtocol.name .."._parseMap(" .. getStName(stName) .. ", m[" .. getKeyCode(k) .. "])  -- " .. (v[2] or ""))
+                                add(ret, "            r." .. k .. " = " .. defProtocol.name .. "._parseMap(" .. getStName(stName) .. ", m[" .. getKeyCode(k) .. "])  -- " .. (v[2] or ""))
                             else
-                                add(ret, "            r." .. k .." = m[" .. getKeyCode(k) .."] -- "  .. " " .. typeName )
+                                add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] -- " .. " " .. typeName )
                             end
                         end
                     end
-                elseif typeName =="number" then
+                elseif typeName == "number" then
                     local minInt = math.floor(v[1]);
                     if minInt == v[1] then
-                        add(ret, "            r." .. k .." = m[" .. getKeyCode(k) .."] -- "  .. " int" )
+                        add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] -- " .. " int" )
                     else
-                        add(ret, "            r." .. k .." = m[" .. getKeyCode(k) .."] -- "  .. " " .. typeName )
+                        add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] -- " .. " " .. typeName )
                     end
                 else
-                    add(ret, "            r." .. k .." = m[" .. getKeyCode(k) .."] -- "  .. " " .. typeName )
+                    add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] -- " .. " " .. typeName )
                 end
             end
             add(ret, "            return r;")
@@ -270,16 +270,18 @@ do
         add(strsServer, "do");
         add(strsClient, "    ---@class " .. defProtocol.name);
         add(strsServer, "    ---@class " .. defProtocol.name);
-        add(strsClient, "    ".. defProtocol.name .." = {}");
-        add(strsServer, "    ".. defProtocol.name .." = {}");
+        add(strsClient, "    " .. defProtocol.name .. " = {}");
+        add(strsServer, "    local " .. defProtocol.name .. " = {}");
         add(strsClient, "    local table = table");
         add(strsServer, "    local table = table");
+        add(strsServer, "    local CMD = {}");
         add(strsClient, "    require(\"bio.BioUtl\")\n")
         add(strsServer, "    local skynet = require \"skynet\"\n")
+        add(strsServer, "    require \"skynet.manager\"    -- import skynet.register")
         add(strsServer, "    require(\"BioUtl\")\n")
-        add(strsClient, "    ".. defProtocol.name ..".__sessionID = 0; -- 会话ID");
-        add(strsClient, "    ".. defProtocol.name ..".dispatch = {}");
-        add(strsServer, "    ".. defProtocol.name ..".dispatch = {}");
+        add(strsClient, "    " .. defProtocol.name .. ".__sessionID = 0; -- 会话ID");
+        add(strsClient, "    " .. defProtocol.name .. ".dispatch = {}");
+        add(strsServer, "    " .. defProtocol.name .. ".dispatch = {}");
         add(strsClient, "    --==============================");
         add(strsServer, "    --==============================");
         add(strsClient, makeStruct(defProtocol.structs, false));
@@ -297,8 +299,8 @@ do
         for cmd, cfg in pairs(defProtocol.cmds) do
             requires[cfg.logic] = true;
             add(cmdMap, "        " .. cmd .. " = \"" .. cmd .. "\"")
-            add(dispatch,       "    ".. defProtocol.name ..".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = ".. defProtocol.name ..".recive." .. cmd .. ", send = ".. defProtocol.name ..".send." .. cmd .."}")
-            add(dispatchserver, "    ".. defProtocol.name ..".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = ".. defProtocol.name ..".recive." .. cmd .. ", send = ".. defProtocol.name ..".send." .. cmd ..", logic = " .. cfg.logic .. "}")
+            add(dispatch, "    " .. defProtocol.name .. ".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = " .. defProtocol.name .. ".recive." .. cmd .. ", send = " .. defProtocol.name .. ".send." .. cmd .. "}")
+            add(dispatchserver, "    " .. defProtocol.name .. ".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = " .. defProtocol.name .. ".recive." .. cmd .. ", send = " .. defProtocol.name .. ".send." .. cmd .. ", logicName = \"" .. cfg.logic .. "\"}")
             if cfg.desc then
                 add(clientSend, "    -- " .. cfg.desc);
                 add(serverRecive, "    -- " .. cfg.desc);
@@ -325,16 +327,16 @@ do
                             if isList then
                                 -- 说明是list
                                 local type2 = type(v2[1])
-                                if type2 == "table"  then
+                                if type2 == "table" then
                                     pname = getKeyByVal(defProtocol.structs, v2[1])
                                     assert(pname, "get key by val is null==" .. i)
-                                    add(toMapStrClient, "        ret[" .. getKeyCode(pname .. "s") .. "] = ".. defProtocol.name .."._toList(" .. getStName(pname) .. ", " .. pname .. "s" .. ")  -- " .. (inputDesList[i] or ""));
+                                    add(toMapStrClient, "        ret[" .. getKeyCode(pname .. "s") .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. pname .. "s" .. ")  -- " .. (inputDesList[i] or ""));
                                 else
                                     add(toMapStrClient, "        ret[" .. getKeyCode("list") .. "] = list -- " .. (inputDesList[i] or ""));
                                 end
                             end
                         else
-                            add(toMapStrClient, "        ret[" .. getKeyCode(pname) .. "] = ".. defProtocol.name .."." .. StructHead .. pname .. ".toMap(".. pname .."); -- " .. (inputDesList[i] or ""));
+                            add(toMapStrClient, "        ret[" .. getKeyCode(pname) .. "] = " .. defProtocol.name .. "." .. StructHead .. pname .. ".toMap(" .. pname .. "); -- " .. (inputDesList[i] or ""));
                         end
                     else
                         add(toMapStrClient, "        ret[" .. getKeyCode(pname) .. "] = " .. pname .. "; -- " .. (inputDesList[i] or ""));
@@ -350,12 +352,12 @@ do
                     if type(v2) == "table" then
                         if isList then
                             local stName = pname .. "s"
-                            add(serverReciveParams, "        ret." .. stName .. " = ".. defProtocol.name .."._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(stName) .. "]) -- " .. (inputDesList[i] or ""))
+                            add(serverReciveParams, "        ret." .. stName .. " = " .. defProtocol.name .. "._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(stName) .. "]) -- " .. (inputDesList[i] or ""))
                         else
-                            add(serverReciveParams, "        ret." .. pname .. " = ".. defProtocol.name .."." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(pname) .."]) -- " .. (inputDesList[i] or ""));
+                            add(serverReciveParams, "        ret." .. pname .. " = " .. defProtocol.name .. "." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(pname) .. "]) -- " .. (inputDesList[i] or ""));
                         end
                     else
-                        add(serverReciveParams, "        ret." .. pname .. " = " .. "map[" .. getKeyCode(pname) .."]-- " .. (inputDesList[i] or ""));
+                        add(serverReciveParams, "        ret." .. pname .. " = " .. "map[" .. getKeyCode(pname) .. "]-- " .. (inputDesList[i] or ""));
                     end
                 end
             end
@@ -376,10 +378,10 @@ do
                             if isList then
                                 -- 说明是list
                                 local type2 = type(v2[1])
-                                if type2 == "table"  then
+                                if type2 == "table" then
                                     pname = getKeyByVal(defProtocol.structs, v2[1])
                                     assert(pname, "get key by val is null==" .. i)
-                                    add(toMapStrServer, "        ret[" .. getKeyCode(pname .. "s") .. "] = ".. defProtocol.name .."._toList(" .. getStName(pname) .. ", " .. pname .. "s" .. ")  -- " .. (inputDesList[i] or ""));
+                                    add(toMapStrServer, "        ret[" .. getKeyCode(pname .. "s") .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. pname .. "s" .. ")  -- " .. (inputDesList[i] or ""));
                                 else
                                     add(toMapStrServer, "        ret[" .. getKeyCode("list") .. "] = list -- " .. (inputDesList[i] or ""));
                                 end
@@ -387,7 +389,7 @@ do
                                 print("not support this case")
                             end
                         else
-                            add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = ".. defProtocol.name .."." .. StructHead .. pname .. ".toMap(".. pname .."); -- " .. (inputDesList[i] or ""));
+                            add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = " .. defProtocol.name .. "." .. StructHead .. pname .. ".toMap(" .. pname .. "); -- " .. (inputDesList[i] or ""));
                         end
                     else
                         if defProtocol.isSendClientInt2bio then
@@ -411,12 +413,12 @@ do
                     if type(v2) == "table" then
                         if isList then
                             local stName = pname .. "s"
-                            add(clientReciveParams, "        ret." .. stName .. " = ".. defProtocol.name .."._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(stName) .. "]) -- " .. (inputDesList[i] or ""))
+                            add(clientReciveParams, "        ret." .. stName .. " = " .. defProtocol.name .. "._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(stName) .. "]) -- " .. (inputDesList[i] or ""))
                         else
-                            add(clientReciveParams, "        ret." .. pname .. " = ".. defProtocol.name .."." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(pname) .."]) -- " .. (inputDesList[i] or ""))
+                            add(clientReciveParams, "        ret." .. pname .. " = " .. defProtocol.name .. "." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(pname) .. "]) -- " .. (inputDesList[i] or ""))
                         end
                     else
-                        add(clientReciveParams, "        ret." .. pname .. " = " .. "map[" .. getKeyCode(pname) .."]-- " .. (inputDesList[i] or ""));
+                        add(clientReciveParams, "        ret." .. pname .. " = " .. "map[" .. getKeyCode(pname) .. "]-- " .. (inputDesList[i] or ""));
                     end
                 end
             end
@@ -439,7 +441,7 @@ do
             add(serverSend, "        local ret = {}");
             add(clientSend, "        ret[" .. getKeyCode("cmd") .. "] = " .. getKeyCode(cmd));
             add(serverSend, "        ret[" .. getKeyCode("cmd") .. "] = " .. getKeyCode(cmd));
-            add(clientSend, "        ret[" .. getKeyCode("__session__") .. "] = ".. defProtocol.name ..".__sessionID");
+            add(clientSend, "        ret[" .. getKeyCode("__session__") .. "] = " .. defProtocol.name .. ".__sessionID");
             if #toMapStrClient > 0 then
                 add(clientSend, table.concat(toMapStrClient, "\n"));
             end
@@ -466,7 +468,7 @@ do
             add(serverRecive, "    " .. cmd .. " = function(map)");
             add(serverRecive, "        local ret = {}");
             add(serverRecive, "        ret.cmd = \"" .. cmd .. "\"");
-            add(serverRecive, "        ret.__session__ = map[" .. getKeyCode("__session__") .."]");
+            add(serverRecive, "        ret.__session__ = map[" .. getKeyCode("__session__") .. "]");
             if #serverReciveParams > 0 then
                 add(serverRecive, table.concat(serverReciveParams, "\n"));
             end
@@ -474,21 +476,21 @@ do
             add(serverRecive, "    end,");
         end
 
-        add(strsClient, "    ".. defProtocol.name ..".send = {");
+        add(strsClient, "    " .. defProtocol.name .. ".send = {");
         add(strsClient, table.concat(clientSend, "\n"));
         add(strsClient, "    }");
 
-        add(strsServer, "    ".. defProtocol.name ..".recive = {");
+        add(strsServer, "    " .. defProtocol.name .. ".recive = {");
         add(strsServer, table.concat(serverRecive, "\n"));
         add(strsServer, "    }");
 
         add(strsClient, "    --==============================");
         add(strsServer, "    --==============================");
-        add(strsClient, "    ".. defProtocol.name ..".recive = {");
+        add(strsClient, "    " .. defProtocol.name .. ".recive = {");
         add(strsClient, table.concat(clientRecive, "\n"));
         add(strsClient, "    }");
 
-        add(strsServer, "    ".. defProtocol.name ..".send = {");
+        add(strsServer, "    " .. defProtocol.name .. ".send = {");
         add(strsServer, table.concat(serverSend, "\n"));
         add(strsServer, "    }");
 
@@ -511,7 +513,7 @@ do
         add(strsServer, "");
 
         add(strsServer, "    --==============================");
-        add(strsServer, "    function ".. defProtocol.name ..".dispatcher(map, client_fd)")
+        add(strsServer, "    function CMD.dispatcher(agent, map, client_fd)")
         add(strsServer, "        if map == nil then")
         add(strsServer, "            skynet.error(\"[dispatcher] mpa == nil\")")
         add(strsServer, "            return nil")
@@ -521,29 +523,44 @@ do
         add(strsServer, "            skynet.error(\"get cmd is nil\")")
         add(strsServer, "            return nil;")
         add(strsServer, "        end")
-        add(strsServer, "        local dis = ".. defProtocol.name ..".dispatch[cmd]")
+        add(strsServer, "        local dis = " .. defProtocol.name .. ".dispatch[cmd]")
         add(strsServer, "        if dis == nil then")
         add(strsServer, "            skynet.error(\"get protocol cfg is nil\")")
         add(strsServer, "            return nil;")
         add(strsServer, "        end")
         add(strsServer, "        local m = dis.onReceive(map)")
-        add(strsServer, "        local logicCMD = assert(dis.logic.CMD)")
+        --add(strsServer, "        local logicCMD = assert(dis.logic.CMD)")
+        add(strsServer, "        local logicCMD = skynet.call(agent, \"lua\", \"getLogic\", m.logicName)")
         add(strsServer, "        local f = assert(logicCMD[m.cmd])")
         add(strsServer, "        if f then")
         add(strsServer, "            return f(m, client_fd)")
         add(strsServer, "        end")
-        add(strsServer, "        return nil;")
+        add(strsServer, "        return nil")
         add(strsServer, "    end")
         add(strsServer, "    --==============================");
 
-        add(strsClient, "    return ".. defProtocol.name .."");
-        add(strsServer, "    return ".. defProtocol.name .."");
-        add(strsClient, "end");
-        add(strsServer, "end");
+        add(strsClient, "    return " .. defProtocol.name .. "");
+        --add(strsServer, "    return ".. defProtocol.name .."");
 
-        for k,v in pairs(requires) do
-            table.insert(strsServer, 4, "    local " .. k .. " = require(\"logic.".. k .. "\")")
-        end
+        add(strsServer, "    skynet.start(function()")
+        add(strsServer, "        skynet.dispatch(\"lua\", function(_, _, command, command2, ...)")
+        add(strsServer, "            if command == \"send\" then")
+        add(strsServer, "                local f = " .. defProtocol.name .. ".send[command2]")
+        add(strsServer, "                skynet.ret(skynet.pack(f(...)))")
+        add(strsServer, "            else")
+        add(strsServer, "                local f = CMD[command]")
+        add(strsServer, "                skynet.ret(skynet.pack(f(command2, ...)))")
+        add(strsServer, "            end")
+        add(strsServer, "        end)")
+        add(strsServer, "    ")
+        add(strsServer, "        skynet.register \"" .. defProtocol.name .. "Server\"")
+        add(strsServer, "    end)")
+        add(strsClient, "end\n");
+        add(strsServer, "end\n");
+
+        --for k,v in pairs(requires) do
+        --    table.insert(strsServer, 4, "    local " .. k .. " = require(\"logic.".. k .. "\")")
+        --end
 
         --==================
         local strs = "";
@@ -579,8 +596,8 @@ do
         return
     end
 
-    keyCodeProtocolFile = CLUtl.combinePath(arg[2] , "KeyCodeProtocol.lua");
-    clientFilePath = CLUtl.combinePath(arg[2] , defProtocol.name .. "Client.lua");
-    serverFilePath = CLUtl.combinePath(arg[2] , defProtocol.name .. "Server.lua");
+    keyCodeProtocolFile = CLUtl.combinePath(arg[2], "KeyCodeProtocol.lua");
+    clientFilePath = CLUtl.combinePath(arg[2], defProtocol.name .. "Client.lua");
+    serverFilePath = CLUtl.combinePath(arg[2], defProtocol.name .. "Server.lua");
     main();
 end

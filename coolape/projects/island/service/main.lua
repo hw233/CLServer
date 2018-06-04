@@ -28,6 +28,9 @@ skynet.start(
                 isDebug = true,
             })
 
+            -- 网络接口
+            skynet.uniqueservice("NetProtoIslandServer")
+
             -- 简单缓存数据库
             skynet.uniqueservice("CLDB")
             skynet.call("CLDB", "lua", "SETTIMEOUT", 10 * 60)     -- 设置数据缓存时间 秒

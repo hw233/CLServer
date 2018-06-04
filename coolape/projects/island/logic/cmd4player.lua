@@ -1,5 +1,5 @@
 if cmd4player ~= nil then
-    return cmd4player
+    printe("this logic may not entry")
 end
 
 -- 玩家的逻辑处理
@@ -12,8 +12,7 @@ local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"
 ---@type dateEx
 local dateEx = require("dateEx")
----@type NetProtoIsland
-local NetProto = NetProtoIsland
+local NetProtoIsland = "NetProtoIslandServer"
 require("dbplayer")
 --if cmd4city == nil then
 --    -- 保证一次会话只有一个cmd4city
@@ -34,7 +33,7 @@ cmd4player.CMD = {
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return NetProto.send.login(ret, nil, dateEx.nowMS(), fd)
+            return skynet.call(NetProtoIsland, "lua", "send", "login", ret, nil, nil, dateEx.nowMS(), fd)
         end
         if myself == nil then
             myself = dbplayer.instanse(m.uidx)
@@ -62,7 +61,7 @@ cmd4player.CMD = {
                 local ret = {}
                 ret.msg = "create player err"
                 ret.code = Errcode.error
-                return NetProto.send.login(ret, nil, nil, dateEx.nowMS(), fd)
+                return skynet.call(NetProtoIsland, "lua", "send", "login", ret, nil, nil, dateEx.nowMS(), fd)
             end
         else
             -- 取得主城信息
@@ -72,7 +71,7 @@ cmd4player.CMD = {
                 local ret = {}
                 ret.msg = "get city is nil or empty"
                 ret.code = Errcode.error
-                return NetProto.send.login(ret, nil, nil, dateEx.nowMS(), fd)
+                return skynet.call(NetProtoIsland, "lua", "send", "login", ret, nil, nil, dateEx.nowMS(), fd)
             end
         end
 
@@ -85,7 +84,7 @@ cmd4player.CMD = {
             local ret = {}
             ret.msg = "get buildings is nil"
             ret.code = Errcode.error
-            return NetProto.send.login(ret, nil, nil, dateEx.nowMS(), fd)
+            return skynet.call(NetProtoIsland, "lua", "send", "login", ret, nil, nil, dateEx.nowMS(), fd)
         end
         ---@type dbcity
         local _tile
@@ -100,7 +99,7 @@ cmd4player.CMD = {
             local ret = {}
             ret.msg = "get buildings is nil"
             ret.code = Errcode.error
-            return NetProto.send.login(ret, nil, nil, dateEx.nowMS(), fd)
+            return skynet.call(NetProtoIsland, "lua", "send", "login", ret, nil, nil, dateEx.nowMS(), fd)
         end
         ---@type dbcity
         local _building
@@ -112,8 +111,7 @@ cmd4player.CMD = {
         local ret = {}
         ret.msg = nil;
         ret.code = Errcode.ok
-        local ret = NetProto.send.login(ret, myself:value2copy(), cityVal, dateEx.nowMS(), fd)
-        return ret
+        return skynet.call(NetProtoIsland, "lua", "send", "login", ret, myself:value2copy(), cityVal, dateEx.nowMS(), fd)
     end,
     release = function(m, fd)
         print("player release")

@@ -2,13 +2,11 @@ require("public.include")
 local skynet = require "skynet"
 local socket = require "skynet.socket"
 local BioUtl = require("BioUtl")
----@type NetProtoIsland
-local NetProto =  require("NetProtoIslandServer")
 local CLUtl = require("CLUtl")
 local KeyCodeProtocol = require("KeyCodeProtocol")
 
 local WATCHDOG
-
+local LogicMap = {}
 local CMD = {}
 local client_fd     -- socket fd
 local mysql
@@ -39,7 +37,7 @@ local function send_package(pack)
             local subPackg = {}
             table.insert(subPackg, subPackgeCount);
             table.insert(subPackg, subPackgeCount + 1);
-            table.insert(subPackg, strSub(bytes, (subPackgeCount  * subPackSize) + 1, subPackgeCount * subPackSize + left));
+            table.insert(subPackg, strSub(bytes, (subPackgeCount * subPackSize) + 1, subPackgeCount * subPackSize + left));
             local package = strPack(">s2", BioUtl.writeObject(subPackg))
             socket.write(client_fd, package)
         end
@@ -53,11 +51,9 @@ local function procCmd(map)
     --for k, v in pairs(map) do
     --    print(k, v)
     --end
-    local ok, result = pcall(NetProto.dispatcher, map, client_fd)
-    if ok then
-        if result then
-            send_package(result)
-        end
+    local result = skynet.call("NetProtoIslandServer", "lua", "dispatcher", skynet.self(), map, client_fd)
+    if result then
+        send_package(result)
     else
         skynet.error(result)
     end
@@ -65,7 +61,8 @@ end
 
 -- 完整的接口都是table，当有分包的时候会收到list。list[1]=共有几个分包，list[2]＝第几个分包，list[3]＝ 内容
 local function isSubPackage(m)
-    if m[0] then --判断有没有cmd
+    if m[0] then
+        --判断有没有cmd
         return false
     end
     if CLUtl.isArray(m) then
@@ -132,6 +129,15 @@ function CMD.disconnect()
     NetProto.dispatcher(map, client_fd)
 
     skynet.exit()
+end
+
+-- 取得逻辑处理类
+function CMD.getLogic(logicName)
+    local logic = LogicMap[logicName]
+    if logic == nil then
+        logic = require("logic." .. logicName)
+    end
+    return logic
 end
 
 skynet.start(function()

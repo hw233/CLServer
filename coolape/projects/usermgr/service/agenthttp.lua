@@ -3,7 +3,6 @@ local socket = require "skynet.socket"
 local urllib = require "http.url"
 ---@type BioUtl
 local BioUtl = require("BioUtl")
-require("NetProtoUsermgrServer")
 require("CLGlobal")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
@@ -11,9 +10,8 @@ local json = require("json")
 local table = table
 local string = string
 
----@type NetProtoUsermgr
-local NetProto = NetProtoUsermgr
 local CMD = {}
+local LogicMap = {}
 
 -- ======================================================
 local printhttp = function(url, method, header, body)
@@ -54,11 +52,9 @@ function CMD.onrequset(url, method, header, body)
         if path and path:lower() == "/usermgr/postbio" then
             if body then
                 local map = BioUtl.readObject(body)
-                local ok, result = pcall(NetProto.dispatcher, map, nil)
-                if ok then
-                    if result then
-                        return BioUtl.writeObject(result)
-                    end
+                local result = skynet.call("NetProtoUsermgrServer", "lua", "dispatcher", skynet.self(), map, nil)
+                if result then
+                    return BioUtl.writeObject(result)
                 else
                     skynet.error(result)
                 end
@@ -87,6 +83,16 @@ function CMD.stop()
     io.popen(stopcmd)
     --skynet.exit()
 end
+
+-- 取得逻辑处理类
+function CMD.getLogic(logicName)
+    local logic = LogicMap[logicName]
+    if logic == nil then
+        logic = require("logic." .. logicName)
+    end
+    return logic
+end
+
 -- ======================================================
 skynet.start(function()
     skynet.dispatch("lua", function(_, _, command, ...)
