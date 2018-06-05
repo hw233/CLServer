@@ -71,10 +71,10 @@ do
             r[41] = m.port  -- 端口 int
             r[14] = m.name  -- 名称 string
             r[42] = m.host  -- ip地址 string
-            r[15] = m.status  -- 状态 1:正常; 2:爆满; 3:维护 int
             r[38] = m.iosVer  -- 客户端ios版本 string
             r[39] = m.androidVer  -- 客户端android版本 string
             r[34] = m.isnew  -- 新服 boolean
+            r[15] = m.status  -- 状态 1:正常; 2:爆满; 3:维护 int
             return r;
         end,
         parse = function(m)
@@ -84,10 +84,10 @@ do
             r.port = m[41] --  int
             r.name = m[14] --  string
             r.host = m[42] --  string
-            r.status = m[15] --  int
             r.iosVer = m[38] --  string
             r.androidVer = m[39] --  string
             r.isnew = m[34] --  boolean
+            r.status = m[15] --  int
             return r;
         end,
     }

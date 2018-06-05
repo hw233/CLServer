@@ -51,7 +51,7 @@ local function procCmd(map)
     --for k, v in pairs(map) do
     --    print(k, v)
     --end
-    local result = skynet.call("NetProtoIslandServer", "lua", "dispatcher", skynet.self(), map, client_fd)
+    local result = skynet.call("NetProtoIsland", "lua", "dispatcher", skynet.self(), map, client_fd)
     if result then
         send_package(result)
     else
@@ -135,7 +135,8 @@ end
 function CMD.getLogic(logicName)
     local logic = LogicMap[logicName]
     if logic == nil then
-        logic = require("logic." .. logicName)
+        logic = skynet.newservice(logicName)
+        LogicMap[logicName] = logic
     end
     return logic
 end

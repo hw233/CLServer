@@ -9,7 +9,7 @@ local DBUtl = require "DBUtl"
 ---@type dateEx
 local dateEx = require("dateEx")
 ---@type NetProtoUsermgr
-local NetProto = "NetProtoUsermgrServer"
+local NetProto = "NetProtoUsermgr"
 local table = table
 
 local cmd4user = {}
@@ -199,4 +199,9 @@ cmd4user.CMD = {
     end,
 }
 
-return cmd4user
+skynet.start(function()
+    skynet.dispatch("lua", function(_, _, command, ...)
+        local f = cmd4user.CMD[command]
+        skynet.ret(skynet.pack(f(...)))
+    end)
+end)

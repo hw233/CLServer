@@ -10,6 +10,7 @@ local table = table
 local string = string
 
 local CMD = {}
+local LogicMap = {}
 
 -- ======================================================
 local printhttp = function(url, method, header, body)
@@ -50,7 +51,7 @@ function CMD.onrequset(url, method, header, body)
         if path and path:lower() == "/island/postbio" then
             if body then
                 local map = BioUtl.readObject(body)
-                local result = skynet.call("NetProtoIslandServer", "lua", "dispatcher", skynet.self(), map, nil)
+                local result = skynet.call("NetProtoIsland", "lua", "dispatcher", skynet.self(), map, nil)
                 if result then
                     return BioUtl.writeObject(result)
                 else
@@ -70,6 +71,16 @@ function CMD.onrequset(url, method, header, body)
             return ""
         end
     end
+end
+
+-- 取得逻辑处理类
+function CMD.getLogic(logicName)
+    local logic = LogicMap[logicName]
+    if logic == nil then
+        logic = skynet.newservice(logicName)
+        LogicMap[logicName] = logic
+    end
+    return logic
 end
 
 -- ======================================================

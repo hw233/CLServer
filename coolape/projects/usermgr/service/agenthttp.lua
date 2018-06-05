@@ -52,7 +52,7 @@ function CMD.onrequset(url, method, header, body)
         if path and path:lower() == "/usermgr/postbio" then
             if body then
                 local map = BioUtl.readObject(body)
-                local result = skynet.call("NetProtoUsermgrServer", "lua", "dispatcher", skynet.self(), map, nil)
+                local result = skynet.call("NetProtoUsermgr", "lua", "dispatcher", skynet.self(), map, nil)
                 if result then
                     return BioUtl.writeObject(result)
                 else
@@ -88,7 +88,8 @@ end
 function CMD.getLogic(logicName)
     local logic = LogicMap[logicName]
     if logic == nil then
-        logic = require("logic." .. logicName)
+        logic = skynet.newservice(logicName)
+        LogicMap[logicName] = logic
     end
     return logic
 end

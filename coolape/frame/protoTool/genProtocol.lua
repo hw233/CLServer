@@ -530,12 +530,13 @@ do
         add(strsServer, "        end")
         add(strsServer, "        local m = dis.onReceive(map)")
         --add(strsServer, "        local logicCMD = assert(dis.logic.CMD)")
-        add(strsServer, "        local logicCMD = skynet.call(agent, \"lua\", \"getLogic\", m.logicName)")
-        add(strsServer, "        local f = assert(logicCMD[m.cmd])")
-        add(strsServer, "        if f then")
-        add(strsServer, "            return f(m, client_fd)")
+        add(strsServer, "        local logicProc = skynet.call(agent, \"lua\", \"getLogic\", dis.logicName)")
+        add(strsServer, "        if logicProc == nil then")
+        add(strsServer, "            printe(\"get logicServe is nil. serverName=[\" .. dis.loginAccount ..\"]\")")
+        add(strsServer, "            return nil")
+        add(strsServer, "        else")
+        add(strsServer, "            return skynet.call(logicProc, \"lua\", m.cmd, m, client_fd, agent)")
         add(strsServer, "        end")
-        add(strsServer, "        return nil")
         add(strsServer, "    end")
         add(strsServer, "    --==============================");
 
@@ -553,7 +554,7 @@ do
         add(strsServer, "            end")
         add(strsServer, "        end)")
         add(strsServer, "    ")
-        add(strsServer, "        skynet.register \"" .. defProtocol.name .. "Server\"")
+        add(strsServer, "        skynet.register \"" .. defProtocol.name .. "\"")
         add(strsServer, "    end)")
         add(strsClient, "end\n");
         add(strsServer, "end\n");

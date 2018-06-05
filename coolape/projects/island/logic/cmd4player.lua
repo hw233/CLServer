@@ -3,7 +3,7 @@ if cmd4player ~= nil then
 end
 
 -- 玩家的逻辑处理
-cmd4player = {}
+local cmd4player = {}
 
 local skynet = require("skynet")
 require("Errcode")
@@ -12,7 +12,7 @@ local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"
 ---@type dateEx
 local dateEx = require("dateEx")
-local NetProtoIsland = "NetProtoIslandServer"
+local NetProtoIsland = "NetProtoIsland"
 require("dbplayer")
 --if cmd4city == nil then
 --    -- 保证一次会话只有一个cmd4city
@@ -131,4 +131,9 @@ cmd4player.CMD = {
 
 }
 
-return cmd4player
+skynet.start(function()
+    skynet.dispatch("lua", function(_, _, command, ...)
+        local f = cmd4player.CMD[command]
+        skynet.ret(skynet.pack(f(...)))
+    end)
+end)

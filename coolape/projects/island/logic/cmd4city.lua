@@ -1,9 +1,5 @@
-if cmd4city ~= nil then
-    printe("this logic may not entry")
-end
-
 ---@class cmd4city
-cmd4city = {}
+local cmd4city = {}
 local skynet = require("skynet")
 require("public.include")
 require("public.cfgUtl")
@@ -16,7 +12,7 @@ local table = table
 local gridSize = 48
 local cellSize = 1
 
-local NetProtoIsland = "NetProtoIslandServer"
+local NetProtoIsland = "NetProtoIsland"
 ---@type Grid
 local grid4Building = Grid.new()
 grid4Building:init(Vector3.zero, gridSize, gridSize, cellSize)
@@ -566,4 +562,10 @@ cmd4city.CMD = {
     end,
 }
 
-return cmd4city
+skynet.start(function()
+    skynet.dispatch("lua", function(_, _, command, ...)
+        local f = cmd4city.CMD[command]
+        skynet.ret(skynet.pack(f(...)))
+    end)
+end)
+

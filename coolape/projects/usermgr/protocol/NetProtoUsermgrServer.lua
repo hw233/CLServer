@@ -74,10 +74,10 @@ do
             r[41] =  BioUtl.int2bio(m.port)  -- 端口 int
             r[14] = m.name  -- 名称 string
             r[42] = m.host  -- ip地址 string
-            r[15] =  BioUtl.int2bio(m.status)  -- 状态 1:正常; 2:爆满; 3:维护 int
             r[38] = m.iosVer  -- 客户端ios版本 string
             r[39] = m.androidVer  -- 客户端android版本 string
             r[34] = m.isnew  -- 新服 boolean
+            r[15] =  BioUtl.int2bio(m.status)  -- 状态 1:正常; 2:爆满; 3:维护 int
             return r;
         end,
         parse = function(m)
@@ -87,10 +87,10 @@ do
             r.port = m[41] --  int
             r.name = m[14] --  string
             r.host = m[42] --  string
-            r.status = m[15] --  int
             r.iosVer = m[38] --  string
             r.androidVer = m[39] --  string
             r.isnew = m[34] --  boolean
+            r.status = m[15] --  int
             return r;
         end,
     }
@@ -283,12 +283,13 @@ do
             return nil;
         end
         local m = dis.onReceive(map)
-        local logicCMD = skynet.call(agent, "lua", "getLogic", m.logicName)
-        local f = assert(logicCMD[m.cmd])
-        if f then
-            return f(m, client_fd)
+        local logicProc = skynet.call(agent, "lua", "getLogic", dis.logicName)
+        if logicProc == nil then
+            printe("get logicServe is nil. serverName=[" .. dis.loginAccount .."]")
+            return nil
+        else
+            return skynet.call(logicProc, "lua", m.cmd, m, client_fd, agent)
         end
-        return nil
     end
     --==============================
     skynet.start(function()
@@ -302,6 +303,6 @@ do
             end
         end)
     
-        skynet.register("NetProtoUsermgrServer")
+        skynet.register "NetProtoUsermgr"
     end)
 end

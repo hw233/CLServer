@@ -68,11 +68,11 @@ do
             local r = {}
             if m == nil then return r end
             r[12] = m.idx  -- 唯一标识 int int
-            r[26] = m.status  -- 状态 1：正常 int int
-            r[13] = m.name  -- 名字 string
-            r[27] = m.unionidx  -- 联盟id int int
-            r[28] = m.cityidx  -- 城池id int int
             r[29] = m.diam  -- 钻石 long int
+            r[13] = m.name  -- 名字 string
+            r[26] = m.status  -- 状态 1：正常 int int
+            r[28] = m.cityidx  -- 城池id int int
+            r[27] = m.unionidx  -- 联盟id int int
             r[30] = m.lev  -- 等级 long int
             return r;
         end,
@@ -80,11 +80,11 @@ do
             local r = {}
             if m == nil then return r end
             r.idx = m[12] --  int
-            r.status = m[26] --  int
-            r.name = m[13] --  string
-            r.unionidx = m[27] --  int
-            r.cityidx = m[28] --  int
             r.diam = m[29] --  int
+            r.name = m[13] --  string
+            r.status = m[26] --  int
+            r.cityidx = m[28] --  int
+            r.unionidx = m[27] --  int
             r.lev = m[30] --  int
             return r;
         end,
@@ -95,10 +95,10 @@ do
             local r = {}
             if m == nil then return r end
             r[12] = m.idx  -- 唯一标识 int int
-            r[26] = m.status  -- 状态 1:正常; int int
-            r[13] = m.name  -- 名称 string
             r[45] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
+            r[13] = m.name  -- 名称 string
             r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
+            r[26] = m.status  -- 状态 1:正常; int int
             r[30] = m.lev  -- 等级 int int
             r[33] = m.pos  -- 城所在世界grid的index int int
             r[35] = m.pidx  -- 玩家idx int int
@@ -108,10 +108,10 @@ do
             local r = {}
             if m == nil then return r end
             r.idx = m[12] --  int
-            r.status = m[26] --  int
-            r.name = m[13] --  string
             r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[45])  -- 地块信息 key=idx, map
+            r.name = m[13] --  string
             r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[32])  -- 建筑信息 key=idx, map
+            r.status = m[26] --  int
             r.lev = m[30] --  int
             r.pos = m[33] --  int
             r.pidx = m[35] --  int
