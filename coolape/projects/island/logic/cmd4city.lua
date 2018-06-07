@@ -331,7 +331,7 @@ end
 function cmd4city.setSelfTiles()
     local list = cmd4city.queryTiles(myself:getidx())
     if list == nil then
-        printe("[cmd4city.getSelfTiles]:get tiles is nil. cidx=" .. myself:getidx())
+        printe("[cmd4city.setSelfTiles]:get tiles is nil. cidx=" .. myself:getidx())
         return
     end
     tiles = {}
@@ -473,6 +473,43 @@ end
 --＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 --＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 cmd4city.CMD = {
+    new = function(idx)
+        ---@type dbcity
+        local city = cmd4city.new(idx)
+        if city then
+            return city:value2copy()
+        end
+        return nil
+    end,
+    getSelf = function(idx)
+        local city = cmd4city.getSelf(idx)
+        if city then
+            return city:value2copy()
+        end
+        return nil
+    end,
+    getSelfTiles = function()
+        local tiles = cmd4city.getSelfTiles()
+        if tiles then
+            local tiles2 = {}
+            for k,v in pairs(tiles) do
+                tiles2[k] = v:value2copy()
+            end
+            return tiles2
+        end
+        return nil
+    end,
+    getSelfBuildings = function()
+        local buildings = cmd4city.getSelfBuildings()
+        if buildings then
+            local buildings2 = {}
+            for k,v in pairs(buildings) do
+                buildings2[k] = v:value2copy()
+            end
+            return buildings2
+        end
+        return nil
+    end,
     newBuilding = function(m, fd)
         -- 新建筑
         local ret = {}

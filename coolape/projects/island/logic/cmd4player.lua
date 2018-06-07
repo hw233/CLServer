@@ -1,6 +1,6 @@
-if cmd4player ~= nil then
-    printe("this logic may not entry")
-end
+--if cmd4player ~= nil then
+--    printe("this logic may not entry")
+--end
 
 -- 玩家的逻辑处理
 local cmd4player = {}
@@ -14,20 +14,15 @@ local DBUtl = require "DBUtl"
 local dateEx = require("dateEx")
 local NetProtoIsland = "NetProtoIsland"
 require("dbplayer")
---if cmd4city == nil then
---    -- 保证一次会话只有一个cmd4city
-    require("cmd4city")
---end
 
 local table = table
 
 ---@type dbplayer
 local myself;
----@type dbcity
 local city
 
 cmd4player.CMD = {
-    login = function(m, fd)
+    login = function(m, fd, agent)
         -- 登陆
         if m.uidx == nil then
             local ret = {}
@@ -54,8 +49,9 @@ cmd4player.CMD = {
             player.channel = m.channel
             player.deviceid = m.deviceID
             if myself:init(player) then
-                city = cmd4city.new(m.uidx)
-                myself:setcityidx(city:getidx())
+                local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
+                city = skynet.call(cityServer, "lua", "new", m.uidx)
+                myself:setcityidx(city.idx)
             else
                 printe("create player err==" .. m.uidx)
                 local ret = {}
@@ -65,8 +61,10 @@ cmd4player.CMD = {
             end
         else
             -- 取得主城信息
-            city = cmd4city.getSelf(myself:getcityidx())
-            if city == nil or city:isEmpty() then
+            --city = cmd4city.getSelf(myself:getcityidx())
+            local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
+            city = skynet.call(cityServer, "lua", "getSelf", myself:getcityidx())
+            if city == nil then
                 printe("get city is nil or empty==" .. m.uidx)
                 local ret = {}
                 ret.msg = "get city is nil or empty"
@@ -75,10 +73,12 @@ cmd4player.CMD = {
             end
         end
 
-        local cityVal = city:value2copy()
+        local cityVal = city
         cityVal.buildings = {}
         cityVal.tiles = {}
-        local tiles = cmd4city.getSelfTiles()
+        --local tiles = cmd4city.getSelfTiles()
+        local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
+        local tiles = skynet.call(cityServer, "lua", "getSelfTiles")
         if tiles == nil then
             printe("get tiles is nil==" .. m.uidx)
             local ret = {}
@@ -86,14 +86,10 @@ cmd4player.CMD = {
             ret.code = Errcode.error
             return skynet.call(NetProtoIsland, "lua", "send", "login", ret, nil, nil, dateEx.nowMS(), fd)
         end
-        ---@type dbcity
-        local _tile
-        for i, v in pairs(tiles) do
-            _tile = v
-            cityVal.tiles[_tile:getidx()] = _tile:value2copy();
-        end
-
-        local buildings = cmd4city.getSelfBuildings()
+        cityVal.tiles = tiles
+        local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
+        local buildings = skynet.call(cityServer, "lua", "getSelfBuildings")
+        --local buildings = cmd4city.getSelfBuildings()
         if buildings == nil then
             printe("get buildings is nil==" .. m.uidx)
             local ret = {}
@@ -101,12 +97,7 @@ cmd4player.CMD = {
             ret.code = Errcode.error
             return skynet.call(NetProtoIsland, "lua", "send", "login", ret, nil, nil, dateEx.nowMS(), fd)
         end
-        ---@type dbcity
-        local _building
-        for i, v in pairs(buildings) do
-            _building = v
-            cityVal.buildings[_building:getidx()] = _building:value2copy();
-        end
+        cityVal.buildings = buildings
 
         local ret = {}
         ret.msg = nil;
@@ -119,9 +110,6 @@ cmd4player.CMD = {
         if myself then
             myself:release();
             myself = nil;
-        end
-        if cmd4city then
-            cmd4city.release()
         end
     end,
 

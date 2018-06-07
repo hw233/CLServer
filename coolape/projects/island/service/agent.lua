@@ -124,9 +124,10 @@ end
 
 function CMD.disconnect()
     print("agent disconnect. fd==" .. client_fd)
-    local map = {}
-    map[0] = KeyCodeProtocol.getKeyCode("release")
-    NetProto.dispatcher(map, client_fd)
+    for k,v in pairs(LogicMap) do
+        skynet.call(v, "lua", "release")
+    end
+    LogicMap = {}
 
     skynet.exit()
 end
