@@ -6,6 +6,7 @@ require("public.cfgUtl")
 require("dbcity")
 require("dbtile")
 require("dbbuilding")
+require("Errcode")
 local math = math
 local table = table
 
