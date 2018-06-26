@@ -61,6 +61,8 @@ function CMD.onrequset(url, method, header, body)
             else
                 printe("get post url, but body content id nil. url=" .. url)
             end
+        elseif path and path:lower() == "/usermgr/post" then
+            local content = parseStrBody(body)
         else
             local content = parseStrBody(body)
         end
