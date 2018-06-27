@@ -76,10 +76,16 @@ function CMD.onrequset(url, method, header, body)
             return ""
         elseif path == "/usermgr/get" then
             print(query)
-            local ret = { "item1", "item2", "item3" }
-            local jsoncallback = query.getParameter("jsoncallback")
-            printe(json.encode(ret))
-            return jsoncallback .. "(" .. json.encode(ret) .. ")"
+            local requst = urllib.parse_query(query)
+            local cmd = requst.cmd
+            local ret = {}
+            ret.list = { "item1", "item2", "item3" }
+            local jsoncallback = requst.callback
+            if jsoncallback ~= nil then
+                return jsoncallback .. "(" .. json.encode(ret) .. ")"
+            else
+                return json.encode(ret)
+            end
         end
     end
 end
