@@ -46,7 +46,7 @@ end
 -- ======================================================
 function CMD.onrequset(url, method, header, body)
     -- 有http请求
-    --printhttp(url, method, header, body) -- debug log
+    printhttp(url, method, header, body) -- debug log
     local path, query = urllib.parse(url)
     if method:upper() == "POST" then
         if path and path:lower() == "/usermgr/postbio" then
@@ -63,6 +63,8 @@ function CMD.onrequset(url, method, header, body)
             end
         elseif path and path:lower() == "/usermgr/post" then
             local content = parseStrBody(body)
+            local ret = { "menu1", "item2", "item3" }
+            return json.encode(ret)
         else
             local content = parseStrBody(body)
         end
@@ -72,6 +74,12 @@ function CMD.onrequset(url, method, header, body)
             -- 停服处理
             CMD.stop()
             return ""
+        elseif path == "/usermgr/get" then
+            print(query)
+            local ret = { "item1", "item2", "item3" }
+            local jsoncallback = query.getParameter("jsoncallback")
+            printe(json.encode(ret))
+            return jsoncallback .. "(" .. json.encode(ret) .. ")"
         end
     end
 end

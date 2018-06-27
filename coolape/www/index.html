@@ -68,7 +68,7 @@
                             Integrations
                         </a>
                     </li>
-                </ul -->
+                </ul>
 
                 <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
                     <span>Saved reports</span>
@@ -100,7 +100,7 @@
                             <span data-feather="file-text"></span>
                             Year-end sale
                         </a>
-                    </li>
+                    </li-->
                 </ul>
             </div>
         </nav>
@@ -257,9 +257,7 @@
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-        crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
 <script src="../../bootstrap-4.1.1/assets/js/vendor/popper.min.js"></script>
 <script src="../../bootstrap-4.1.1/dist/js/bootstrap.min.js"></script>
@@ -267,25 +265,53 @@
 <!-- Icons -->
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 <script>
-    function initMenu() {
+    function initLeftMenu() {
+        var baseUrl = "http://127.0.0.1:8801/usermgr/get"
         var list = ["menu1", "item2", "item3"]
+//        $.get(baseUrl, {cmd: "getLeftMenu", uid: "000",
+//            }, function (data, status, xh) {
+//                alert(data)
+//            }, 'jsonp')
+
+        $.ajax({url:baseUrl,
+            data: {
+                'cityname': '成都',
+                'date': '2016.12.12'
+            },
+            dataType: 'jsonp',
+//            crossDomain: true,
+//            jsonp:"callback",  //Jquery生成验证参数的名称
+            success:function(data){  //成功的回调函数
+                data = xhr['response']
+                alert(data);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert(jqXHR.responseText);
+                alert(jqXHR.status);
+                alert(jqXHR.readyState);
+                alert(jqXHR.statusText);
+                alert(textStatus);
+                alert(errorThrown);
+            }
+        })
+
         var leftTreeRoot = $("#leftTreeRoot")
-        for(var item in list){
+        for (var item in list) {
             var child = "<li class=\"nav-item\">\n" +
-                    "<a class=\"nav-link\" href=\"#\">\n" +
-            " <span data-feather=\"home\"></span>\n" +
-            list[item]+" <span class=\"sr-only\">(current)</span>\n"  + "</a> </li>"
+                "<a class=\"nav-link\" href=\"#\">\n" +
+                " <span data-feather=\"home\"></span>\n" +
+                list[item] + " <span class=\"sr-only\">(current)</span>\n" + "</a> </li>"
             leftTreeRoot.append(child)
         }
 
         feather.replace()
     }
 
-    $(document).ready(initMenu)
+    $(document).ready(initLeftMenu)
 </script>
 
 <!-- Graphs -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
+<!--script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js"></script>
 <script>
     var ctx = document.getElementById("myChart");
     var myChart = new Chart(ctx, {
@@ -314,6 +340,6 @@
             }
         }
     });
-</script>
+</script -->
 </body>
 </html>
