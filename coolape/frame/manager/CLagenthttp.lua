@@ -46,31 +46,19 @@ end
 -- ======================================================
 function CMD.onrequset(url, method, header, body)
     -- 有http请求
-    printhttp(url, method, header, body) -- debug log
+    --printhttp(url, method, header, body) -- debug log
     local path, query = urllib.parse(url)
     if method:upper() == "POST" then
-        if path and path:lower() == "/usermgr/postbio" then
-            if body then
-                local map = BioUtl.readObject(body)
-                local result = skynet.call("NetProtoUsermgr", "lua", "dispatcher", skynet.self(), map, nil)
-                if result then
-                    return BioUtl.writeObject(result)
-                else
-                    skynet.error(result)
-                end
-            else
-                printe("get post url, but body content id nil. url=" .. url)
-            end
-        elseif path and path:lower() == "/usermgr/post" then
+        if path and path:lower() == "/frame/post" then
             if body then
                 local content = parseStrBody(body)
-                local ret = { "menu1", "item2", "item3" }
-                return json.encode(ret)
+                --TODO:
             else
                 return nil
             end
         else
             local content = parseStrBody(body)
+            -- TODO:
         end
     else
         if path == "/usermgr/stopserver" then
@@ -81,9 +69,11 @@ function CMD.onrequset(url, method, header, body)
             -- 处理统一的get请求
             local requst = urllib.parse_query(query)
             local cmd = requst.cmd
+            if CLUtl.isNilOrEmpty(cmd) then
+                return "cmd == nil"
+            end
 
-            local ret = {}
-            ret.list = { "item1", "item2", "item3" }
+            --local ret =
             local jsoncallback = requst.callback
             if jsoncallback ~= nil then
                 -- 说明ajax调用
@@ -95,9 +85,16 @@ function CMD.onrequset(url, method, header, body)
     end
 end
 
+-- 取得左边列表
+local getLeftMenu = function ()
+    local dirs = fileEx.getFiles("./projects", "")
+    for i,v in ipairs(dirs) do
+        print(v)
+    end
+end
+
 function CMD.stop()
     skynet.call("CLDB", "lua", "stop")
-    skynet.call("CLMySQL", "lua", "stop")
     -- kill进程
     local projectname = skynet.getenv("projectName")
     local stopcmd = "ps -ef|grep config_" .. projectname .. "|grep -v grep |awk '{print $2}'|xargs -n1 kill -9"
