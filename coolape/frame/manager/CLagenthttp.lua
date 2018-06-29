@@ -1,6 +1,7 @@
 ﻿local skynet = require "skynet"
 local socket = require "skynet.socket"
 local urllib = require "http.url"
+local fileEx = require "fileEx"
 ---@type BioUtl
 local BioUtl = require("BioUtl")
 require("CLGlobal")
@@ -61,19 +62,23 @@ function CMD.onrequset(url, method, header, body)
             -- TODO:
         end
     else
-        if path == "/usermgr/stopserver" then
+        if path == "/frame/stopserver" then
             -- 停服处理
             CMD.stop()
             return ""
-        elseif path == "/usermgr/get" then
+        elseif path == "/frame/get" then
             -- 处理统一的get请求
             local requst = urllib.parse_query(query)
             local cmd = requst.cmd
             if CLUtl.isNilOrEmpty(cmd) then
                 return "cmd == nil"
             end
-
-            --local ret =
+            local cmdFunc = CMD[cmd]
+            if cmdFunc == nil then
+                printe("cannot deal the cmd==" .. cmd)
+                return "cannot deal the cmd==" .. cmd
+            end
+            local ret = cmdFunc(requst)
             local jsoncallback = requst.callback
             if jsoncallback ~= nil then
                 -- 说明ajax调用
@@ -86,15 +91,12 @@ function CMD.onrequset(url, method, header, body)
 end
 
 -- 取得左边列表
-local getLeftMenu = function ()
-    local dirs = fileEx.getFiles("./projects", "")
-    for i,v in ipairs(dirs) do
-        print(v)
-    end
+function CMD.getLeftMenu (map)
+    local dirs = fileEx.getDirs("coolape/projects")
+    return dirs
 end
 
 function CMD.stop()
-    skynet.call("CLDB", "lua", "stop")
     -- kill进程
     local projectname = skynet.getenv("projectName")
     local stopcmd = "ps -ef|grep config_" .. projectname .. "|grep -v grep |awk '{print $2}'|xargs -n1 kill -9"

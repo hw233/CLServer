@@ -1,5 +1,6 @@
 -- include "config.path"
 -- cd into  ./CLServer first
+projectName=海岛大作战
 skynetRoot = "./skynet/"
 coolapeRoot = "./coolape/"
 projectRoot = "./coolape/projects/"

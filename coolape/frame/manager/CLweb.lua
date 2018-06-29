@@ -36,7 +36,7 @@ if mode == "agent" then
     end
 
     skynet.start(function()
-        agentserver = skynet.newservice("agenthttp")
+        agentserver = skynet.newservice("CLagenthttp")
         skynet.dispatch("lua", function(_, _, id)
             socket.start(id)
             -- limit request body size to 8192 (you can pass nil to unlimit)

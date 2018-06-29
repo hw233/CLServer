@@ -266,7 +266,8 @@
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 <script>
     function initLeftMenu() {
-        var baseUrl = "http://127.0.0.1:8801/usermgr/get"
+//        var baseUrl = "http://127.0.0.1:8801/usermgr/get"
+        var baseUrl = "http://127.0.0.1:8800/frame/get"
         var params = {cmd:"getLeftMenu",uid:"000"}
         $.ajax({
             url: baseUrl,
@@ -275,7 +276,7 @@
             crossDomain: true,
             // jsonp:"callback",  //Jquery生成验证参数的名称
             success: function (result, status, xhr) {  //成功的回调函数
-                var list = result.list
+                var list = result
                 var leftTreeRoot = $("#leftTreeRoot")
                 for (var item in list) {
                     var child = "<li class=\"nav-item\">\n" +
@@ -287,12 +288,7 @@
                 feather.replace()
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                alert(jqXHR.responseText);
-                alert(jqXHR.status);
-                alert(jqXHR.readyState);
-                alert(jqXHR.statusText);
-                alert(textStatus);
-                alert(errorThrown);
+                alert("")
             }
         })
 

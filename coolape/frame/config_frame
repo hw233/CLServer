@@ -1,8 +1,9 @@
 -- include "config.path"
 -- cd into  ./CLServer first
+projectName=CLFrame
 skynetRoot = "./skynet/"
 coolapeRoot = "./coolape/"
-projectRoot = "./coolape/frame/"
+projectRoot = "./coolape/"
 projectName = "frame"
 projectPath = projectRoot .. projectName .."/"
 
@@ -27,14 +28,14 @@ cpath = skynetRoot.."cservice/?.so"
 thread = 1
 --logLev:日志等级  debug, warning, error
 logLev = "debug"
-logger = coolapeRoot .. "logs/error_" .. projectName .. ".log"
+--logger = coolapeRoot .. "logs/error_" .. projectName .. ".log"
 --logger = nil
 logpath = "."
 harbor = 0
 -- address = "127.0.0.1:2526"
 -- master = "127.0.0.1:2017"
 -- standalone = "0.0.0.0:2017"
-start = "main"	-- main script
+start = "CLmain"	-- main script
 bootstrap = "snlua bootstrap"	-- The service for bootstrap
 -- snax_interface_g = "snax_g"
 -- daemon = "./skynet.pid"
