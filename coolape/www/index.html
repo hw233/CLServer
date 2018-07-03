@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../../../favicon.ico">
 
-    <title>Dashboard Template for Bootstrap</title>
+    <title>CLServer Manager</title>
 
     <!-- Bootstrap core CSS -->
     <link href="../../bootstrap-4.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,6 +17,7 @@
 </head>
 
 <body>
+
 <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
     <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Coolape</a>
     <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
@@ -32,82 +33,48 @@
         <nav class="col-md-2 d-none d-md-block bg-light sidebar">
             <div class="sidebar-sticky">
                 <ul class="nav flex-column" id="leftTreeRoot">
-                    <!--li class="nav-item">
-                        <a class="nav-link active" href="#">
-                            <span data-feather="home"></span>
-                            Dashboard <span class="sr-only">(current)</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="file"></span>
-                            Orders
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="shopping-cart"></span>
-                            Products
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="users"></span>
-                            Customers
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="bar-chart-2"></span>
-                            Reports
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="layers"></span>
-                            Integrations
-                        </a>
-                    </li>
-                </ul>
-
-                <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span>Saved reports</span>
-                    <a class="d-flex align-items-center text-muted" href="#">
-                        <span data-feather="plus-circle"></span>
-                    </a>
-                </h6>
-                <ul class="nav flex-column mb-2">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="file-text"></span>
-                            Current month
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="file-text"></span>
-                            Last quarter
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="file-text"></span>
-                            Social engagement
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <span data-feather="file-text"></span>
-                            Year-end sale
-                        </a>
-                    </li-->
                 </ul>
             </div>
         </nav>
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
             <div class="container">
-                <iframe id="contentPage" width="100%"  height="100%" src="http://baidu.com"></iframe>
+                <!--<ul class="nav nav-tabs">-->
+                    <!--<li class="nav-item">-->
+                        <!--<a class="nav-link active" href="#">Link1-->
+                            <!--&lt;!&ndash;<button type="button" class="btn btn-link btn-xs text-secondary" onclick="removeContent(2)">&ndash;&gt;-->
+                                <!--<i data-feather="x-circle" style="vertical-align: super;" onclick="removeContent(2)"></i>-->
+                            <!--&lt;!&ndash;</button>&ndash;&gt;-->
+                        <!--</a>-->
+                    <!--</li>-->
+                    <!--<li class="nav-item">-->
+                        <!--<a class="nav-link" href="#">Link-->
+                            <!--&lt;!&ndash;<button type="button" class="btn btn-link btn-xs text-secondary" onclick="removeContent(2)">&ndash;&gt;-->
+                            <!--<span data-feather="x-circle" style="vertical-align: super;"></span>-->
+                            <!--&lt;!&ndash;</button>&ndash;&gt;-->
+                        <!--</a>-->
+                    <!--</li>-->
+                    <!--<li class="nav-item">-->
+                        <!--<a class="nav-link" href="#">Link-->
+                            <!--&lt;!&ndash;<button type="button" class="btn btn-link btn-xs text-secondary" onclick="removeContent(2)">&ndash;&gt;-->
+                            <!--<span data-feather="x-circle" style="vertical-align: super;"></span>-->
+                            <!--&lt;!&ndash;</button>&ndash;&gt;-->
+                        <!--</a>-->
+                    <!--</li>-->
+                    <!--<li class="nav-item">-->
+                        <!--<a class="nav-link disabled" href="#">Disabled-->
+                            <!--&lt;!&ndash;<button type="button" class="btn btn-link btn-xs text-secondary" onclick="removeContent(2)">&ndash;&gt;-->
+                                <!--<span data-feather="x-circle" style="vertical-align: super;"></span>-->
+                            <!--&lt;!&ndash;</button>&ndash;&gt;-->
+                        <!--</a>-->
+                    <!--</li>-->
+                <!--</ul>-->
+
+                <!--<iframe  class="col-md-12" id="contentPage" style="height:85vh;position:relative;" frameborder="0" scrolling="yes"-->
+                        <!--src="http://baidu.com"></iframe>-->
+
+                <ul class="nav nav-tabs" role="tablist" id="tabsRoot"></ul>
+                <div class="tab-content" id="tabContentRoot"></div>
             </div>
         </main>
     </div>
@@ -123,14 +90,32 @@
 
 <!-- Icons -->
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script src="tabEx.js"></script>
 <script>
     function onclickLeftMenu(menu) {
         alert(menu)
     }
 
+    function removeContent(name) {
+        alert(name)
+    }
+    function init() {
+        tabEx.init("tabsRoot", "tabContentRoot")
+        initLeftMenu()
+
+        var item = {'id':'1','name':'首页','url':'http://baidu.com','closable':false};
+        tabEx.addTab(item);
+        var item2 = {'id':'2','name':'首页2','url':'http://bing.com','closable':true};
+        tabEx.addTab(item2);
+        var item2 = {'id':'3','name':'首页2','url':'http://bing.com','closable':true};
+        tabEx.addTab(item2);
+        var item2 = {'id':'4','name':'首页2','url':'http://bing.com','closable':true};
+        tabEx.addTab(item2);
+        feather.replace()
+    }
     function initLeftMenu() {
         var baseUrl = "http://127.0.0.1:8800/frame/get"
-        var params = {cmd:"getLeftMenu",uid:"000"}
+        var params = {cmd: "getLeftMenu", uid: "000"}
         $.ajax({
             url: baseUrl,
             data: params,
@@ -142,7 +127,7 @@
                 var leftTreeRoot = $("#leftTreeRoot")
                 for (var item in list) {
                     var child = "<li class=\"nav-item\">\n" +
-                        "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\""+list[item]+"\")'>\n" +
+                        "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + list[item] + "\")'>\n" +
                         " <span data-feather=\"server\"></span>\n" +
                         list[item] + " <span class=\"sr-only\">(current)</span>\n" + "</a> </li>"
                     leftTreeRoot.append(child)
@@ -150,15 +135,14 @@
                 feather.replace()
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                alert("")
+                alert("取得菜单失败:" + textStatus)
             }
         })
-
 
         feather.replace()
     }
 
-    $(document).ready(initLeftMenu)
+    $(document).ready(init)
 </script>
 
 <!-- Graphs -->
