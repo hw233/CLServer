@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="cn">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -39,42 +39,8 @@
 
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
             <div class="container">
-                <!--<ul class="nav nav-tabs">-->
-                    <!--<li class="nav-item">-->
-                        <!--<a class="nav-link active" href="#">Link1-->
-                            <!--&lt;!&ndash;<button type="button" class="btn btn-link btn-xs text-secondary" onclick="removeContent(2)">&ndash;&gt;-->
-                                <!--<i data-feather="x-circle" style="vertical-align: super;" onclick="removeContent(2)"></i>-->
-                            <!--&lt;!&ndash;</button>&ndash;&gt;-->
-                        <!--</a>-->
-                    <!--</li>-->
-                    <!--<li class="nav-item">-->
-                        <!--<a class="nav-link" href="#">Link-->
-                            <!--&lt;!&ndash;<button type="button" class="btn btn-link btn-xs text-secondary" onclick="removeContent(2)">&ndash;&gt;-->
-                            <!--<span data-feather="x-circle" style="vertical-align: super;"></span>-->
-                            <!--&lt;!&ndash;</button>&ndash;&gt;-->
-                        <!--</a>-->
-                    <!--</li>-->
-                    <!--<li class="nav-item">-->
-                        <!--<a class="nav-link" href="#">Link-->
-                            <!--&lt;!&ndash;<button type="button" class="btn btn-link btn-xs text-secondary" onclick="removeContent(2)">&ndash;&gt;-->
-                            <!--<span data-feather="x-circle" style="vertical-align: super;"></span>-->
-                            <!--&lt;!&ndash;</button>&ndash;&gt;-->
-                        <!--</a>-->
-                    <!--</li>-->
-                    <!--<li class="nav-item">-->
-                        <!--<a class="nav-link disabled" href="#">Disabled-->
-                            <!--&lt;!&ndash;<button type="button" class="btn btn-link btn-xs text-secondary" onclick="removeContent(2)">&ndash;&gt;-->
-                                <!--<span data-feather="x-circle" style="vertical-align: super;"></span>-->
-                            <!--&lt;!&ndash;</button>&ndash;&gt;-->
-                        <!--</a>-->
-                    <!--</li>-->
-                <!--</ul>-->
-
-                <!--<iframe  class="col-md-12" id="contentPage" style="height:85vh;position:relative;" frameborder="0" scrolling="yes"-->
-                        <!--src="http://baidu.com"></iframe>-->
-
-                <ul class="nav nav-tabs" role="tablist" id="tabsRoot"></ul>
-                <div class="tab-content" id="tabContentRoot"></div>
+                <ul class="nav nav-tabs" role="tablist" id="tabsRoot" style="position:relative;top:8px"></ul>
+                <div class="tab-content" id="tabContentRoot" style="position:relative;top:8px"></div>
             </div>
         </main>
     </div>
@@ -90,29 +56,20 @@
 
 <!-- Icons -->
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<!-- tab 处理-->
 <script src="tabEx.js"></script>
 <script>
     function onclickLeftMenu(menu) {
-        alert(menu)
-    }
-
-    function removeContent(name) {
-        alert(name)
-    }
-    function init() {
-        tabEx.init("tabsRoot", "tabContentRoot")
-        initLeftMenu()
-
-        var item = {'id':'1','name':'首页','url':'http://baidu.com','closable':false};
+        var item = {'id': menu, 'name': menu, 'url': 'projectInfor.html?name=' + menu, 'closable': true};
         tabEx.addTab(item);
-        var item2 = {'id':'2','name':'首页2','url':'http://bing.com','closable':true};
-        tabEx.addTab(item2);
-        var item2 = {'id':'3','name':'首页2','url':'http://bing.com','closable':true};
-        tabEx.addTab(item2);
-        var item2 = {'id':'4','name':'首页2','url':'http://bing.com','closable':true};
-        tabEx.addTab(item2);
         feather.replace()
     }
+
+    function init() {
+        tabEx.init("tabsRoot", "tabContentRoot", "85vh")
+        initLeftMenu()
+    }
+
     function initLeftMenu() {
         var baseUrl = "http://127.0.0.1:8800/frame/get"
         var params = {cmd: "getLeftMenu", uid: "000"}
