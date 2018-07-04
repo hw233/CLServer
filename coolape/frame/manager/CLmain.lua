@@ -8,6 +8,7 @@ skynet.start(
             --end
 
             --skynet.newservice("debug_console", skynet.getenv("consolePort"))
+            skynet.newservice("CLDBCache")
 
             -- http server
             skynet.newservice("CLweb",

@@ -91,7 +91,8 @@ end
 
 -- 取得左边列表
 function CMD.getLeftMenu (map)
-    local projectsInfor = sharedata.query("projectsInfor")
+    --local projectsInfor = sharedata.query("projectsInfor")
+    local projectsInfor = skynet.call("CLDBCache", "lua", "get", "projectsInfor")
     if projectsInfor == nil then
         local dirs = fileEx.getDirs("coolape/projects")
         projectsInfor = {}
@@ -101,11 +102,20 @@ function CMD.getLeftMenu (map)
             local cfg = { name = v, desc = projectDesc, consolePort = consolePort, httpPort = httpPort, socketPort = socketPort }
             projectsInfor[v] = cfg
         end
-        sharedata.new("projectsInfor", projectsInfor)
+        --sharedata.new("projectsInfor", projectsInfor)
+        skynet.call("CLDBCache", "lua", "set", "projectsInfor", projectsInfor)
     end
     return projectsInfor
 end
 
+---@public 取得服务器信息
+function CMD.getProjectInfor(projName)
+    -- 取得当前服务器状态，是否启动
+    -- 取得日志大小
+    -- 取得服务列表
+end
+
+---@public 停止服务
 function CMD.stop()
     -- kill进程
     local projectname = skynet.getenv("projectName")
