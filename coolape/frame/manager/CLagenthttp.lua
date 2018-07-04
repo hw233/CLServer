@@ -91,8 +91,7 @@ end
 
 -- 取得左边列表
 function CMD.getLeftMenu (map)
-    local projectsInfor = nil
-    --sharedata.query("projectsInfor")
+    local projectsInfor = sharedata.query("projectsInfor")
     if projectsInfor == nil then
         local dirs = fileEx.getDirs("coolape/projects")
         projectsInfor = {}
@@ -104,10 +103,6 @@ function CMD.getLeftMenu (map)
         end
         sharedata.new("projectsInfor", projectsInfor)
     end
-    --local list = {}
-    --for k, v in pairs(projectsInfor) do
-    --    table.insert(list, k .. "." .. v.desc)
-    --end
     return projectsInfor
 end
 

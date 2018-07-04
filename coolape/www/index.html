@@ -59,8 +59,8 @@
 <!-- tab 处理-->
 <script src="tabEx.js"></script>
 <script>
-    function onclickLeftMenu(menu) {
-        var item = {'id': menu, 'name': menu, 'url': 'projectInfor.html?name=' + menu, 'closable': true};
+    function onclickLeftMenu(id, name) {
+        var item = {'id': id, 'name': name, 'url': 'projectInfor.html?name=' + menu, 'closable': true};
         tabEx.addTab(item);
         feather.replace()
     }
@@ -84,7 +84,7 @@
                 var leftTreeRoot = $("#leftTreeRoot")
                 for (var item in list) {
                     var child = "<li class=\"nav-item\">\n" +
-                        "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + list[item].name + "\")'>\n" +
+                        "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + list[item].name + "," + list[item].desc + "\")'>\n" +
                         " <span data-feather=\"server\"></span>\n" +
                         list[item].name +"." + list[item].desc + " <span class=\"sr-only\">(current)</span>\n" + "</a> </li>"
                     leftTreeRoot.append(child)
