@@ -1,6 +1,6 @@
 -- include "config.path"
 -- cd into  ./CLServer first
-projectName=账号管理
+projectDesc="账号管理"
 skynetRoot = "./skynet/"
 coolapeRoot = "./coolape/"
 projectRoot = "./coolape/projects/"
@@ -37,6 +37,9 @@ logger = coolapeRoot .. "logs/error_" .. projectName .. ".log"
 --logger = nil
 logpath = "."
 harbor = 0
+consolePort = 8001
+httpPort = 8801
+-- socketPort = 9000
 -- address = "127.0.0.1:2526"
 -- master = "127.0.0.1:2017"
 -- standalone = "0.0.0.0:2017"

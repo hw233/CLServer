@@ -1,9 +1,8 @@
 ﻿local skynet = require "skynet"
-local socket = require "skynet.socket"
+require "skynet.manager"    -- import skynet.register
+local sharedata = require "skynet.sharedata"
 local urllib = require "http.url"
 local fileEx = require "fileEx"
----@type BioUtl
-local BioUtl = require("BioUtl")
 require("CLGlobal")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
@@ -92,8 +91,24 @@ end
 
 -- 取得左边列表
 function CMD.getLeftMenu (map)
-    local dirs = fileEx.getDirs("coolape/projects")
-    return dirs
+    local projectsInfor = nil
+    --sharedata.query("projectsInfor")
+    if projectsInfor == nil then
+        local dirs = fileEx.getDirs("coolape/projects")
+        projectsInfor = {}
+        local cfgPath = skynet.getenv("coolapeRoot") .. "projects/"
+        for i, v in ipairs(dirs) do
+            dofile(cfgPath .. v .. "/config_" .. v)
+            local cfg = { name = v, desc = projectDesc, consolePort = consolePort, httpPort = httpPort, socketPort = socketPort }
+            projectsInfor[v] = cfg
+        end
+        sharedata.new("projectsInfor", projectsInfor)
+    end
+    --local list = {}
+    --for k, v in pairs(projectsInfor) do
+    --    table.insert(list, k .. "." .. v.desc)
+    --end
+    return projectsInfor
 end
 
 function CMD.stop()

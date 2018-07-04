@@ -1,6 +1,6 @@
 -- include "config.path"
 -- cd into  ./CLServer first
-projectName=CLFrame
+projectDesc="CLFrame"
 skynetRoot = "./skynet/"
 coolapeRoot = "./coolape/"
 projectRoot = "./coolape/"
@@ -32,6 +32,8 @@ logLev = "debug"
 --logger = nil
 logpath = "."
 harbor = 0
+consolePort = 8000
+httpPort = 8800
 -- address = "127.0.0.1:2526"
 -- master = "127.0.0.1:2017"
 -- standalone = "0.0.0.0:2017"

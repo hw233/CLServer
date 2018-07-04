@@ -7,11 +7,11 @@ skynet.start(
             --    local console = skynet.newservice("console")
             --end
 
-            --skynet.newservice("debug_console", 8000)
+            --skynet.newservice("debug_console", skynet.getenv("consolePort"))
 
             -- http server
             skynet.newservice("CLweb",
-                    8800, -- http port
+                    skynet.getenv("httpPort"), -- http port
                     2 -- 代理个数
             )
 

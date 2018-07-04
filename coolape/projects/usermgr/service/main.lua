@@ -9,7 +9,7 @@ function()
         local console = skynet.newservice("console")
     end
 
-    skynet.newservice("debug_console", 8001)
+    skynet.newservice("debug_console", skynet.getenv("consolePort"))
 
     -- 配制数据
     skynet.uniqueservice("CLCfg")
@@ -47,7 +47,7 @@ function()
 
     -- http server
     skynet.newservice("myweb",
-        8801, -- http port
+            skynet.getenv("httpPort"), -- http port
         20 -- 代理个数
     )
 

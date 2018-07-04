@@ -13,7 +13,7 @@ tabEx.iframeHight = "100vh"
 tabEx.init = function (tabsRootId, tabContentId, contentHight) {
     tabEx.tabsRoot = $("#" + tabsRootId);
     tabEx.tabContent = $("#" + tabContentId);
-    tabEx.iframeHight = contentHight == null ? "100vh" : contentHight
+    tabEx.iframeHight = contentHight == null ? "100vh" : contentHight;
 }
 
 //frame加载完成后设置父容器的高度，使iframe页面与父页面无缝对接
@@ -34,13 +34,13 @@ tabEx.addTab = function (tabItem) {
     $("div[id^=tab_container_]").removeClass("active");
 
     if (!$('#' + id)[0]) {
-        var li_tab = '<li class="nav-item" >'
+        var li_tab = '<li class="nav-item" >';
         li_tab = li_tab + '<a class="nav-link" id="' + id + '" href="#' + container + '" role="tab" data-toggle="tab">' + tabItem.name;
         if (tabItem.closable) {
             li_tab = li_tab + '<i class="text-secondary" data-feather="x" tabclose="' + tabItem.id + '" onclick="tabEx.closeTab(this)" style="position:relative;right:-4px;top:-4px"></i>';
         }
-        li_tab = li_tab + '   </a>'
-        li_tab = li_tab + '</li>'
+        li_tab = li_tab + '</a>';
+        li_tab = li_tab + '</li>';
 
         var tabpanel = '<div role="tabpanel" class="tab-pane" id="' + container + '" style="width: 100%;">' +
             '<iframe src="' + tabItem.url + '" id="tab_frame_2" style="width:100%; height:' + tabEx.iframeHight + ';position:relative;top:8px" frameborder="0" scrolling="yes" onload="tabEx.frameLoad(this)"></iframe>' +
@@ -60,7 +60,7 @@ tabEx.closeTab = function (item) {
     var containerId = "tab_container_" + _id;
 
     if ($('#' + containerId).hasClass('active')) {
-        var prevobj = $('#' + id).parent().prev()
+        var prevobj = $('#' + id).parent().prev();
         if (prevobj != null) {
             prevobj.children().addClass("active");
             $('#' + containerId).prev().addClass('active');

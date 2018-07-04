@@ -10,7 +10,7 @@ skynet.start(
                 local console = skynet.newservice("console")
             end
 
-            skynet.newservice("debug_console", 8003)
+            skynet.newservice("debug_console", skynet.getenv("consolePort"))
 
             -- 配制数据
             skynet.uniqueservice("CLCfg")
@@ -42,16 +42,16 @@ skynet.start(
             -- 监听socket
             local watchdog = skynet.uniqueservice("watchdog")
             skynet.call(watchdog, "lua", "start", {
-                port = 9000, -- socket port
+                port = skynet.getenv("socketPort"), -- socket port
                 maxclient = max_client,
                 nodelay = true,
                 mysql = mysql,
             })
-            skynet.error("Watchdog listen on", 9000)
+            skynet.error("Watchdog listen on", skynet.getenv("socketPort"))
 
             -- http server
             skynet.newservice("myweb",
-                    8803, -- http port
+                    skynet.getenv("httpPort"), -- http port
                     10 -- 代理个数
             )
 

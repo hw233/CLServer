@@ -1,6 +1,6 @@
 -- include "config.path"
 -- cd into  ./CLServer first
-projectName=海岛大作战
+projectDesc = "海岛大作战"
 skynetRoot = "./skynet/"
 coolapeRoot = "./coolape/"
 projectRoot = "./coolape/projects/"
@@ -40,6 +40,9 @@ logTraceLev = 3
 logger = nil
 logpath = "."
 harbor = 0
+consolePort = 8003
+httpPort = 8803
+socketPort = 9000
 -- address = "127.0.0.1:2526"
 -- master = "127.0.0.1:2017"
 -- standalone = "0.0.0.0:2017"
