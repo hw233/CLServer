@@ -36,7 +36,7 @@ thread = 1
 logLev = "debug"
 -- logTraceLev: -1是表示查看详细的调用信息，
 logTraceLev = 3
--- logger = coolapeRoot .. "logs/error_" .. projectName .. ".log"
+-- logger = coolapeRoot .. "logs/" .. projectName .. ".log"
 logger = nil
 logpath = "."
 harbor = 0

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="cn">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
@@ -12,26 +12,45 @@
 
     <!-- Custom styles for this template -->
     <link href="dashboard.css" rel="stylesheet">
-  </head>
-  <body>
-    <div class="container-fluid">
-    </div>
+</head>
+<body>
+<div class="container-fluid">
+</div>
 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
-    <script src="../../bootstrap-4.1.1/assets/js/vendor/popper.min.js"></script>
-    <script src="../../bootstrap-4.1.1/dist/js/bootstrap.min.js"></script>
-    <script src="jquery.url.js"></script>
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+<script src="../../bootstrap-4.1.1/assets/js/vendor/popper.min.js"></script>
+<script src="../../bootstrap-4.1.1/dist/js/bootstrap.min.js"></script>
+<script src="js/glcfg.js"></script>
+<script src="js/jquery.url.js"></script>
 
-    <!-- Icons -->
-    <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
-    <script>
-      alert( $.url.param("name"))
-      feather.replace()
-    </script>
+<!-- Icons -->
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script>
+    var projectName = $.url.param("name")
 
-  </body>
+    feather.replace()
+    function init() {
+        var baseUrl = glcfg.baseUrl
+        var params = {cmd: "getProjectInfor", projectName:projectName, uid: "000"}
+        $.ajax({
+            url: baseUrl,
+            data: params,
+            dataType: 'jsonp',
+            crossDomain: true,
+            // jsonp:"callback",  //Jquery生成验证参数的名称
+            success: function (result, status, xhr) {  //成功的回调函数
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert("取得项目信息失败:" + textStatus)
+            }
+        })
+    }
+    $(document).ready(init)
+</script>
+
+</body>
 </html>

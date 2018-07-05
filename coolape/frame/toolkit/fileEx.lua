@@ -9,6 +9,7 @@ function fileEx.exist(path)
     if f == nil then
         return false
     end
+    f:close()
     return true
 end
 
@@ -31,6 +32,7 @@ function fileEx.getDirs(path)
         return {}
     end
     local fileLists = s:read("*all")
+    s:close()
 
     local lines = CLUtl.strSplit(fileLists, "\n")
 
@@ -61,6 +63,7 @@ function fileEx.getFiles(path, suffix)
         return {}
     end
     local fileLists = s:read("*all")
+    s:close()
     --print(fileLists)
 
     local start_pos = 1

@@ -99,7 +99,7 @@ function CMD.getLeftMenu (map)
         local cfgPath = skynet.getenv("coolapeRoot") .. "projects/"
         for i, v in ipairs(dirs) do
             dofile(cfgPath .. v .. "/config_" .. v)
-            local cfg = { name = v, desc = projectDesc, consolePort = consolePort, httpPort = httpPort, socketPort = socketPort }
+            local cfg = { name = v, desc = projectDesc, consolePort = consolePort, httpPort = httpPort, socketPort = socketPort, logger = logger }
             projectsInfor[v] = cfg
         end
         --sharedata.new("projectsInfor", projectsInfor)
@@ -109,10 +109,62 @@ function CMD.getLeftMenu (map)
 end
 
 ---@public 取得服务器信息
-function CMD.getProjectInfor(projName)
+function CMD.getProjectInfor(map)
+    local projName = map.projectName
+    if CLUtl.isNilOrEmpty(projName) then
+        return "project name is nil"
+    end
+
+    local projects = skynet.call("CLDBCache", "lua", "get", "projectsInfor")
+    if projects == nil then
+        return "项目数据列表为空"
+    end
+    local projectCfg = projects[projName]
+    if projectCfg == nil then
+        return "项目数据为空"
+    end
+
+    local infor = projectCfg
+    -- ===================================
     -- 取得当前服务器状态，是否启动
+    local cmd = "ps -ef|grep config_" .. projName .. "|grep -v grep"
+    local s = io.popen(cmd)
+    if s == nil then
+        infor.actived = false
+    else
+        local result = s:read("*all")
+        s:close()
+        if CLUtl.isNilOrEmpty(result) then
+            infor.actived = false
+        else
+            infor.actived = true
+        end
+    end
+    -- ===================================
     -- 取得日志大小
+    if projectCfg.logger then
+        cmd = "ls -l " .. projectCfg.logger .. " | awk '{print $5}'"
+        s = io.popen(cmd)
+        if s == nil then
+            infor.logSize = 0
+        else
+            local result = s:read("*all")
+            printe(result)
+            s:close()
+            infor.logSize = tonumber(result)
+        end
+    else
+        infor.logSize = 0
+    end
+    -- ===================================
     -- 取得服务列表
+    if not infor.actived then
+        infor.serviceList = {}
+    else
+
+    end
+    printe( CLUtl.dump(infor))
+    return infor
 end
 
 ---@public 停止服务
