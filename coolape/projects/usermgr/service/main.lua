@@ -8,8 +8,8 @@ function()
     if not skynet.getenv "daemon" then
         local console = skynet.newservice("console")
     end
-
-    skynet.newservice("debug_console", skynet.getenv("consolePort"))
+    local consoleport =  skynet.getenv("consolePort")
+    skynet.newservice("debug_console", consoleport)
 
     -- 配制数据
     skynet.uniqueservice("CLCfg")

@@ -30,7 +30,7 @@ function CMD.serviceStat()
     return skynet.call(".launcher", "lua", "STAT")
 end
 
-function CMD.serviceMemory()
+function CMD.memory()
     return skynet.call(".launcher", "lua", "MEM")
 end
 
@@ -46,6 +46,10 @@ end
 skynet.start(function()
     skynet.dispatch("lua", function(_, _, command, ...)
         local f = CMD[command]
-        skynet.ret(skynet.pack(f(...)))
+        if f then
+            skynet.ret(skynet.pack(f(...)))
+        else
+            skynet.ret(skynet.pack("no cmd func got"))
+        end
     end)
 end)

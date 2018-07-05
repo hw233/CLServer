@@ -158,17 +158,41 @@ function CMD.getProjectInfor(map)
     else
         infor.logSize = 0
     end
-    -- ===================================
-    -- 取得服务列表
-    if not infor.actived then
-        infor.serviceList = {}
-    else
-        local ok, result = pcall(httpc.get, "127.0.0.1" .. ":" .. projectCfg.httpPort, "/" .. projName .. "/manage?cmd=serviceList")
-        if not ok then
-            print(result)
-            infor.serviceList = result
+    if infor.actived then
+        -- ===================================
+        -- 服务器内存
+        local ok, result, content = pcall(httpc.get, "127.0.0.1" .. ":" .. projectCfg.httpPort, "/" .. projName .. "/manage?cmd=memory")
+        local memory = {}
+        if ok and result == 200 then
+            memory = json.decode(content)
+        end
+        -- ===================================
+        -- 服务器状态
+        local ok, result, content = pcall(httpc.get, "127.0.0.1" .. ":" .. projectCfg.httpPort, "/" .. projName .. "/manage?cmd=serviceStat")
+        local stat = {}
+        if ok and result == 200 then
+            stat = json.decode(content)
+        end
+        -- ===================================
+        -- 取得服务列表
+        local ok, result, content = pcall(httpc.get, "127.0.0.1" .. ":" .. projectCfg.httpPort, "/" .. projName .. "/manage?cmd=serviceList")
+        local serviceList = {}
+        if ok and result == 200 then
+            serviceList = json.decode(content)
         else
-            infor.serviceList = {}
+            serviceList = {}
+        end
+
+        -- ===================================
+        -- wrap infor
+        infor.serviceList = {}
+        for k, v in pairs(serviceList) do
+            local serviceInfor = stat[k]
+            serviceInfor = serviceInfor or {}
+            serviceInfor.address = k
+            serviceInfor.name = v
+            serviceInfor.memory = memory[k]
+            table.insert(infor.serviceList, serviceInfor)
         end
     end
     printe( CLUtl.dump(infor))

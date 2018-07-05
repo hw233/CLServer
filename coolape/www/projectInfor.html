@@ -11,10 +11,11 @@
     <link href="../../bootstrap-4.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="dashboard.css" rel="stylesheet">
+    <!--<link href="dashboard.css" rel="stylesheet">-->
 </head>
 <body>
-<div class="container-fluid">
+<div class="container">
+    <h3 id="projectName">加载中...</h3>
 </div>
 
 <!-- Bootstrap core JavaScript
@@ -31,11 +32,26 @@
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 <script>
     var projectName = $.url.param("name")
+    var projectInfor;
 
-    feather.replace()
+    function refreshContent() {
+        if (projectInfor == null) {
+            return;
+        }
+        var actived = ""
+        if (projectInfor.actived) {
+            // actived = "<span class=\"label label-success\">running</span>"
+            actived = "<small><span class=\"badge badge-success badge-pill\">running</span></small>"
+        } else {
+            // actived = "<span class=\"label label-danger\">stoped</span>"
+            actived = "<small><span class=\"badge badge-danger badge-pill\">stoped</span></small>"
+        }
+        $("#projectName").html(projectInfor.name + "." + projectInfor.desc + "." + actived)
+    }
+
     function init() {
         var baseUrl = glcfg.baseUrl
-        var params = {cmd: "getProjectInfor", projectName:projectName, uid: "000"}
+        var params = {cmd: "getProjectInfor", projectName: projectName, uid: "000"}
         $.ajax({
             url: baseUrl,
             data: params,
@@ -43,12 +59,16 @@
             crossDomain: true,
             // jsonp:"callback",  //Jquery生成验证参数的名称
             success: function (result, status, xhr) {  //成功的回调函数
+                projectInfor = result
+                refreshContent();
+                feather.replace();
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 alert("取得项目信息失败:" + textStatus)
             }
         })
     }
+
     $(document).ready(init)
 </script>
 
