@@ -78,12 +78,15 @@ function CMD.onrequset(url, method, header, body)
             CMD.stop()
             return ""
         elseif path == "/usermgr/get" then
+        elseif path == "/usermgr/manage" then
             -- 处理统一的get请求
             local requst = urllib.parse_query(query)
             local cmd = requst.cmd
-
-            local ret = {}
-            ret.list = { "item1", "item2", "item3" }
+            local service = CMD.getLogic("CLManage")
+            if service == nil then
+                return "no cmd4Manage server!!"
+            end
+            local ret = skynet.call(service, "lua", cmd, requst)
             local jsoncallback = requst.callback
             if jsoncallback ~= nil then
                 -- 说明ajax调用

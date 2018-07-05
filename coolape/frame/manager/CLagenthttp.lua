@@ -3,6 +3,7 @@ require "skynet.manager"    -- import skynet.register
 local sharedata = require "skynet.sharedata"
 local urllib = require "http.url"
 local fileEx = require "fileEx"
+local httpc = require "http.httpc"
 require("CLGlobal")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
@@ -66,6 +67,7 @@ function CMD.onrequset(url, method, header, body)
             CMD.stop()
             return ""
         elseif path == "/frame/get" then
+        elseif path == "/frame/manage" then
             -- 处理统一的get请求
             local requst = urllib.parse_query(query)
             local cmd = requst.cmd
@@ -161,7 +163,13 @@ function CMD.getProjectInfor(map)
     if not infor.actived then
         infor.serviceList = {}
     else
-
+        local ok, result = pcall(httpc.get, "127.0.0.1" .. ":" .. projectCfg.httpPort, "/" .. projName .. "/manage?cmd=serviceList")
+        if not ok then
+            print(result)
+            infor.serviceList = result
+        else
+            infor.serviceList = {}
+        end
     end
     printe( CLUtl.dump(infor))
     return infor
