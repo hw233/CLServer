@@ -186,14 +186,27 @@ function CMD.getProjectInfor(map)
         -- ===================================
         -- wrap infor
         infor.serviceList = {}
+        local totalMem = 0
+        local totalCPU = 0
         for k, v in pairs(serviceList) do
             local serviceInfor = stat[k]
             serviceInfor = serviceInfor or {}
             serviceInfor.address = k
             serviceInfor.name = v
-            serviceInfor.memory = memory[k]
+            local strs = CLUtl.strSplit(memory[k], " ")
+            local mem = 0
+            if #strs > 0 then
+                mem = tonumber(strs[1])
+            else
+                mem = 0
+            end
+            serviceInfor.memory = mem
+            totalMem = totalMem + mem
+            totalCPU = totalCPU + serviceInfor.cpu
             table.insert(infor.serviceList, serviceInfor)
         end
+        infor.totalMem = totalMem
+        infor.totalCPU = totalCPU
     end
     printe( CLUtl.dump(infor))
     return infor
