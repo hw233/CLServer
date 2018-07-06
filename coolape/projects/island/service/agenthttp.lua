@@ -69,6 +69,22 @@ function CMD.onrequset(url, method, header, body)
             -- 停服处理
             skynet.send("watchdog", "lua", "stop")
             return ""
+        elseif path == "/island/manage" then
+            -- 处理统一的get请求
+            local requst = urllib.parse_query(query)
+            local cmd = requst.cmd
+            local service = CMD.getLogic("CLManage")
+            if service == nil then
+                return "no cmd4Manage server!!"
+            end
+            local ret = skynet.call(service, "lua", cmd, requst)
+            local jsoncallback = requst.callback
+            if jsoncallback ~= nil then
+                -- 说明ajax调用
+                return jsoncallback .. "(" .. json.encode(ret) .. ")"
+            else
+                return json.encode(ret)
+            end
         end
     end
 end

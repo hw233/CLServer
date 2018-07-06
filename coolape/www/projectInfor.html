@@ -13,23 +13,24 @@
     <!-- Custom styles for this template -->
     <!--<link href="dashboard.css" rel="stylesheet">-->
 </head>
+
 <body>
 <div class="container">
     <div id="_loading">
         <h3>加载中...</h3>
     </div>
     <div role="main" id="contentRoot">
-        <div class="row">
-            <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
+        <div class="row d-flex justify-content-between">
+            <div class=" col-xs-8 col-sm-8 col-md-8 col-lg-8">
                 <h3 id="projectName"></h3>
             </div>
-            <div class="col-xs-4 pull-right">
-                <button type="button" class="btn btn-success" id="btnRefresh" onclick="">
+            <div class="col-xs-4 float-right ml-auto">
+                <button type="button" class="btn btn-success" id="btnRefresh" onclick="init()">
                     <span data-feather="refresh-ccw"></span></button>
-                <button type="button" class="btn btn-warning" id="btnStart" onclick="">
+                <button type="button" class="btn btn-warning" id="btnStart" onclick="startServer()">
                     <span data-feather="play"></span>
                 </button>
-                <button type="button" class="btn btn-danger" id="btnStop" onclick="">
+                <button type="button" class="btn btn-danger" id="btnStop" onclick="stopServer">
                     <span data-feather="power"></span>
                 </button>
                 <button type="button" class="btn btn-info" id="btnDetail" onclick="">
@@ -60,7 +61,6 @@
 <script>
     var projectName = $.url.param("name")
     var projectInfor;
-
     $("#_loading").show();
     $("#contentRoot").hide();
 
@@ -72,22 +72,20 @@
         $("#_loading").hide();
         $("#contentRoot").show();
         var actived = ""
-        if (projectInfor.actived) {
+        if (!projectInfor.actived) {
+            actived = "<small><span class=\"badge badge-danger badge-pill\">☽</span></small>";
+            $("#btnStart").show();
+            $("#btnStop").hide();
+            $("#btnDetail").hide();
+            $("#contentRoot2").hide();
+        } else {
             actived = "<small><span class=\"badge badge-success badge-pill\">☼</span></small>";
-            $("#btnRefresh").show();
             $("#btnStart").hide();
             $("#btnStop").show();
             $("#btnDetail").show();
 
             $("#contentRoot2").show();
-            $("#logSize").text(projectInfor.logSize / 1024 + ' mb');
-        } else {
-            actived = "<small><span class=\"badge badge-danger badge-pill\">☽</span></small>";
-            $("#btnRefresh").hide();
-            $("#btnStart").show();
-            $("#btnStop").hide();
-            $("#btnDetail").hide();
-            $("#contentRoot2").hide();
+            $("#logSize").text("log size:"+ projectInfor.logSize / 1024 + ' mb');
         }
         $("#projectName").html(projectInfor.name + "." + projectInfor.desc + "." + actived);
 
@@ -113,7 +111,41 @@
             }
         })
     }
+    function startServer() {
+        var baseUrl = glcfg.baseUrl
+        var params = {cmd: "startServer", projectName: projectName, uid: "000"};
+        $.ajax({
+            url: baseUrl,
+            data: params,
+            dataType: 'jsonp',
+            crossDomain: true,
+            // jsonp:"callback",  //Jquery生成验证参数的名称
+            success: function (result, status, xhr) {  //成功的回调函数
+                init();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert("启动服务器失败:" + textStatus)
+            }
+        })
+    }
 
+    function stopServer() {
+        var baseUrl = glcfg.baseUrl
+        var params = {cmd: "stopServer", projectName: projectName, uid: "000"};
+        $.ajax({
+            url: baseUrl,
+            data: params,
+            dataType: 'jsonp',
+            crossDomain: true,
+            // jsonp:"callback",  //Jquery生成验证参数的名称
+            success: function (result, status, xhr) {  //成功的回调函数
+                init();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert("停止服务器失败:" + textStatus)
+            }
+        })
+    }
     $(document).ready(init)
 </script>
 

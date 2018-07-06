@@ -110,6 +110,27 @@ function CMD.getLeftMenu (map)
     return projectsInfor
 end
 
+---@public 启动服务器
+function CMD.startServer(map)
+    if map.projectName == nil then
+        return "服务器名为nil"
+    end
+    local cmd = "./coolape/shell/start_" .. map.projectName .. ".sh &"
+    print(cmd)
+    os.execute(cmd)
+    return {ret=true}
+end
+---@public 停止服务器
+function CMD.stopServer(map)
+    if map.projectName == nil then
+        return "服务器名为nil"
+    end
+    local cmd = "./coolape/shell/stop_" .. map.projectName .. ".sh &"
+    print(cmd)
+    os.execute(cmd)
+    return {ret=true}
+end
+
 ---@public 取得服务器信息
 function CMD.getProjectInfor(map)
     local projName = map.projectName
@@ -193,16 +214,20 @@ function CMD.getProjectInfor(map)
             serviceInfor = serviceInfor or {}
             serviceInfor.address = k
             serviceInfor.name = v
-            local strs = CLUtl.strSplit(memory[k], " ")
             local mem = 0
-            if #strs > 0 then
-                mem = tonumber(strs[1])
+            if memory[k] then
+                local strs = CLUtl.strSplit(memory[k], " ")
+                if #strs > 0 then
+                    mem = tonumber(strs[1])
+                else
+                    mem = 0
+                end
             else
                 mem = 0
             end
             serviceInfor.memory = mem
             totalMem = totalMem + mem
-            totalCPU = totalCPU + serviceInfor.cpu
+            totalCPU = totalCPU + (serviceInfor.cpu or 0)
             table.insert(infor.serviceList, serviceInfor)
         end
         infor.totalMem = totalMem
