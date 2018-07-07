@@ -73,13 +73,29 @@ function CMD.onrequset(url, method, header, body)
             -- 停服处理
             CMD.stop()
             return ""
+        elseif path == "/mibao/manage" then
+            -- 处理统一的get请求
+            local requst = urllib.parse_query(query)
+            local cmd = requst.cmd
+            local service = CMD.getLogic("CLManage")
+            if service == nil then
+                return "no cmd4Manage server!!"
+            end
+            local ret = skynet.call(service, "lua", cmd, requst)
+            local jsoncallback = requst.callback
+            if jsoncallback ~= nil then
+                -- 说明ajax调用
+                return jsoncallback .. "(" .. json.encode(ret) .. ")"
+            else
+                return json.encode(ret)
+            end
         end
     end
 end
 
 function CMD.stop()
-    skynet.call("CLDB", "lua", "stop")
-    skynet.call("CLMySQL", "lua", "stop")
+    --skynet.call("CLDB", "lua", "stop")
+    --skynet.call("CLMySQL", "lua", "stop")
     -- kill进程
     local projectname = skynet.getenv("projectName")
     local stopcmd = "ps -ef|grep config_" .. projectname .. "|grep -v grep |awk '{print $2}'|xargs -n1 kill -9"

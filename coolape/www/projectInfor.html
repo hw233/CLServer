@@ -30,7 +30,7 @@
                 <button type="button" class="btn btn-warning" id="btnStart" onclick="startServer()">
                     <span data-feather="play"></span>
                 </button>
-                <button type="button" class="btn btn-danger" id="btnStop" onclick="stopServer">
+                <button type="button" class="btn btn-danger" id="btnStop" onclick="stopServer()">
                     <span data-feather="power"></span>
                 </button>
                 <button type="button" class="btn btn-info" id="btnDetail" onclick="">
@@ -93,6 +93,8 @@
     }
 
     function init() {
+        $("#_loading").show();
+        $("#contentRoot").hide();
         var baseUrl = glcfg.baseUrl
         var params = {cmd: "getProjectInfor", projectName: projectName, uid: "000"};
         $.ajax({
@@ -121,7 +123,7 @@
             crossDomain: true,
             // jsonp:"callback",  //Jquery生成验证参数的名称
             success: function (result, status, xhr) {  //成功的回调函数
-                init();
+                // init();
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 alert("启动服务器失败:" + textStatus)
@@ -139,7 +141,8 @@
             crossDomain: true,
             // jsonp:"callback",  //Jquery生成验证参数的名称
             success: function (result, status, xhr) {  //成功的回调函数
-                init();
+                alert(result)
+                // init();
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 alert("停止服务器失败:" + textStatus)
