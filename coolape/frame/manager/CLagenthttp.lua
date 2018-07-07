@@ -115,25 +115,26 @@ function CMD.startServer(map)
     if map.projectName == nil then
         return "服务器名为nil"
     end
-    skynet.fork(function()
-        local cmd = "./coolape/shell/start_" .. map.projectName .. ".sh"
-        print(cmd)
-        io.popen(cmd)
-    end)
+    --skynet.fork(
+    --        function()
+                local cmd = "./coolape/shell/start_" .. map.projectName .. ".sh"
+                print(cmd)
+                os.execute(cmd)
+            --end)
     return { ret = true }
 end
+
 ---@public 停止服务器
 function CMD.stopServer(map)
     if map.projectName == nil then
         return "服务器名为nil"
     end
-    skynet.fork(
-    function()
-        local cmd = "./coolape/shell/stop_" .. map.projectName .. ".sh"
-    print(cmd)
-    os.execute(cmd)
-    end)
-
+    --skynet.fork(
+    --        function()
+                local cmd = "./coolape/shell/stop_" .. map.projectName .. ".sh"
+                print(cmd)
+                os.execute(cmd)
+            --end)
     return { ret = true }
 end
 
