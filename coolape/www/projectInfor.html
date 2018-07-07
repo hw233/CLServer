@@ -15,16 +15,14 @@
 </head>
 
 <body>
-<div class="container">
+<div class="container-fluid">
     <div id="_loading">
         <h3>加载中...</h3>
     </div>
-    <div role="main" id="contentRoot">
-        <div class="row d-flex justify-content-between">
-            <div class=" col-xs-8 col-sm-8 col-md-8 col-lg-8">
-                <h3 id="projectName"></h3>
-            </div>
-            <div class="col-xs-4 float-right ml-auto">
+    <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h3 id="projectName"></h3>
+            <div class="mb-2 mb-md-0">
                 <button type="button" class="btn btn-success" id="btnRefresh" onclick="init()">
                     <span data-feather="refresh-ccw"></span></button>
                 <button type="button" class="btn btn-warning" id="btnStart" onclick="startServer()">
@@ -38,12 +36,29 @@
                 </button>
             </div>
         </div>
-        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" id="contentRoot2">
-            <div class="row">
-                <h5 id="logSize"></h5>
+        <div id="contentRoot2">
+            <h5 id="logSize"></h5>
+
+            <h5>服务列表</h5>
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead>
+                    <tr>
+                        <th>#SID</th>
+                        <th>Name</th>
+                        <th id="cpuHead">CPU</th>
+                        <th id="memoryHead">Memory</th>
+                        <th>消息队列</th>
+                        <th>请求挂起</th>
+                        <th>Message</th>
+                    </tr>
+                    </thead>
+                    <tbody id="serverlist">
+                    </tbody>
+                </table>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 
 <!-- Bootstrap core JavaScript
@@ -74,21 +89,39 @@
         var actived = ""
         if (!projectInfor.actived) {
             actived = "<small><span class=\"badge badge-danger badge-pill\">☽</span></small>";
-            $("#btnStart").show();
+            $("#btnStart").hide(); // show
             $("#btnStop").hide();
             $("#btnDetail").hide();
             $("#contentRoot2").hide();
         } else {
             actived = "<small><span class=\"badge badge-success badge-pill\">☼</span></small>";
             $("#btnStart").hide();
-            $("#btnStop").show();
+            $("#btnStop").hide();//show();
             $("#btnDetail").show();
 
             $("#contentRoot2").show();
-            $("#logSize").text("log size:"+ projectInfor.logSize / 1024 + ' mb');
+            $("#logSize").text("log size:" + projectInfor.logSize / 1024 + ' mb');
         }
         $("#projectName").html(projectInfor.name + "." + projectInfor.desc + "." + actived);
 
+        //设置serviceList
+        var count = projectInfor.serviceList.length;
+        var serverlist = $("#serverlist");
+        serverlist.empty();
+        for (var i = 0; i < count; i++) {
+
+            var d = projectInfor.serviceList[i];
+            var tr = "<tr>" +
+                "<td>" + d.address + "</td>" +
+                "<td>" + d.name + "</td>" +
+                "<td>" + d.cpu + "</td>" +
+                "<td>" + d.memory + "</td>" +
+                "<td>" + d.mqlen + "</td>" +
+                "<td>" + d.task + "</td>" +
+                "<td>" + d.message + "</td>" +
+                "</tr>";
+            serverlist.append(tr);
+        }
         feather.replace();
     }
 
@@ -113,6 +146,7 @@
             }
         })
     }
+
     function startServer() {
         var baseUrl = glcfg.baseUrl
         var params = {cmd: "startServer", projectName: projectName, uid: "000"};
@@ -149,6 +183,7 @@
             }
         })
     }
+
     $(document).ready(init)
 </script>
 
