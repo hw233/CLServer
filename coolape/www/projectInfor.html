@@ -101,27 +101,28 @@
 
             $("#contentRoot2").show();
             $("#logSize").text("log size:" + projectInfor.logSize / 1024 + ' mb');
+
+            //设置serviceList
+            var count = projectInfor.serviceList.length;
+            var serverlist = $("#serverlist");
+            serverlist.empty();
+            for (var i = 0; i < count; i++) {
+
+                var d = projectInfor.serviceList[i];
+                var tr = "<tr>" +
+                    "<td>" + d.address + "</td>" +
+                    "<td>" + d.name + "</td>" +
+                    "<td>" + d.cpu + "</td>" +
+                    "<td>" + d.memory + "</td>" +
+                    "<td>" + d.mqlen + "</td>" +
+                    "<td>" + d.task + "</td>" +
+                    "<td>" + d.message + "</td>" +
+                    "</tr>";
+                serverlist.append(tr);
+            }
         }
         $("#projectName").html(projectInfor.name + "." + projectInfor.desc + "." + actived);
 
-        //设置serviceList
-        var count = projectInfor.serviceList.length;
-        var serverlist = $("#serverlist");
-        serverlist.empty();
-        for (var i = 0; i < count; i++) {
-
-            var d = projectInfor.serviceList[i];
-            var tr = "<tr>" +
-                "<td>" + d.address + "</td>" +
-                "<td>" + d.name + "</td>" +
-                "<td>" + d.cpu + "</td>" +
-                "<td>" + d.memory + "</td>" +
-                "<td>" + d.mqlen + "</td>" +
-                "<td>" + d.task + "</td>" +
-                "<td>" + d.message + "</td>" +
-                "</tr>";
-            serverlist.append(tr);
-        }
         feather.replace();
     }
 

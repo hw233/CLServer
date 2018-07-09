@@ -37,7 +37,7 @@
             </div>
         </nav>
 
-        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+        <main role="main" class="col-md-10 ml-sm-auto col-lg-10 px-4">
             <div class="container">
                 <ul class="nav nav-tabs" role="tablist" id="tabsRoot" style="position:relative;top:8px"></ul>
                 <div class="tab-content" id="tabContentRoot" style="position:relative;top:8px"></div>
@@ -61,7 +61,7 @@
 <script src="js/tabEx.js"></script>
 <script>
     function onclickLeftMenu(id, name) {
-        var item = {'id': id, 'name': id + "." + name, 'url': 'projectInfor.html?name=' + id, 'closable': true};
+        var item = {'id': id, 'name': id + "." + name, 'url': 'projectInfor.html?name=' + id, 'closable': true, 'forceRefresh':true};
         tabEx.addTab(item);
         feather.replace()
     }

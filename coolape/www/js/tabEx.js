@@ -24,7 +24,7 @@ tabEx.frameLoad = function (frame) {
 //添加tab
 /**
  * 添加tab
- * @param tabItem = {id,name,url,closable}
+ * @param tabItem = {id,name,url,closable,forceRefresh}
  */
 tabEx.addTab = function (tabItem) {
     var id = "tab_seed_" + tabItem.id;
@@ -41,17 +41,21 @@ tabEx.addTab = function (tabItem) {
         }
         li_tab = li_tab + '</a>';
         li_tab = li_tab + '</li>';
-
         var tabpanel = '<div role="tabpanel" class="tab-pane" id="' + container + '" style="width: 100%;">' +
-            '<iframe src="' + tabItem.url + '" id="tab_frame_2" style="width:100%; height:' + tabEx.iframeHight + ';position:relative;top:8px" frameborder="0" scrolling="yes" onload="tabEx.frameLoad(this)"></iframe>' +
+            '<iframe src="' + tabItem.url + '" id="tab_frame_'+ id +'" style="width:100%; height:' + tabEx.iframeHight + ';position:relative;top:8px " allowfullscreen frameborder="0" scrolling="auto" onload="tabEx.frameLoad(this)"></iframe>' +
             '</div>';
 
         tabEx.tabsRoot.append(li_tab);
         tabEx.tabContent.append(tabpanel);
+    } else {
+        if (tabItem.forceRefresh != null && tabItem.forceRefresh == true) {
+            $("#tab_frame_" + id).attr("src", tabItem.url);
+        }
     }
     $("#" + id).addClass("active");
     $("#" + container).addClass("active");
 }
+
 
 //关闭tab
 tabEx.closeTab = function (item) {
@@ -67,6 +71,6 @@ tabEx.closeTab = function (item) {
         }
     }
 
-    $("#" + id).remove();
+    $("#" + id).parent().remove();
     $("#" + containerId).remove();
 }
