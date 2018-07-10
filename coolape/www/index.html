@@ -40,7 +40,8 @@
         <main role="main" class="col-md-10 ml-sm-auto col-lg-10 px-4">
             <div class="container">
                 <ul class="nav nav-tabs" role="tablist" id="tabsRoot" style="position:relative;top:8px"></ul>
-                <div class="tab-content" id="tabContentRoot" style="position:relative;top:8px"></div>
+                <!-- 加上clearfix 这个class，不然tab切换时，滚动就不启动作用了-->
+                <div class="tab-content clearfix" id="tabContentRoot" style="position:relative;top:8px"></div>
             </div>
         </main>
     </div>
