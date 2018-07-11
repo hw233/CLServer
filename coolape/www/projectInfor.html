@@ -31,7 +31,7 @@
                 <button type="button" class="btn btn-danger" id="btnStop" onclick="stopServer()">
                     <span data-feather="power"></span>
                 </button>
-                <button type="button" class="btn btn-info" id="btnDetail" onclick="">
+                <button type="button" class="btn btn-info" id="btnDetail" onclick="showDetail()">
                     <span data-feather="more-horizontal"></span>
                 </button>
             </div>
@@ -46,10 +46,10 @@
                     <tr>
                         <th>#SID</th>
                         <th>Name</th>
-                        <th id="cpuHead">CPU</th>
-                        <th id="memoryHead">Memory</th>
+                        <th id="cpuHead" onclick="sortServicesByCPU()">CPU</th>
+                        <th id="memoryHead" onclick="sortServicesByMemory()">Memory</th>
                         <th>消息队列</th>
-                        <th>请求挂起</th>
+                        <th onclick="sortServicesByTask()">请求挂起⇅</th>
                         <th>Message</th>
                     </tr>
                     </thead>
@@ -76,8 +76,52 @@
 <script>
     var projectName = $.url.param("name")
     var projectInfor;
+    var sortByCPUUP = true;
+    var sortByMemoryUP = true;
     $("#_loading").show();
     $("#contentRoot").hide();
+
+    function sortServicesByCPU() {
+        sortByCPUUP = !sortByCPUUP;
+        projectInfor.serviceList.sort(function (a, b) {
+            var cpu1 = a.cpu == null ? 0 : a.cpu
+            var cpu2 = b.cpu == null ? 0 : b.cpu
+            if (sortByCPUUP) {
+                return cpu1 - cpu2
+            } else {
+                return cpu2 - cpu1
+            }
+        });
+        refreshContent();
+    }
+
+    function sortServicesByMemory() {
+        sortByMemoryUP = !sortByMemoryUP;
+        projectInfor.serviceList.sort(function (a, b) {
+            var val1 = a.memory == null ? 0 : a.memory;
+            var val2 = b.memory == null ? 0 : b.memory;
+            if (sortByMemoryUP) {
+                return val1 - val2
+            } else {
+                return val2 - val1
+            }
+        });
+        refreshContent();
+    }
+
+    function sortServicesByTask() {
+        sortByMemoryUP = !sortByMemoryUP;
+        projectInfor.serviceList.sort(function (a, b) {
+            var val1 = a.task == null ? 0 : a.task;
+            var val2 = b.task == null ? 0 : b.task;
+            if (sortByMemoryUP) {
+                return val1 - val2
+            } else {
+                return val2 - val1
+            }
+        });
+        refreshContent();
+    }
 
     function refreshContent() {
         if (projectInfor == null) {
@@ -88,13 +132,13 @@
         $("#contentRoot").show();
         var actived = ""
         if (!projectInfor.actived) {
-            actived = "<small><span class=\"badge badge-danger badge-pill\">☽</span></small>";
+            actived = "<small><span class=\"badge badge-danger badge-pill\">☾</span></small>";
             $("#btnStart").hide(); // show
             $("#btnStop").hide();
             $("#btnDetail").hide();
             $("#contentRoot2").hide();
         } else {
-            actived = "<small><span class=\"badge badge-success badge-pill\">☼</span></small>";
+            actived = "<small><span class=\"badge badge-success badge-pill\">☀</span></small>";
             $("#btnStart").hide();
             $("#btnStop").hide();//show();
             $("#btnDetail").show();
@@ -106,6 +150,8 @@
             var count = projectInfor.serviceList.length;
             var serverlist = $("#serverlist");
             serverlist.empty();
+            $("#memoryHead").text("Memory⇅" + "\n" + projectInfor.totalMem + " KB")
+            $("#cpuHead").text("CPU⇅" + "\n" + projectInfor.totalCPU)
             for (var i = 0; i < count; i++) {
 
                 var d = projectInfor.serviceList[i];
@@ -185,6 +231,10 @@
         })
     }
 
+    function showDetail() {
+        window.open("./projects/" + projectName + "/index.html")
+    }
+    
     $(document).ready(init)
 </script>
 
