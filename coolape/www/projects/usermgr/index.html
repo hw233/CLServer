@@ -7,13 +7,13 @@
     <meta name="author" content="">
     <link rel="icon" href="../../../../favicon.ico">
 
-    <title>CLServer Manager</title>
+    <title>usermger Manager</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="../../bootstrap-4.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../../../bootstrap-4.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="dashboard.css" rel="stylesheet">
+    <link href="../../dashboard.css" rel="stylesheet">
 </head>
 
 <body>
@@ -51,20 +51,26 @@
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-<script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
-<script src="../../bootstrap-4.1.1/assets/js/vendor/popper.min.js"></script>
-<script src="../../bootstrap-4.1.1/dist/js/bootstrap.min.js"></script>
+<script>window.jQuery || document.write('<script src="../../../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+<script src="../../../../bootstrap-4.1.1/assets/js/vendor/popper.min.js"></script>
+<script src="../../../../bootstrap-4.1.1/dist/js/bootstrap.min.js"></script>
 
 <!-- Icons -->
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 <!-- tab 处理-->
 <script src="js/glcfg.js"></script>
-<script src="js/tabEx.js"></script>
+<script src="../../js/tabEx.js"></script>
 <script>
-    function onclickLeftMenu(id, name) {
-        var item = {'id': id, 'name': id + "." + name, 'url': 'projectInfor.html?name=' + id, 'closable': true, 'forceRefresh':true};
+    feather.replace();
+
+    function onclickLeftMenu(id, name, url) {
+        if (typeof(url) == "undefined" || url == null || url == "") {
+            alert("url是空！")
+            return
+        }
+        var item = {'id': id, 'name': name, 'url': url + '?name=' + id, 'closable': true, 'forceRefresh': true};
         tabEx.addTab(item);
-        feather.replace()
+        feather.replace();
     }
 
     function init() {
@@ -84,11 +90,15 @@
             success: function (result, status, xhr) {  //成功的回调函数
                 var list = result
                 var leftTreeRoot = $("#leftTreeRoot")
+                var feather;
+                var url;
                 for (var item in list) {
+                    feather = list[item].feather == null ? "crop" : list[item].feather;
+                    url = typeof(list[item].url) == "undefined" ? "" : list[item].url;
                     var child = "<li class=\"nav-item\">\n" +
-                        "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + list[item].name + "\" ,\"" + list[item].desc + "\")'>\n" +
-                        " <span data-feather=\"server\"></span>\n" +
-                        list[item].name + "." + list[item].desc + " <span class=\"sr-only\">(current)</span>\n" + "</a> </li>"
+                        "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + list[item].key + "\" ,\"" + list[item].name + "\",\"" + url + "\")'>\n" +
+                        " <span data-feather=\"" + feather + "\"></span>\n" +
+                        list[item].name + " <span class=\"sr-only\">(current)</span>\n" + "</a> </li>"
                     leftTreeRoot.append(child)
                 }
                 feather.replace()
@@ -98,7 +108,7 @@
             }
         })
 
-        feather.replace()
+        feather.replace();
     }
 
     $(document).ready(init)

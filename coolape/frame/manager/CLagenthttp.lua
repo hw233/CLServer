@@ -101,7 +101,7 @@ function CMD.getLeftMenu (map)
         local cfgPath = skynet.getenv("coolapeRoot") .. "projects/"
         for i, v in ipairs(dirs) do
             dofile(cfgPath .. v .. "/config_" .. v)
-            local cfg = { name = v, desc = projectDesc, consolePort = consolePort, httpPort = httpPort, socketPort = socketPort, logger = logger }
+            local cfg = { key = v, name = projectDesc, consolePort = consolePort, httpPort = httpPort, socketPort = socketPort, logger = logger }
             projectsInfor[v] = cfg
         end
         --sharedata.new("projectsInfor", projectsInfor)
