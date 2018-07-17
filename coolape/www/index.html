@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../../../favicon.ico">
+    <link rel="icon" href="">
 
     <title>CLServer Manager</title>
 
@@ -56,10 +56,11 @@
 <script src="../../bootstrap-4.1.1/dist/js/bootstrap.min.js"></script>
 
 <!-- Icons -->
-<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script src="feather-icons/dist/feather.min.js"></script>
 <!-- tab 处理-->
 <script src="js/glcfg.js"></script>
 <script src="js/tabEx.js"></script>
+<script src="js/myutl.js"></script>
 <script>
     function onclickLeftMenu(id, name) {
         var item = {'id': id, 'name': id + "." + name, 'url': 'projectInfor.html?name=' + id, 'closable': true, 'forceRefresh':true};
@@ -68,35 +69,30 @@
     }
 
     function init() {
-        tabEx.init("tabsRoot", "tabContentRoot", "83vh")
+        tabEx.init("tabsRoot", "tabContentRoot", "83vh");
         initLeftMenu()
     }
 
     function initLeftMenu() {
         var baseUrl = glcfg.baseUrl
-        var params = {cmd: "getLeftMenu", uid: "000"}
-        $.ajax({
-            url: baseUrl,
-            data: params,
-            dataType: 'jsonp',
-            crossDomain: true,
-            // jsonp:"callback",  //Jquery生成验证参数的名称
-            success: function (result, status, xhr) {  //成功的回调函数
+        var params = {cmd: "getLeftMenu", uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {  //成功的回调函数
                 var list = result
-                var leftTreeRoot = $("#leftTreeRoot")
+                var leftTreeRoot = $("#leftTreeRoot");
                 for (var item in list) {
                     var child = "<li class=\"nav-item\">\n" +
                         "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + list[item].key + "\" ,\"" + list[item].name + "\")'>\n" +
                         " <span data-feather=\"server\"></span>\n" +
-                        list[item].key + "." + list[item].name + " <span class=\"sr-only\">(current)</span>\n" + "</a> </li>"
+                        list[item].key + "." + list[item].name + "</a> </li>"
                     leftTreeRoot.append(child)
                 }
                 feather.replace()
             },
-            error: function (jqXHR, textStatus, errorThrown) {
+            function (jqXHR, textStatus, errorThrown) {
                 alert("取得菜单失败:" + textStatus)
             }
-        })
+        );
 
         feather.replace()
     }

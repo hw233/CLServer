@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../../../favicon.ico">
+    <link rel="icon" href="">
 
     <title>usermger Manager</title>
 
@@ -19,7 +19,7 @@
 <body>
 
 <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">Coolape</a>
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">usermgr(账号管理)</a>
     <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
     <ul class="navbar-nav px-3">
         <li class="nav-item text-nowrap">
@@ -56,62 +56,58 @@
 <script src="../../../../bootstrap-4.1.1/dist/js/bootstrap.min.js"></script>
 
 <!-- Icons -->
-<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script src="../../feather-icons/dist/feather.min.js"></script>
 <!-- tab 处理-->
 <script src="js/glcfg.js"></script>
+<script src="../../js/myutl.js"></script>
 <script src="../../js/tabEx.js"></script>
 <script>
-    feather.replace();
-
     function onclickLeftMenu(id, name, url) {
         if (typeof(url) == "undefined" || url == null || url == "") {
             alert("url是空！")
-            return
+            return;
         }
-        var item = {'id': id, 'name': name, 'url': url + '?name=' + id, 'closable': true, 'forceRefresh': true};
+        var item = {'id': id, 'name': name, 'url': url, 'closable': true, 'forceRefresh': true};
         tabEx.addTab(item);
         feather.replace();
     }
 
     function init() {
         tabEx.init("tabsRoot", "tabContentRoot", "83vh")
-        initLeftMenu()
+        initLeftMenu();
+        feather.replace();
     }
 
     function initLeftMenu() {
         var baseUrl = glcfg.baseUrl
         var params = {cmd: "getLeftMenu", uid: "000"}
-        $.ajax({
-            url: baseUrl,
-            data: params,
-            dataType: 'jsonp',
-            crossDomain: true,
-            // jsonp:"callback",  //Jquery生成验证参数的名称
-            success: function (result, status, xhr) {  //成功的回调函数
-                var list = result
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {  //成功的回调函数
+                var list = result;
                 var leftTreeRoot = $("#leftTreeRoot")
                 var feather;
                 var url;
-                for (var item in list) {
-                    feather = list[item].feather == null ? "crop" : list[item].feather;
-                    url = typeof(list[item].url) == "undefined" ? "" : list[item].url;
+                var item;
+                for (var k in list) {
+                    item = list[k];
+                    feather = item.feather == null ? "crop" : item.feather;
+                    url = typeof(item.url) == "undefined" ? "" : item.url;
                     var child = "<li class=\"nav-item\">\n" +
-                        "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + list[item].key + "\" ,\"" + list[item].name + "\",\"" + url + "\")'>\n" +
+                        "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + item.key + "\" ,\"" + item.name + "\",\"" + url + "\")'>\n" +
                         " <span data-feather=\"" + feather + "\"></span>\n" +
-                        list[item].name + " <span class=\"sr-only\">(current)</span>\n" + "</a> </li>"
-                    leftTreeRoot.append(child)
+                        item.name + "</a> </li>";
+                    leftTreeRoot.append(child);
                 }
-                feather.replace()
+                feather.replace();
             },
-            error: function (jqXHR, textStatus, errorThrown) {
-                alert("取得菜单失败:" + textStatus)
+            function (jqXHR, textStatus, errorThrown) {
+                alert("取得菜单失败:" + textStatus);
             }
-        })
-
-        feather.replace();
+        );
     }
 
-    $(document).ready(init)
+    feather.replace();
+    $(document).ready(init);
 </script>
 
 <!-- Graphs -->
