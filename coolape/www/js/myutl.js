@@ -22,3 +22,4 @@ myutl.ajaxJSONP = function (url, params, success, error) {
         }
     );
 }
+

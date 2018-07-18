@@ -2,7 +2,7 @@
 <html lang="cn">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
     <title>Project Infor</title>
@@ -17,26 +17,27 @@
 <body>
 <div class="container-fluid">
     <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot">
-        <!--<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">-->
-            <textarea id="inputsql" class="span6 col-md-auto ml-sm-auto col-lg-auto" rows="5" placeholder="Please input SQL?" required></textarea>
-
-        <!--</div>-->
+        <div class="pt-3 pb-2 mb-3 border-bottom">
+            <textarea id="inputsql" class="span6 col-md-12 ml-sm-12 col-lg-12"
+                      rows="5" placeholder="Please input SQL (select only)?" required></textarea>
+            <button type="button" class="btn btn-info btn-lg btn-block" onclick="doSQL()">执行SQL</button>
+        </div>
         <div id="contentRoot2">
-            <h5>数据</h5>
+            <h5>查询结果</h5>
+
+            <nav>
+                <ul class="pagination d-flex justify-content-between">
+                    <li class="page-item" id="pageprev"><a class="page-prev page-link" href="#">上一页</a></li>
+                    <li class="page-item" id="pagenum">5/100</li>
+                    <li class="page-item" id="pagenext"><a class="page-next page-link" href="#">下一页</a></li>
+                </ul>
+            </nav>
+
             <div class="table-responsive">
                 <table class="table table-striped table-sm">
-                    <thead>
-                    <tr>
-                        <th>#SID</th>
-                        <th>Name</th>
-                        <th id="cpuHead" onclick="sortServicesByCPU()">CPU</th>
-                        <th id="memoryHead" onclick="sortServicesByMemory()">Memory</th>
-                        <th>消息队列</th>
-                        <th onclick="sortServicesByTask()">请求挂起⇅</th>
-                        <th>Message</th>
-                    </tr>
+                    <thead id="datalisthead">
                     </thead>
-                    <tbody id="serverlist">
+                    <tbody id="datalist">
                     </tbody>
                 </table>
             </div>
@@ -59,73 +60,80 @@
 <script>
     var projectName = $.url.param("name")
     var baseUrl = $.url.param("url")
-
+    var dataList = null;
+    $("#contentRoot2").hide();
 
     function refreshContent() {
-        if (projectInfor == null) {
+        if (dataList == null || dataList.errno != null) {
+            alert("查询失败！")
             return;
         }
 
         var actived = ""
-        if (!projectInfor.actived) {
-            actived = "<small><span class=\"badge badge-danger badge-pill\">☾</span></small>";
-            $("#btnStart").hide(); // show
-            $("#btnStop").hide();
-            $("#btnDetail").hide();
-            $("#contentRoot2").hide();
-        } else {
-            actived = "<small><span class=\"badge badge-success badge-pill\">☀</span></small>";
-            $("#btnStart").hide();
-            $("#btnStop").hide();//show();
-            $("#btnDetail").show();
+        $("#contentRoot2").show();
 
-            $("#contentRoot2").show();
-            $("#logSize").text("log size:" + projectInfor.logSize / 1024 + ' mb');
+        var datalisthead = $("#datalisthead");
+        datalisthead.empty();
 
-            //设置serviceList
-            var count = projectInfor.serviceList.length;
-            var serverlist = $("#serverlist");
-            serverlist.empty();
-            $("#memoryHead").text("Memory⇅" + "\n" + projectInfor.totalMem + " KB")
-            $("#cpuHead").text("CPU⇅" + "\n" + projectInfor.totalCPU)
-            for (var i = 0; i < count; i++) {
+        //设置dataList
+        var count = dataList.length;
+        var datalist = $("#datalist");
+        datalist.empty();
+        $("#memoryHead").text("Memory⇅" + "\n" + projectInfor.totalMem + " KB")
+        $("#cpuHead").text("CPU⇅" + "\n" + projectInfor.totalCPU)
+        for (var i = 0; i < count; i++) {
+            if(i == 0) {
 
-                var d = projectInfor.serviceList[i];
-                var tr = "<tr>" +
-                    "<td>" + d.address + "</td>" +
-                    "<td>" + d.name + "</td>" +
-                    "<td>" + d.cpu + "</td>" +
-                    "<td>" + d.memory + "</td>" +
-                    "<td>" + d.mqlen + "</td>" +
-                    "<td>" + d.task + "</td>" +
-                    "<td>" + d.message + "</td>" +
-                    "</tr>";
-                serverlist.append(tr);
             }
+            var d = projectInfor.serviceList[i];
+            var tr = "<tr>" +
+                "<td>" + d.address + "</td>" +
+                "<td>" + d.name + "</td>" +
+                "<td>" + d.cpu + "</td>" +
+                "<td>" + d.memory + "</td>" +
+                "<td>" + d.mqlen + "</td>" +
+                "<td>" + d.task + "</td>" +
+                "<td>" + d.message + "</td>" +
+                "</tr>";
+            datalist.append(tr);
         }
         $("#projectName").html(projectInfor.key + "." + projectInfor.name + "." + actived);
 
         feather.replace();
     }
 
-    function init() {
-        $("#_loading").show();
-        $("#contentRoot").hide();
-        var baseUrl = glcfg.baseUrl;
-        var params = {cmd: "getProjectInfor", projectName: projectName, uid: "000"};
-        myutl.ajaxJSONP(baseUrl,params,
+    function doSQL() {
+        var sql = $("#inputsql").val();
+        if (sql == null || sql == "") {
+            return;
+        }
+        var arrayOfStrings = sql.split(";");
+        for (var i in arrayOfStrings) {
+            var subsql = arrayOfStrings[i].trim();
+            if (!subsql.toLowerCase().startsWith("select")) {
+                alert("只能处理Select SQL!=>" + subsql);
+                return;
+            }
+        }
+        var params = {cmd: "doSQL", projectName: sql, uid: "000"};
+        alert(baseUrl)
+        myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
-                projectInfor = result;
+                dataList = result;
                 refreshContent();
                 feather.replace();
             },
             function (jqXHR, textStatus, errorThrown) {
-                alert("取得项目信息失败:" + textStatus)
+                alert("error:" + textStatus)
             }
         );
     }
 
-    // $(document).ready(init)
+    function init() {
+        feather.replace();
+    }
+
+    $(document).ready(init)
 </script>
 
 </body>

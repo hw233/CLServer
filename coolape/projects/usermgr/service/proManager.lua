@@ -23,6 +23,11 @@ function CMD.getLeftMenu(map)
     return ret
 end
 
+function CMD.doSQL(map)
+    local sql = map.sql
+    return skynet.call("CLMySQL", "lua", "EXESQL", sql)
+end
+
 skynet.start(function()
     clmanager = skynet.newservice("CLManage")
     skynet.dispatch("lua", function(_, _, command, ...)

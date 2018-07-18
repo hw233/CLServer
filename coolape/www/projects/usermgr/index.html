@@ -2,7 +2,7 @@
 <html lang="cn">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="">
@@ -66,6 +66,11 @@
         if (typeof(url) == "undefined" || url == null || url == "") {
             alert("url是空！")
             return;
+        }
+        if (url.indexOf("?") >= 0) {
+            url = url + "&url=" + glcfg.baseUrl
+        } else {
+            url = url + "?url=" + glcfg.baseUrl
         }
         var item = {'id': id, 'name': name, 'url': url, 'closable': true, 'forceRefresh': true};
         tabEx.addTab(item);
