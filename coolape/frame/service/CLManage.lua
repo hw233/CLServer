@@ -6,11 +6,10 @@ local DBUtl = require "DBUtl"
 local dateEx = require("dateEx")
 local table = table
 
-
 local CMD = {}
 
 local function adjust_address(address)
-    if address:sub(1,1) ~= ":" then
+    if address:sub(1, 1) ~= ":" then
         address = assert(tonumber("0x" .. address), "Need an address") | (skynet.harbor(skynet.self()) << 24)
     end
     return address
@@ -40,7 +39,16 @@ end
 
 function CMD.serviceInfo(address, ...)
     address = adjust_address(address)
-    return skynet.call(address,"debug","INFO", ...)
+    return skynet.call(address, "debug", "INFO", ...)
+end
+
+-- 数据库的基本信息
+function CMD.getMysqlInfor()
+    local ret = {}
+    ret.sqlqueue = "";
+    ret.syntime = 0;
+    
+    return ""
 end
 
 skynet.start(function()

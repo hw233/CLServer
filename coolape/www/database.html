@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Project Infor</title>
+    <title>database</title>
 
     <!-- Bootstrap core CSS -->
     <link href="../../bootstrap-4.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,6 +17,11 @@
 <body>
 <div class="container-fluid">
     <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot">
+        <div class="d-flex justify-content-start align-items-center pt-1 pb-2 mb-2 border-bottom">
+            <h6 id="sqlqueue">SQL队列：0  </h6>
+            <button type="button" class="btn btn-info" onclick="synMySQL()">同步数据库</button>
+        </div>
+
         <div class="pt-3 pb-2 mb-3 border-bottom">
             <textarea id="inputsql" class="span6 col-md-12 ml-sm-12 col-lg-12"
                       rows="5" placeholder="Please input SQL (select only)?" required></textarea>
@@ -82,9 +87,6 @@
         var keys=[];
         for (var i = 0; i < count; i++) {
             var d = dataList[i];
-            for (var k in d) {
-                alert(k + "=" + d[k])
-            }
             if (i == 0) {
                 var tr = "<tr>";
                 for (var k in d) {
@@ -120,7 +122,6 @@
             }
         }
         var params = {cmd: "doSQL", sql: sql, uid: "000"};
-        alert(baseUrl)
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
                 dataList = result;
@@ -128,12 +129,36 @@
                 feather.replace();
             },
             function (jqXHR, textStatus, errorThrown) {
-                alert("error:" + textStatus)
+                alert("error:" + textStatus);
             }
         );
     }
 
+    //同步数据库（把内存数据同步到数据库）
+    function synMySQL() {
+        var params = {cmd: "synMySQL", uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params, 
+        function (result, status, xhr) {
+            alert(result);
+        }, 
+        function (jqXHR, textStatus, errorThrown) {
+            alert("同步失败！");
+        });
+    }
+    
+    function getMysqlInfor() {
+        var params = {cmd: "getMysqlInfor", uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {
+                alert(result);
+            },
+            function (jqXHR, textStatus, errorThrown) {
+                alert("同步失败！");
+            });
+    }
+
     function init() {
+        getMysqlInfor();
         feather.replace();
     }
 
