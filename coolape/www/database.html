@@ -79,25 +79,29 @@
         var count = dataList.length;
         var datalist = $("#datalist");
         datalist.empty();
-        $("#memoryHead").text("Memory⇅" + "\n" + projectInfor.totalMem + " KB")
-        $("#cpuHead").text("CPU⇅" + "\n" + projectInfor.totalCPU)
+        var keys=[];
         for (var i = 0; i < count; i++) {
-            if(i == 0) {
-
+            var d = dataList[i];
+            for (var k in d) {
+                alert(k + "=" + d[k])
             }
-            var d = projectInfor.serviceList[i];
-            var tr = "<tr>" +
-                "<td>" + d.address + "</td>" +
-                "<td>" + d.name + "</td>" +
-                "<td>" + d.cpu + "</td>" +
-                "<td>" + d.memory + "</td>" +
-                "<td>" + d.mqlen + "</td>" +
-                "<td>" + d.task + "</td>" +
-                "<td>" + d.message + "</td>" +
-                "</tr>";
+            if (i == 0) {
+                var tr = "<tr>";
+                for (var k in d) {
+                    keys.push(k)
+                    tr = tr + "<th>" + k + "</th>";
+                }
+                tr = tr + "</tr>";
+                datalisthead.append(tr);
+            }
+            var tr = "<tr>";
+
+            for (var k in keys) {
+                tr = tr + "<td>" + d[keys[k]] + "</td>";
+            }
+            tr = tr + "</tr>";
             datalist.append(tr);
         }
-        $("#projectName").html(projectInfor.key + "." + projectInfor.name + "." + actived);
 
         feather.replace();
     }
@@ -110,12 +114,12 @@
         var arrayOfStrings = sql.split(";");
         for (var i in arrayOfStrings) {
             var subsql = arrayOfStrings[i].trim();
-            if (!subsql.toLowerCase().startsWith("select")) {
+            if (subsql != "" && !subsql.toLowerCase().startsWith("select")) {
                 alert("只能处理Select SQL!=>" + subsql);
                 return;
             }
         }
-        var params = {cmd: "doSQL", projectName: sql, uid: "000"};
+        var params = {cmd: "doSQL", sql: sql, uid: "000"};
         alert(baseUrl)
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
