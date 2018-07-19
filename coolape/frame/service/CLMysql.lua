@@ -124,6 +124,13 @@ function CMD.FLUSHALL()
     end
 end
 
+function CMD.GETINFOR()
+    local ret = {}
+    ret.sqlqueue = sqlQueue:size()
+    ret.syntime = synchrotime
+    return ret
+end
+
 function CMD.STOP(exit)
     if db then
         CMD.FLUSHALL()

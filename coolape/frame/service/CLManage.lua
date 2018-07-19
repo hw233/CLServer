@@ -44,11 +44,8 @@ end
 
 -- 数据库的基本信息
 function CMD.getMysqlInfor()
-    local ret = {}
-    ret.sqlqueue = "";
-    ret.syntime = 0;
-    
-    return ""
+    local ret = skynet.call("CLMySQL", "lua", "GETINFOR")
+    return ret
 end
 
 skynet.start(function()
