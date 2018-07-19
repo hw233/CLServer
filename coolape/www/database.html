@@ -33,9 +33,11 @@
 
             <nav>
                 <ul class="pagination d-flex justify-content-between">
-                    <li class="page-item" id="pageprev"><a class="page-prev page-link" href="#">上一页</a></li>
-                    <li class="page-item" id="pagenum">5/100</li>
-                    <li class="page-item" id="pagenext"><a class="page-next page-link" href="#">下一页</a></li>
+                    <li class="page-item" id="pageprev"><a class="page-prev page-link" href="#"
+                                                           onclick="prePage()">上一页</a></li>
+                    <li class="page-item" id="pagenum"></li>
+                    <li class="page-item" id="pagenext"><a class="page-next page-link" href="#"
+                                                           onclick="nextPage()">下一页</a></li>
                 </ul>
             </nav>
 
@@ -67,6 +69,10 @@
     var projectName = $.url.param("name")
     var baseUrl = $.url.param("url")
     var dataList = null;
+    var currsql = "";
+    var pagesize = 10;
+    var currpageIndex = 0;
+
     $("#contentRoot2").hide();
 
     function refreshContent() {
@@ -75,8 +81,8 @@
             return;
         }
 
-        var actived = ""
         $("#contentRoot2").show();
+        $("#pagenum").text(currpageIndex);
 
         var datalisthead = $("#datalisthead");
         datalisthead.empty();
@@ -129,12 +135,70 @@
             }
         }
 
+        $("#pageprev").addClass("disabled");
+        $("#pagenext").addClass("disabled");
+        sql = sql.replace(";", "");
+
+        currsql = sql;
+        sql = sql + " LIMIT 0, " + pagesize;
+        alert(sql)
+
         var params = {cmd: "doSQL", sql: sql, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
+                if (result == null || result.length < pagesize) {
+                    $("#pagenext").addClass("disabled");
+                } else  {
+                    $("#pagenext").removeClass("disabled");
+                }
+                currpageIndex = 1;
                 dataList = result;
                 refreshContent();
                 feather.replace();
+            },
+            function (jqXHR, textStatus, errorThrown) {
+                alert("error:" + textStatus);
+            }
+        );
+    }
+
+    function prePage() {
+        if (currpageIndex - 1 < 0) {
+            $("#pageprev").addClass("disabled");
+            return;
+        }
+        var sql = currsql + " LIMIT " + (currpageIndex - 1) * pagesize + ", " + pagesize;
+
+        var params = {cmd: "doSQL", sql: sql, uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {  //成功的回调函数
+                currpageIndex = currpageIndex - 1;
+                dataList = result;
+                refreshContent();
+                feather.replace();
+            },
+            function (jqXHR, textStatus, errorThrown) {
+                alert("error:" + textStatus);
+            }
+        );
+    }
+
+    function nextPage() {
+        var sql = currsql + " LIMIT " + currpageIndex * pagesize + ", " + pagesize;
+        alert(sql)
+
+        var params = {cmd: "doSQL", sql: sql, uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {  //成功的回调函数
+                if (result == null || result.length < pagesize) {
+                    alert("已经没有更多数据！");
+                    $("#pagenext").addClass("disabled");
+                } else {
+                    currpageIndex = currpageIndex + 1;
+                    dataList = result;
+                    refreshContent();
+                    feather.replace();
+                }
             },
             function (jqXHR, textStatus, errorThrown) {
                 alert("error:" + textStatus);
@@ -147,7 +211,7 @@
         var params = {cmd: "synMySQL", uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {
-                alert(result);
+                alert("同步成功！");
             },
             function (jqXHR, textStatus, errorThrown) {
                 alert("同步失败！");

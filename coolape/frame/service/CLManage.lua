@@ -48,6 +48,10 @@ function CMD.getMysqlInfor()
     return ret
 end
 
+function CMD.synMySQL()
+    return skynet.call("CLMySQL", "lua", "FLUSHALL")
+end
+
 skynet.start(function()
     skynet.dispatch("lua", function(_, _, command, ...)
         local f = CMD[command]
