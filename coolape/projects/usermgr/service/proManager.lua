@@ -3,6 +3,7 @@ local skynet = require("skynet")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"
+require("fileEx")
 ---@type dateEx
 local dateEx = require("dateEx")
 local table = table
@@ -14,12 +15,32 @@ local CMD = {}
 -- 左边菜单
 function CMD.getLeftMenu(map)
     local ret = {
-        { name = "基本信息", key = "baseinfor", url="../../projectInfor.html?name=usermgr" },
-        { name = "数据库", key = "database", feather = "database", url="../../database.html" },
-        { name = "表设计", key = "tableDesin", feather = "edit" },
-        { name = "接口设计", key = "interface", feather = "edit" },
-        { name = "后台处理", key = "backconsole", feather = "command" },
+        { name = "基本信息", key = "baseinfor", url = "../../projectInfor.html?name=usermgr" },
+        { name = "数据库", key = "database", isGroupMenu = true, feather = "database", url = "../../database.html" },
+        { name = "表设计", key = "tableDesin", isGroupMenu = true, feather = "edit" },
+        { name = "接口设计", key = "interface", isGroupMenu = true, feather = "edit" },
+        { name = "后台处理", key = "backconsole", isGroupMenu = true, feather = "command" },
     }
+    return ret
+end
+
+-- 取得子菜单
+function CMD.getLeftSubMenu(map)
+    local key = map.groupKey
+    local ret = {}
+    if key == "database" then
+        local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign")
+        local files = fileEx.getFiles(tableDesinPath, "lua")
+        table.sort(files)
+        for i, f in ipairs(files) do
+            local t = dofile(CLUtl.combinePath(tableDesinPath, f))
+            table.insert(ret, { name = t.desc, key = t.name, url = "", feather = "database" })
+        end
+
+    elseif key == "tableDesin" then
+    elseif key == "interface" then
+    elseif key == "backconsole" then
+    end
     return ret
 end
 

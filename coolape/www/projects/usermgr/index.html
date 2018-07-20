@@ -62,19 +62,84 @@
 <script src="../../js/myutl.js"></script>
 <script src="../../js/tabEx.js"></script>
 <script>
+    var leftMenuList = null;
+
     function onclickLeftMenu(id, name, url) {
-        if (typeof(url) == "undefined" || url == null || url == "") {
-            alert("url是空！")
-            return;
-        }
-        if (url.indexOf("?") >= 0) {
-            url = url + "&url=" + glcfg.baseUrl
+        if (typeof(url) != "undefined" && url != null && url != "") {
+            if (url.indexOf("?") >= 0) {
+                url = url + "&url=" + glcfg.baseUrl
+            } else {
+                url = url + "?url=" + glcfg.baseUrl
+            }
+            var item = {'id': id, 'name': name, 'url': url, 'closable': true, 'forceRefresh': true};
+            tabEx.addTab(item);
         } else {
-            url = url + "?url=" + glcfg.baseUrl
+            alert("url是空！");
         }
-        var item = {'id': id, 'name': name, 'url': url, 'closable': true, 'forceRefresh': true};
-        tabEx.addTab(item);
+    }
+
+    function onclickLeftGroupMenu(elem, menu) {
+        var id, name, url;
+        id = menu.key;
+        name = menu.name;
+        url = menu.url;
+        if (typeof(url) != "undefined" && url != null && url != "") {
+            onclickLeftMenu(id, name, url)
+        } else {
+            alert("url是空！")
+        }
         feather.replace();
+
+        //处理子菜单
+        if (menu.isGroupMenu) {
+            if (menu.isShowing == null || menu.isShowing == false) {
+                //显示
+                var subMenu = $("#leftMenu_group_" + menu.key);
+                if ($.isEmptyObject(subMenu) || subMenu.length == 0) {
+                    alert("显示")
+                    elem.after("<ul id='leftMenu_group_" + menu.key + "' class=\"nav flex-column\"></ul>");
+
+                    var baseUrl = glcfg.baseUrl
+                    var params = {cmd: "getLeftSubMenu", groupKey: menu.key, uid: "000"}
+                    myutl.ajaxJSONP(baseUrl, params,
+                        function (result, status, xhr) {
+                            alert(result)
+                            var list = result;
+                            var feather;
+                            var url;
+                            var item;
+                            subMenu = $("#leftMenu_group_" + menu.key);
+                            for (var k in list) {
+                                item = list[k];
+                                feather = item.feather == null ? "crop" : item.feather;
+                                url = typeof(item.url) == "undefined" ? "" : item.url;
+                                var child = "<li id='leftMenu_sub_" + item.key + "' class=\"nav-item\">\n" +
+                                    "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + item.key + "\" ,\"" + item.name + "\",\"" + item.url + "\")'>\n" +
+                                    " <span data-feather=\"" + feather + "\"></span>\n" +
+                                    item.name + "</a> </li>";
+                                subMenu.append(child);
+                            }
+                            menu.isShowing = true;
+                            elem.find("a").find("span").attr("data-feather", "plus-minus")
+                            feather.replace();
+                        }, null);
+                } else {
+                    alert(subMenu.length)
+                    subMenu.show();
+                    menu.isShowing = true;
+                    elem.find("a").find("span").attr("data-feather", "plus-minus")
+                }
+            } else {
+                //隐藏
+                alert("隐藏")
+                var subMenu = $("#leftMenu_group_" + menu.key);
+                if (subMenu != null) {
+                    subMenu.hide();
+                    menu.isShowing = false;
+                    elem.find("a").find("span").attr("data-feather", "plus-circle")
+                }
+            }
+        }
     }
 
     function init() {
@@ -88,19 +153,27 @@
         var params = {cmd: "getLeftMenu", uid: "000"}
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
-                var list = result;
-                var leftTreeRoot = $("#leftTreeRoot")
+                leftMenuList = result;
+                var leftTreeRoot = $("#leftTreeRoot");
                 var feather;
                 var url;
                 var item;
-                for (var k in list) {
-                    item = list[k];
+                for (var k in leftMenuList) {
+                    item = leftMenuList[k];
                     feather = item.feather == null ? "crop" : item.feather;
                     url = typeof(item.url) == "undefined" ? "" : item.url;
-                    var child = "<li class=\"nav-item\">\n" +
-                        "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + item.key + "\" ,\"" + item.name + "\",\"" + url + "\")'>\n" +
-                        " <span data-feather=\"" + feather + "\"></span>\n" +
-                        item.name + "</a> </li>";
+                    var child = "";
+                    if (item.isGroupMenu) {
+                        child = "<h6 id='leftMenu_" + item.key + "' class=\"nav-item\">\n" +
+                            "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftGroupMenu($(this).parent(), leftMenuList[" + k + "])'>\n" +
+                            " <span data-feather=\"" + feather + "\"></span>\n" +
+                            item.name + " <span data-feather=\"plus-circle\"></span>\n" + "</a> </h6>\n";
+                    } else {
+                        child = "<li id='leftMenu_" + item.key + "' class=\"nav-item\">\n" +
+                            "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftGroupMenu($(this).parent(), leftMenuList[" + k + "])'>\n" +
+                            " <span data-feather=\"" + feather + "\"></span>\n" +
+                            item.name + "</a> </li>";
+                    }
                     leftTreeRoot.append(child);
                 }
                 feather.replace();

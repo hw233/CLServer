@@ -73,7 +73,7 @@ function CMD.onrequset(url, method, header, body)
             -- 处理统一的get请求
             local requst = urllib.parse_query(query)
             local cmd = requst.cmd
-            local service = CMD.getLogic("CLManage")
+            local service = CMD.getLogic("proManager")
             if service == nil then
                 return "no cmd4Manage server!!"
             end
