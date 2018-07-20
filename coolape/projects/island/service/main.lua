@@ -7,7 +7,7 @@ skynet.start(
         function()
             skynet.error("Server start")
             if not skynet.getenv "daemon" then
-                local console = skynet.newservice("console")
+                --local console = skynet.newservice("console")
             end
 
             skynet.newservice("debug_console", skynet.getenv("consolePort"))
