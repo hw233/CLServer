@@ -119,13 +119,15 @@
                                 subMenu.append(child);
                             }
                             menu.isShowing = true;
-                            $("#leftMenu_circle_" + menu.key).attr("data-feather", "minus-circle")
+                            // $("#leftMenu_circle_" + menu.key).attr("data-feather", "minus-circle")
+                            $("#leftMenu_circle_" + menu.key).text("⊖");
                             feather.replace();
                         }, null);
                 } else {
                     subMenu.show();
                     menu.isShowing = true;
-                    $("#leftMenu_circle_" + menu.key).attr("data-feather", "minus-circle")
+                    // $("#leftMenu_circle_" + menu.key).attr("data-feather", "minus-circle");
+                    $("#leftMenu_circle_" + menu.key).text("⊖");
                     feather.replace();
                 }
             } else {
@@ -134,7 +136,8 @@
                 if (subMenu != null) {
                     subMenu.hide();
                     menu.isShowing = false;
-                    $("#leftMenu_circle_" + menu.key).attr("data-feather", "plus-circle")
+                    // $("#leftMenu_circle_" + menu.key).attr("data-feather", "plus-circle")
+                    $("#leftMenu_circle_" + menu.key).text("⊕")
                     feather.replace();
                 }
             }
@@ -166,7 +169,7 @@
                         child = "<h6 id='leftMenu_" + item.key + "' class=\"nav-item  d-flex justify-content-start align-items-center\">\n" +
                             "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftGroupMenu($(this).parent(), leftMenuList[" + k + "])'>\n" +
                             " <span data-feather=\"" + feather + "\"></span>\n" +
-                            item.name + "</a> <a id='leftMenu_circle_" + item.key + "' data-feather=\"plus-circle\" onclick='onclickLeftGroupMenuCircle($(this).parent(), leftMenuList[" + k + "])'></a>\n" + " </h6>\n";
+                            item.name + "</a> <a id='leftMenu_circle_" + item.key + "' class='text-xl-left' onclick='onclickLeftGroupMenuCircle($(this).parent(), leftMenuList[" + k + "])'>⊕</a>\n" + " </h6>\n";
                     } else {
                         child = "<li id='leftMenu_" + item.key + "' class=\"nav-item\">\n" +
                             "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftGroupMenu($(this).parent(), leftMenuList[" + k + "])'>\n" +
