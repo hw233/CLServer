@@ -34,7 +34,7 @@ function CMD.getLeftSubMenu(map)
         table.sort(files)
         for i, f in ipairs(files) do
             local t = dofile(CLUtl.combinePath(tableDesinPath, f))
-            table.insert(ret, { name = t.name .. "." .. t.desc, key = t.name, url = "", feather = "database" })
+            table.insert(ret, { name = t.name .. "." .. t.desc, key = t.name, url = "../../proctable.html", feather = "database" })
         end
 
     elseif key == "tableDesin" then
