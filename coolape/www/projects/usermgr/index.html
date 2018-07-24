@@ -65,18 +65,18 @@
 <script>
     var leftMenuList = null;
 
-    function onclickLeftMenu(id, name, url, params) {
+    function onclickLeftMenu(id, name, url) {
         if (typeof(url) != "undefined" && url != null && url != "") {
             if (url.indexOf("?") >= 0) {
-                url = url + "&url=" + glcfg.baseUrl
+                url = url + "&url=" + glcfg.baseUrl+"&id="+id
             } else {
-                url = url + "?url=" + glcfg.baseUrl
+                url = url + "?url=" + glcfg.baseUrl+"&id="+id
             }
-            if (params != null) {
-                for (var k in params) {
-                    url = url + "&" + k + "=" + params[k]
-                }
-            }
+            // if (params != null) {
+            //     for (var k in params) {
+            //         url = url + "&" + k + "=" + params[k]
+            //     }
+            // }
             var item = {'id': id, 'name': name, 'url': url, 'closable': true, 'forceRefresh': true};
             tabEx.addTab(item);
         } else {
@@ -91,7 +91,7 @@
         name = menu.name;
         url = menu.url;
         if (typeof(url) != "undefined" && url != null && url != "") {
-            onclickLeftMenu(id, name, url, menu)
+            onclickLeftMenu(id, name, url)
         } else {
             alert("url是空！")
         }

@@ -22,10 +22,15 @@
             <button type="button" class="nav-item btn btn-info" onclick="refresh()">刷新</button>
         </div>
 
+        <div id="tabledesigninfor" class="pt-3 pb-2 mb-3 border-bottom">
+
+        </div>
+
         <div class="pt-3 pb-2 mb-3 border-bottom">
+            <h6 id="sqlstr"></h6>
             <textarea id="inputsql" class="span6 col-md-12 ml-sm-12 col-lg-12"
-                      rows="2" placeholder="Please input Where SQL (where only)?" required></textarea>
-            <button type="button" class="btn btn-info btn-lg btn-block" onclick="doSQL()">查询SQL</button>
+                      rows="2" placeholder="请输入查询条件?" required></textarea>
+            <button type="button" class="btn btn-info btn-lg btn-block" onclick="doSQL()">查询</button>
         </div>
         <div id="contentRoot2">
             <h5>查询结果</h5>
@@ -65,9 +70,9 @@
 <!-- Icons -->
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 <script>
-    var tableName = $.url.param("key")
-    alert(tableName)
+    var tableName = $.url.param("id")
     var baseUrl = $.url.param("url")
+    var tabledesign;
     var dataList = null;
     var currsql = "";
     var pagesize = 5;
@@ -92,21 +97,21 @@
         var datalist = $("#datalist");
         datalist.empty();
         var keys = [];
+
+        var tr = "<tr>";
+        for (var k in tabledesign.columns) {
+            var d = tabledesign.columns[k]
+            tr = tr + "<th data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + d[2] + "|" + d[1] + "\">" + d[0] + "</th>";
+        }
+        tr = tr + "</tr>";
+        datalisthead.append(tr);
         for (var i = 0; i < count; i++) {
             var d = dataList[i];
-            if (i == 0) {
-                var tr = "<tr>";
-                for (var k in d) {
-                    keys.push(k)
-                    tr = tr + "<th data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + k + "\">" + k + "</th>";
-                }
-                tr = tr + "</tr>";
-                datalisthead.append(tr);
-            }
             var tr = "<tr>";
 
-            for (var k in keys) {
-                tr = tr + "<td>" + d[keys[k]] + "</td>";
+            for (var k in tabledesign.columns) {
+                var cfg = tabledesign.columns[k]
+                tr = tr + "<td>" + d[cfg[0]] + "</td>";
             }
             tr = tr + "</tr>";
             datalist.append(tr);
@@ -116,9 +121,10 @@
     }
 
     function doSQL() {
-        var sql = $("#inputsql").val();
-        if (sql == null || sql == "") {
-            return;
+        var wherestr = $("#inputsql").val();
+        var sql = "SELECT * FROM " + tableName;
+        if (wherestr != null && wherestr != "") {
+            sql = "SELECT * FROM " + tableName + " where " + wherestr;
         }
         sql = sql.trim();
         var arrayOfStrings = sql.split(";");
@@ -148,7 +154,7 @@
             function (result, status, xhr) {  //成功的回调函数
                 if (result == null || result.length < pagesize) {
                     $("#pagenext").addClass("disabled");
-                } else  {
+                } else {
                     $("#pagenext").removeClass("disabled");
                 }
                 currpageIndex = 1;
@@ -219,10 +225,30 @@
     }
 
     function getTableInfor() {
-        var params = {cmd: "getTableInfor", tableName:tableName, uid: "000"};
+        var params = {cmd: "getTableInfor", tableName: tableName, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {
+                tabledesign = result.design;
                 $("#rowcount").text("count：" + result.count + "条");
+                $("#tabledesigninfor").empty();
+                var tr = "<tr>";
+                tr = tr + "<th>字段ID</td>";
+                tr = tr + "<th>字段类型</td>";
+                tr = tr + "<th>字段说明</td>";
+                tr = tr + "</tr>";
+                $("#tabledesigninfor").append(tr);
+
+                for (var k in tabledesign.columns) {
+                    tr = "<tr>";
+                    var d = tabledesign.columns[k]
+                    tr = tr + "<td >" + d[0] + "</td>";
+                    tr = tr + "<td >" + d[1] + "</td>";
+                    tr = tr + "<td >" + d[2] + "</td>";
+                    tr = tr + "</tr>";
+                    $("#tabledesigninfor").append(tr);
+                }
+
+                $("#sqlstr").text("SELECT * FROM " + tableName + " WHERE ");
             },
             function (jqXHR, textStatus, errorThrown) {
                 alert("同步失败！");

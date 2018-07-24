@@ -62,7 +62,7 @@ function CMD.getTableInfor(map)
     if result and result.errno then
         ret.count = 0
     else
-        ret.count = result.count
+        ret.count = result[1].count
     end
     return ret
 end
