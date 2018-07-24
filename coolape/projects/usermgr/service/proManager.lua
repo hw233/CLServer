@@ -49,6 +49,24 @@ function CMD.doSQL(map)
     return skynet.call("CLMySQL", "lua", "EXESQL", sql)
 end
 
+function CMD.getTableInfor(map)
+    local tableName = map.tableName
+    if CLUtl.isNilOrEmpty(tableName) then
+        printe("tableName is nil")
+        return
+    end
+    local ret = {}
+    ret.design = skynet.call(clmanager, "lua", "getTableDesign", tableName)
+    local sql = "select count(*) as count from " .. tableName
+    local result = skynet.call("CLMySQL", "lua", "EXESQL", sql)
+    if result and result.errno then
+        ret.count = 0
+    else
+        ret.count = result.count
+    end
+    return ret
+end
+
 skynet.start(function()
     clmanager = skynet.newservice("CLManage")
     skynet.dispatch("lua", function(_, _, command, ...)

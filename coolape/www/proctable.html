@@ -18,15 +18,14 @@
 <div class="container-fluid">
     <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot">
         <div class="nav nav-pills nav-fill d-flex justify-content-start align-items-center pt-1 pb-2 mb-2 border-bottom ">
-            <h6 class="nav-item" id="sqlqueue">SQL队列：0 </h6>
-            <h6 class="nav-item" id="syntime">同步时间：0 </h6>
-            <button type="button" class="nav-item btn btn-info" onclick="synMySQL()">同步数据库</button>
+            <h6 class="nav-item" id="rowcount">count：0 </h6>
+            <button type="button" class="nav-item btn btn-info" onclick="refresh()">刷新</button>
         </div>
 
         <div class="pt-3 pb-2 mb-3 border-bottom">
             <textarea id="inputsql" class="span6 col-md-12 ml-sm-12 col-lg-12"
-                      rows="5" placeholder="Please input SQL (select only)?" required></textarea>
-            <button type="button" class="btn btn-info btn-lg btn-block" onclick="doSQL()">执行SQL</button>
+                      rows="2" placeholder="Please input Where SQL (where only)?" required></textarea>
+            <button type="button" class="btn btn-info btn-lg btn-block" onclick="doSQL()">查询SQL</button>
         </div>
         <div id="contentRoot2">
             <h5>查询结果</h5>
@@ -66,11 +65,12 @@
 <!-- Icons -->
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 <script>
-    var projectName = $.url.param("name")
+    var tableName = $.url.param("key")
+    alert(tableName)
     var baseUrl = $.url.param("url")
     var dataList = null;
     var currsql = "";
-    var pagesize = 10;
+    var pagesize = 5;
     var currpageIndex = 0;
 
     $("#contentRoot2").hide();
@@ -218,12 +218,11 @@
             });
     }
 
-    function getMysqlInfor() {
-        var params = {cmd: "getMysqlInfor", uid: "000"};
+    function getTableInfor() {
+        var params = {cmd: "getTableInfor", tableName:tableName, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {
-                $("#sqlqueue").text("SQL队列数：" + result.sqlqueue + "条");
-                $("#syntime").text("数据同步时间：" + result.syntime / 100 + "秒");
+                $("#rowcount").text("count：" + result.count + "条");
             },
             function (jqXHR, textStatus, errorThrown) {
                 alert("同步失败！");
@@ -231,7 +230,7 @@
     }
 
     function init() {
-        getMysqlInfor();
+        getTableInfor();
         feather.replace();
     }
 

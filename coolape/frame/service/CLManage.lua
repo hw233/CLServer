@@ -48,8 +48,16 @@ function CMD.getMysqlInfor()
     return ret
 end
 
+-- 同步mysql数据
 function CMD.synMySQL()
     return skynet.call("CLMySQL", "lua", "FLUSHALL")
+end
+
+-- 取得table设计信息
+function CMD.getTableDesign(tableName)
+    local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign/".. tableName .. ".lua")
+    local t = dofile(tableDesinPath)
+    return t
 end
 
 skynet.start(function()
