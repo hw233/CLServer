@@ -22,19 +22,21 @@
             <button type="button" class="nav-item btn btn-info" onclick="refresh()">刷新</button>
         </div>
 
+        <h6>表字段 <span >⊕</span></h6>
         <div id="tabledesigninfor" class="pt-3 pb-2 mb-3 border-bottom">
 
         </div>
 
-        <div class="pt-3 pb-2 mb-3 border-bottom">
-            <h6 id="sqlstr"></h6>
-            <textarea id="inputsql" class="span6 col-md-12 ml-sm-12 col-lg-12"
-                      rows="2" placeholder="请输入查询条件?" required></textarea>
+        <div class="pt-1 pb-1 mb-1 border-bottom">
+            <!--<h6 id="sqlstr"></h6>-->
+            <!--<textarea id="inputsql" class="span6 col-md-12 ml-sm-12 col-lg-12"-->
+            <!--rows="2" placeholder="请输入查询条件?" required></textarea>-->
+            <h6>查询条件</h6>
+            <div id="conditions"></div>
             <button type="button" class="btn btn-info btn-lg btn-block" onclick="doSQL()">查询</button>
         </div>
         <div id="contentRoot2">
             <h5>查询结果</h5>
-
             <nav>
                 <ul class="pagination d-flex justify-content-between">
                     <li class="page-item" id="pageprev"><a class="page-prev page-link" href="#"
@@ -238,17 +240,30 @@
                 tr = tr + "</tr>";
                 $("#tabledesigninfor").append(tr);
 
+                var columnsmap = [];
                 for (var k in tabledesign.columns) {
-                    tr = "<tr>";
                     var d = tabledesign.columns[k]
+                    columnsmap[d[0]] = d
+                    tr = "<tr>";
                     tr = tr + "<td >" + d[0] + "</td>";
                     tr = tr + "<td >" + d[1] + "</td>";
                     tr = tr + "<td >" + d[2] + "</td>";
                     tr = tr + "</tr>";
                     $("#tabledesigninfor").append(tr);
                 }
+                tabledesign.columnsmap = columnsmap;
 
-                $("#sqlstr").text("SELECT * FROM " + tableName + " WHERE ");
+//                $("#sqlstr").text("SELECT * FROM " + tableName + " WHERE ");
+                for (var k in tabledesign.cacheKey) {
+                    var cfg = tabledesign.columnsmap[tabledesign.cacheKey[k]]
+                    var cond = "<div class=\"input-group mb-3\">" +
+                        "<div class=\"input-group-prepend\">" +
+                        "<span class=\"input-group-text\">" + cfg[0] + "</span>" +
+                        "</div>" +
+                        "<input type=\"text\" class=\"form-control\" placeholder=\"" + cfg[2] + "|" + cfg[1] + "\">" +
+                        "</div>"
+                    $("#conditions").append(cond);
+                }
             },
             function (jqXHR, textStatus, errorThrown) {
                 alert("同步失败！");
