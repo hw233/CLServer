@@ -22,7 +22,7 @@
             <button type="button" class="nav-item btn btn-info" onclick="refresh()">刷新</button>
         </div>
 
-        <h6>表字段 <span >⊕</span></h6>
+        <h6>表字段 <span>⊕</span></h6>
         <div id="tabledesigninfor" class="pt-3 pb-2 mb-3 border-bottom">
 
         </div>
@@ -123,34 +123,41 @@
     }
 
     function doSQL() {
-        var wherestr = $("#inputsql").val();
-        var sql = "SELECT * FROM " + tableName;
-        if (wherestr != null && wherestr != "") {
-            sql = "SELECT * FROM " + tableName + " where " + wherestr;
+        var conds = {};
+        var conditions = $("#conditions");
+        for (var k in tabledesign.cacheKey) {
+            var key = tabledesign.cacheKey[k];
+            conds[key] = conditions.find("#" + key).val();
         }
-        sql = sql.trim();
-        var arrayOfStrings = sql.split(";");
-        if (arrayOfStrings.length > 2 || (arrayOfStrings.length == 2 && !sql.endsWith(";"))) {
-            alert("每次只能处理一条sql！");
-            return;
-        }
-
-        for (var i in arrayOfStrings) {
-            var subsql = arrayOfStrings[i].trim();
-            if (subsql != "" && !subsql.toLowerCase().startsWith("select")) {
-                alert("只能处理Select SQL!=>" + subsql);
-                return;
-            }
-        }
+        //
+        // var wherestr = $("#inputsql").val();
+        // var sql = "SELECT * FROM " + tableName;
+        // if (wherestr != null && wherestr != "") {
+        //     sql = "SELECT * FROM " + tableName + " where " + wherestr;
+        // }
+        // sql = sql.trim();
+        // var arrayOfStrings = sql.split(";");
+        // if (arrayOfStrings.length > 2 || (arrayOfStrings.length == 2 && !sql.endsWith(";"))) {
+        //     alert("每次只能处理一条sql！");
+        //     return;
+        // }
+        //
+        // for (var i in arrayOfStrings) {
+        //     var subsql = arrayOfStrings[i].trim();
+        //     if (subsql != "" && !subsql.toLowerCase().startsWith("select")) {
+        //         alert("只能处理Select SQL!=>" + subsql);
+        //         return;
+        //     }
+        // }
+        //
+        // sql = sql.replace(";", "");
+        //
+        // currsql = sql;
+        // sql = sql + " LIMIT 0, " + pagesize;
+        // alert(sql)
 
         $("#pageprev").addClass("disabled");
         $("#pagenext").addClass("disabled");
-        sql = sql.replace(";", "");
-
-        currsql = sql;
-        sql = sql + " LIMIT 0, " + pagesize;
-        alert(sql)
-
         var params = {cmd: "doSQL", sql: sql, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
@@ -240,7 +247,7 @@
                 tr = tr + "</tr>";
                 $("#tabledesigninfor").append(tr);
 
-                var columnsmap = [];
+                var columnsmap = {};
                 for (var k in tabledesign.columns) {
                     var d = tabledesign.columns[k]
                     columnsmap[d[0]] = d
@@ -253,14 +260,14 @@
                 }
                 tabledesign.columnsmap = columnsmap;
 
-//                $("#sqlstr").text("SELECT * FROM " + tableName + " WHERE ");
+                $("#conditions").empty();
                 for (var k in tabledesign.cacheKey) {
                     var cfg = tabledesign.columnsmap[tabledesign.cacheKey[k]]
                     var cond = "<div class=\"input-group mb-3\">" +
                         "<div class=\"input-group-prepend\">" +
                         "<span class=\"input-group-text\">" + cfg[0] + "</span>" +
                         "</div>" +
-                        "<input type=\"text\" class=\"form-control\" placeholder=\"" + cfg[2] + "|" + cfg[1] + "\">" +
+                        "<input id='" + cfg[0] + "' type=\"text\" class=\"form-control\" placeholder=\"" + cfg[2] + "|" + cfg[1] + "\">" +
                         "</div>"
                     $("#conditions").append(cond);
                 }
