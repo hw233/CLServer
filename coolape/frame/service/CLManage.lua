@@ -57,11 +57,21 @@ end
 function CMD.getTableData(map)
     local tableName = map.tableName
     local condions = map.conditions
+    local db = require("db" .. tableName)
+    if db then
+        local data = db.instanse(condions)
+        if data:isEmpty() then
+            return nil
+        end
+        return data:value2copy()
+    else
+        return nil
+    end
 end
 
 -- 取得table设计信息
 function CMD.getTableDesign(tableName)
-    local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign/".. tableName .. ".lua")
+    local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign/" .. tableName .. ".lua")
     local t = dofile(tableDesinPath)
     return t
 end
