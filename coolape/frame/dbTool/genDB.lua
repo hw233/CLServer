@@ -536,13 +536,18 @@ function genDB.genLuaFile(outPath, tableCfg)
         table.insert(str, "        return nil")
         table.insert(str, "     end")
 
+        table.insert(str, "     local cachlist = skynet.call(\"CLDB\", \"lua\", \"GETGROUP\", " .. name .. ".name, " .. tableCfg.groupKey .. ") or {}")
         table.insert(str, "     for i, v in ipairs(list) do")
         table.insert(str, "         local key = " .. table.concat(shardataKey2, " .. \"_\" .. "))
-        table.insert(str, "         local d = skynet.call(\"CLDB\", \"lua\", \"get\", " .. name .. ".name, key)")
+        table.insert(str, "         local d = cachlist[key]")
         table.insert(str, "         if d ~= nil then")
         table.insert(str, "             -- 用缓存的数据才是最新的")
         table.insert(str, "             list[i] = d")
+        table.insert(str, "             cachlist = nil")
         table.insert(str, "         end")
+        table.insert(str, "     end")
+        table.insert(str, "     for k ,v in pairs(cachlist) do")
+        table.insert(str, "         table.insert(list, v)")
         table.insert(str, "     end")
         table.insert(str, "     return list")
         table.insert(str, "end")
@@ -554,6 +559,13 @@ function genDB.genLuaFile(outPath, tableCfg)
     else
         table.insert(str, "function " .. name .. ".instanse()")
     end
+
+    table.insert(str, "    if type(".. tableCfg.cacheKey[1] .. ") == \"table\" then")
+    table.insert(str, "        local d = ".. tableCfg.cacheKey[1])
+    for i, v in ipairs(tableCfg.cacheKey) do
+        table.insert(str, "        " .. v .. " = d." .. v)
+    end
+    table.insert(str, "    end")
 
     local checkNil = {}
     local keyTmp = {}

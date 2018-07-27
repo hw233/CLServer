@@ -141,6 +141,11 @@ function dbuserserver.querySql(uidx, appid)
 end
 
 function dbuserserver.instanse(uidx, appid)
+    if type(uidx) == "table" then
+        local d = uidx
+        uidx = d.uidx
+        appid = d.appid
+    end
     if uidx == nil and appid == nil then
         skynet.error("[dbuserserver.instanse] all input params == nil")
         return nil

@@ -53,6 +53,12 @@ function CMD.synMySQL()
     return skynet.call("CLMySQL", "lua", "FLUSHALL")
 end
 
+---@public 取得表数据
+function CMD.getTableData(map)
+    local tableName = map.tableName
+    local condions = map.conditions
+end
+
 -- 取得table设计信息
 function CMD.getTableDesign(tableName)
     local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign/".. tableName .. ".lua")

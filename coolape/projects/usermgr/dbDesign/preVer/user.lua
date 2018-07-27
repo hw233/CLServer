@@ -4,7 +4,7 @@ local tab = {
     columns = {
         --{ "idx", "int(11) NOT NULL AUTO_INCREMENT", "唯一标识" },
         { "idx", "int(11) NOT NULL", "唯一标识" },
-        { "uidChl", "varchar(45) NOT NULL", "用户id" },
+        { "uidChl", "varchar(45) NOT NULL", "用户id(第三方渠道用户)" },
         { "uid", "varchar(45) NOT NULL", "用户id" },
         { "password", "varchar(45) NOT NULL", "用户密码" },
         { "crtTime", "datetime", "创建时间" },

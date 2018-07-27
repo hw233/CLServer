@@ -73,7 +73,7 @@ function dbuser:getidx()
 end
 
 function dbuser:setuidChl(v)
-    -- 用户id
+    -- 用户id(第三方渠道用户)
     if self:isEmpty() then
         skynet.error("[dbuser:setuidChl],please init first!!")
         return nil
@@ -81,7 +81,7 @@ function dbuser:setuidChl(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uidChl", v)
 end
 function dbuser:getuidChl()
-    -- 用户id
+    -- 用户id(第三方渠道用户)
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "uidChl")
 end
 
@@ -248,6 +248,11 @@ function dbuser.querySql(idx, uid, uidChl)
 end
 
 function dbuser.instanse(uid, uidChl)
+    if type(uid) == "table" then
+        local d = uid
+        uid = d.uid
+        uidChl = d.uidChl
+    end
     if uid == nil and uidChl == nil then
         skynet.error("[dbuser.instanse] all input params == nil")
         return nil

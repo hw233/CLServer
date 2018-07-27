@@ -129,36 +129,10 @@
             var key = tabledesign.cacheKey[k];
             conds[key] = conditions.find("#" + key).val();
         }
-        //
-        // var wherestr = $("#inputsql").val();
-        // var sql = "SELECT * FROM " + tableName;
-        // if (wherestr != null && wherestr != "") {
-        //     sql = "SELECT * FROM " + tableName + " where " + wherestr;
-        // }
-        // sql = sql.trim();
-        // var arrayOfStrings = sql.split(";");
-        // if (arrayOfStrings.length > 2 || (arrayOfStrings.length == 2 && !sql.endsWith(";"))) {
-        //     alert("每次只能处理一条sql！");
-        //     return;
-        // }
-        //
-        // for (var i in arrayOfStrings) {
-        //     var subsql = arrayOfStrings[i].trim();
-        //     if (subsql != "" && !subsql.toLowerCase().startsWith("select")) {
-        //         alert("只能处理Select SQL!=>" + subsql);
-        //         return;
-        //     }
-        // }
-        //
-        // sql = sql.replace(";", "");
-        //
-        // currsql = sql;
-        // sql = sql + " LIMIT 0, " + pagesize;
-        // alert(sql)
 
         $("#pageprev").addClass("disabled");
         $("#pagenext").addClass("disabled");
-        var params = {cmd: "doSQL", sql: sql, uid: "000"};
+        var params = {cmd: "getTableData", tableName: tableName, conditions: conds, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
                 if (result == null || result.length < pagesize) {

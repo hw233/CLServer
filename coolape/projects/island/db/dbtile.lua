@@ -161,18 +161,27 @@ function dbtile.getList(cidx, orderby, limitOffset, limitNum)
         skynet.error("[dbtile.getGroup] sql error==" .. sql)
         return nil
      end
+     local cachlist = skynet.call("CLDB", "lua", "GETGROUP", dbtile.name, cidx) or {}
      for i, v in ipairs(list) do
          local key = v.idx
-         local d = skynet.call("CLDB", "lua", "get", dbtile.name, key)
+         local d = cachlist[key]
          if d ~= nil then
              -- 用缓存的数据才是最新的
              list[i] = d
+             cachlist = nil
          end
+     end
+     for k ,v in pairs(cachlist) do
+         table.insert(list, v)
      end
      return list
 end
 
 function dbtile.instanse(idx)
+    if type(idx) == "table" then
+        local d = idx
+        idx = d.idx
+    end
     if idx == nil then
         skynet.error("[dbtile.instanse] all input params == nil")
         return nil

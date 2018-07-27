@@ -255,6 +255,10 @@ function dbplayer.querySql(idx)
 end
 
 function dbplayer.instanse(idx)
+    if type(idx) == "table" then
+        local d = idx
+        idx = d.idx
+    end
     if idx == nil then
         skynet.error("[dbplayer.instanse] all input params == nil")
         return nil
