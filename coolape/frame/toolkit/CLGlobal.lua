@@ -26,12 +26,12 @@ function parseBackTrace(traceInfor, level)
 end
 
 function print(...)
-    local params = {...}
-    if params == nil or #params == 0 then
-        return
-    end
     if logLev < LogLev.debug then
         return
+    end
+    local params = {...}
+    if params == nil or #params == 0 then
+        return skynet.error(params)
     end
     local trace = debug.traceback("")
     local msg = table.concat(params, "|")
@@ -40,12 +40,12 @@ function print(...)
 end
 
 function printw(...)
-    local params = {...}
-    if params == nil or #params == 0 then
-        return
-    end
     if logLev < LogLev.warning then
         return
+    end
+    local params = {...}
+    if params == nil or #params == 0 then
+        return skynet.error(params)
     end
     local trace = debug.traceback("")
     local msg = table.concat(params, "|")
@@ -54,12 +54,12 @@ function printw(...)
 end
 
 function printe(...)
-    local params = {...}
-    if params == nil or #params == 0 then
-        return
-    end
     if logLev < LogLev.error then
         return
+    end
+    local params = {...}
+    if params == nil or #params == 0 then
+        return skynet.error(params)
     end
     local trace = debug.traceback("")
     local msg = table.concat(params, "|")

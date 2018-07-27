@@ -4,6 +4,7 @@ local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"
 ---@type dateEx
 local dateEx = require("dateEx")
+local json = require("json.json")
 local table = table
 
 local CMD = {}
@@ -56,16 +57,16 @@ end
 ---@public 取得表数据
 function CMD.getTableData(map)
     local tableName = map.tableName
-    local condions = map.conditions
+    local condions = json.decode(map.conditions)
     local db = require("db" .. tableName)
     if db then
         local data = db.instanse(condions)
         if data:isEmpty() then
-            return nil
+            return {}
         end
-        return data:value2copy()
+        return {data:value2copy()}
     else
-        return nil
+        return {}
     end
 end
 
