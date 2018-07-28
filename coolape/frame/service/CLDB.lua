@@ -15,6 +15,7 @@ local timeoutsec = 30 * 60;   -- 数据超时时间（秒）
 local refreshsec = 1 * 60 *100;   -- 数据更新时间（秒*100）
 local insert = table.insert
 local concat = table.concat
+local tostring = tostring
 
 -- 处理超时的数据，把数据写入mysql
 local function checktimeout(db, dbTimeout)
@@ -50,18 +51,18 @@ end
 local function setGroup(tableName, groupKey, key)
     local d = command.GET(tableName, key)
     local t = db4Group[tableName] or {}
-    local group = t[groupKey] or {}
-    group[key] = d
-    t[groupKey] = group
+    local group = t[tostring(groupKey)] or {}
+    group[tostring(key)] = d
+    t[tostring(groupKey)] = group
     db4Group[tableName] = t
 end
 
 -- 移除组里的数据
 local function removeGroup(tableName, groupKey, key)
     local t = db4Group[tableName] or {}
-    local group = t[groupKey] or {}
-    group[key] = nil
-    t[groupKey] = group
+    local group = t[tostring(groupKey)] or {}
+    group[tostring(key)] = nil
+    t[tostring(groupKey)] = group
     db4Group[tableName] = t
 end
 
@@ -69,7 +70,7 @@ end
 -- 取得一个组，注意这个组不是list而是个table
 function command.GETGROUP(tableName, groupKey)
     local t = db4Group[tableName] or {}
-    local cacheGroup = t[groupKey] or {}
+    local cacheGroup = t[tostring(groupKey)] or {}
     return cacheGroup;
 end
 
@@ -79,14 +80,15 @@ function command.GET(tableName, key, ...)
     if t == nil then
         return nil
     end
-    t = t[key]
+
+    t = t[tostring(key)]
     if t == nil then
         return nil
     end
     local params = { ... }
     if #params > 0 then
         for i, k in ipairs(params) do
-            t = t[k]
+            t = t[tostring(k)]
             if t == nil then
                 return nil
             end
@@ -113,7 +115,7 @@ function command.SET(tableName, key, ...)
     end
     local count = #params
     local val = params[count]
-    local last = t[key]
+    local last = t[tostring(key)]
     if count > 1 then
         local subt = nil;
         for i = 1, count - 1 do
@@ -125,8 +127,9 @@ function command.SET(tableName, key, ...)
         end
         subt[params[count - 1]] = val   -- 设置成新数据
     else
-        t[key] = val
+        t[tostring(key)] = val
     end
+    db[tableName] = t
     --..........................................
     if last ~= val then
         local d = command.GET(tableName, key)
@@ -157,17 +160,17 @@ function command.REMOVE(tableName, key)
     local t = db[tableName]
     local last = nil
     if t then
-        last = t[key]
-        t[key] = nil
+        last = t[tostring(key)]
+        t[tostring(key)] = nil
     end
 
     t = dbTimeout[tableName]
     if t then
-        t[key] = nil
+        t[tostring(key)] = nil
     end
     t = dbUsedTimes[tableName]
     if t then
-        t[key] = nil
+        t[tostring(key)] = nil
     end
 
     if last then
@@ -190,7 +193,7 @@ function command.SETUSE(tableName, key)
         t = {}
         dbTimeout[tableName] = t
     else
-        t[key] = nil
+        t[tostring(key)] = nil
     end
     dbTimeout[tableName] = t
     --==================================
@@ -199,8 +202,8 @@ function command.SETUSE(tableName, key)
         t2 = {}
         dbUsedTimes[tableName] = t2
     end
-    local last = t2[key] or 0
-    t2[key] = last + 1;
+    local last = t2[tostring(key)] or 0
+    t2[tostring(key)] = last + 1;
     dbUsedTimes[tableName] = t2
     --print(tableName .. "=SETUSE=" .. key .. "==" .. t2[key])
     return last;
@@ -212,6 +215,7 @@ function command.SETUNUSE(tableName, key)
         printe("command.SETUNUSE err, key is nil. tableName == " .. tableName)
         return
     end
+    key = tostring(key)
     local t = dbUsedTimes[tableName]
     if t == nil then
         t = {}

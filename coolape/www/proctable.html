@@ -22,35 +22,21 @@
             <button type="button" class="nav-item btn btn-info" onclick="refresh()">刷新</button>
         </div>
 
-        <h6>表字段 <span>⊕</span></h6>
-        <div id="tabledesigninfor" class="pt-3 pb-2 mb-3 border-bottom">
-
+        <h6>表字段 <span><a onclick="showhidetabeldesign($(this))">⊕</a></span></h6>
+        <div class="pt-3 pb-2 mb-3 border-bottom">
+            <div id="tabledesigninfor" isshowing="true">
+            </div>
         </div>
 
         <div class="pt-1 pb-1 mb-1 border-bottom">
-            <!--<h6 id="sqlstr"></h6>-->
-            <!--<textarea id="inputsql" class="span6 col-md-12 ml-sm-12 col-lg-12"-->
-            <!--rows="2" placeholder="请输入查询条件?" required></textarea>-->
             <h6>查询条件</h6>
             <div id="conditions"></div>
-            <button type="button" class="btn btn-info btn-lg btn-block" onclick="doSQL()">查询</button>
+            <button type="button" class="btn btn-info btn-lg btn-block mb-3" onclick="getData()">查询/刷新</button>
         </div>
-        <div id="contentRoot2">
+        <div id="contentRoot2" class="mb-2 border-bottom ">
             <h5>查询结果</h5>
-            <nav>
-                <ul class="pagination d-flex justify-content-between">
-                    <li class="page-item" id="pageprev"><a class="page-prev page-link" href="#"
-                                                           onclick="prePage()">上一页</a></li>
-                    <li class="page-item" id="pagenum"></li>
-                    <li class="page-item" id="pagenext"><a class="page-next page-link" href="#"
-                                                           onclick="nextPage()">下一页</a></li>
-                </ul>
-            </nav>
-
             <div class="table-responsive">
                 <table class="table table-striped table-sm">
-                    <thead id="datalisthead">
-                    </thead>
                     <tbody id="datalist">
                     </tbody>
                 </table>
@@ -75,15 +61,13 @@
     var tableName = $.url.param("id")
     var baseUrl = $.url.param("url")
     var tabledesign;
-    var dataList = null;
-    var currsql = "";
-    var pagesize = 5;
+    var mData = null;
     var currpageIndex = 0;
 
     $("#contentRoot2").hide();
 
     function refreshContent() {
-        if (dataList == null || dataList.errno != null) {
+        if (mData == null || mData.errno != null) {
             alert("查询失败！")
             return;
         }
@@ -94,57 +78,86 @@
         var datalisthead = $("#datalisthead");
         datalisthead.empty();
 
-        //设置dataList
-        var count = dataList.length;
+        //设置data
         var datalist = $("#datalist");
         datalist.empty();
-        var keys = [];
 
-        var tr = "<tr>";
+        var rows = "";
         for (var k in tabledesign.columns) {
             var d = tabledesign.columns[k]
-            tr = tr + "<th data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + d[2] + "|" + d[1] + "\">" + d[0] + "</th>";
+            var cfg = tabledesign.columns[k]
+            rows = rows +
+                "<div class=\"row input-group mb-1\">" +
+                "<div class=\"col-4\">" +
+                "<span class=\"input-group-text\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + d[2] + "|" + d[1] + "\">" + d[0] + "</span>" +
+                "</div>" +
+                "<input id='" + cfg[0] + "' class=\"col\" value='" + mData[cfg[0]] + "' type=\"text\"/>" +
+                "<button type=\"button\" class=\"btn btn-danger\" onclick='modifydata($(this).prev())'>修改</button>" +
+                "</div>";
         }
-        tr = tr + "</tr>";
-        datalisthead.append(tr);
-        for (var i = 0; i < count; i++) {
-            var d = dataList[i];
-            var tr = "<tr>";
-
-            for (var k in tabledesign.columns) {
-                var cfg = tabledesign.columns[k]
-                tr = tr + "<td>" + d[cfg[0]] + "</td>";
-            }
-            tr = tr + "</tr>";
-            datalist.append(tr);
-        }
-
+        datalist.append(rows);
         feather.replace();
     }
 
-    function doSQL() {
+    function showhidetabeldesign(obj) {
+        var tabledesigninfor = $("#tabledesigninfor");
+        var isshowing = tabledesigninfor.attr("isshowing");
+        if (isshowing == "true") {
+            tabledesigninfor.hide();
+            tabledesigninfor.attr("isshowing", "false");
+            obj.text("⊕");
+        } else {
+            tabledesigninfor.show();
+            tabledesigninfor.attr("isshowing", "true");
+            obj.text("⊖");
+        }
+    }
+
+    function modifydata(inputObj) {
         var conds = {};
         var conditions = $("#conditions");
         for (var k in tabledesign.cacheKey) {
             var key = tabledesign.cacheKey[k];
             conds[key] = conditions.find("#" + key).val();
         }
-        for (k in conds) {
-            alert(k +"==" + conds[k])
+        var conditions = JSON.stringify(conds)
+        var key = inputObj.attr("id");
+        var val = inputObj.val();
+        var params = {
+            cmd: "setTableData",
+            tableName: tableName,
+            conditions: conditions,
+            key: key,
+            val: val,
+            uid: "000"
+        };
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {  //成功的回调函数
+                if(result.success) {
+                    alert("设置成功");
+                } else {
+                    alert("设置失败");
+                }
+            },
+            function (jqXHR, textStatus, errorThrown) {
+                alert("error:" + textStatus);
+            }
+        );
+    }
+
+    function getData() {
+        var conds = {};
+        var conditions = $("#conditions");
+        for (var k in tabledesign.cacheKey) {
+            var key = tabledesign.cacheKey[k];
+            conds[key] = conditions.find("#" + key).val();
         }
 
-        $("#pageprev").addClass("disabled");
-        $("#pagenext").addClass("disabled");
         var params = {cmd: "getTableData", tableName: tableName, conditions: JSON.stringify(conds), uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
-                if (result == null || result.length < pagesize) {
-                    $("#pagenext").addClass("disabled");
-                } else {
-                    $("#pagenext").removeClass("disabled");
-                }
                 currpageIndex = 1;
-                dataList = result;
+                mData = result;
                 refreshContent();
                 feather.replace();
             },
@@ -152,62 +165,6 @@
                 alert("error:" + textStatus);
             }
         );
-    }
-
-    function prePage() {
-        if (currpageIndex - 1 < 0) {
-            $("#pageprev").addClass("disabled");
-            return;
-        }
-        var sql = currsql + " LIMIT " + (currpageIndex - 1) * pagesize + ", " + pagesize;
-
-        var params = {cmd: "doSQL", sql: sql, uid: "000"};
-        myutl.ajaxJSONP(baseUrl, params,
-            function (result, status, xhr) {  //成功的回调函数
-                currpageIndex = currpageIndex - 1;
-                dataList = result;
-                refreshContent();
-                feather.replace();
-            },
-            function (jqXHR, textStatus, errorThrown) {
-                alert("error:" + textStatus);
-            }
-        );
-    }
-
-    function nextPage() {
-        var sql = currsql + " LIMIT " + currpageIndex * pagesize + ", " + pagesize;
-        alert(sql)
-
-        var params = {cmd: "doSQL", sql: sql, uid: "000"};
-        myutl.ajaxJSONP(baseUrl, params,
-            function (result, status, xhr) {  //成功的回调函数
-                if (result == null || result.length < pagesize) {
-                    alert("已经没有更多数据！");
-                    $("#pagenext").addClass("disabled");
-                } else {
-                    currpageIndex = currpageIndex + 1;
-                    dataList = result;
-                    refreshContent();
-                    feather.replace();
-                }
-            },
-            function (jqXHR, textStatus, errorThrown) {
-                alert("error:" + textStatus);
-            }
-        );
-    }
-
-    //同步数据库（把内存数据同步到数据库）
-    function synMySQL() {
-        var params = {cmd: "synMySQL", uid: "000"};
-        myutl.ajaxJSONP(baseUrl, params,
-            function (result, status, xhr) {
-                alert("同步成功！");
-            },
-            function (jqXHR, textStatus, errorThrown) {
-                alert("同步失败！");
-            });
     }
 
     function getTableInfor() {
@@ -216,13 +173,16 @@
             function (result, status, xhr) {
                 tabledesign = result.design;
                 $("#rowcount").text("count：" + result.count + "条");
-                $("#tabledesigninfor").empty();
+                var tabledesigninfor = $("#tabledesigninfor");
+                tabledesigninfor.empty();
                 var tr = "<tr>";
                 tr = tr + "<th>字段ID</td>";
                 tr = tr + "<th>字段类型</td>";
                 tr = tr + "<th>字段说明</td>";
                 tr = tr + "</tr>";
-                $("#tabledesigninfor").append(tr);
+                tabledesigninfor.append(tr);
+                tabledesigninfor.hide();
+                tabledesigninfor.attr("isshowing", "false");
 
                 var columnsmap = {};
                 for (var k in tabledesign.columns) {
@@ -240,11 +200,11 @@
                 $("#conditions").empty();
                 for (var k in tabledesign.cacheKey) {
                     var cfg = tabledesign.columnsmap[tabledesign.cacheKey[k]]
-                    var cond = "<div class=\"input-group mb-3\">" +
-                        "<div class=\"input-group-prepend\">" +
+                    var cond = "<div class=\"row input-group mb-1\">" +
+                        "<div class=\"col-4\">" +
                         "<span class=\"input-group-text\">" + cfg[0] + "</span>" +
                         "</div>" +
-                        "<input id='" + cfg[0] + "' type=\"text\" class=\"form-control\" placeholder=\"" + cfg[2] + "|" + cfg[1] + "\">" +
+                        "<input id='" + cfg[0] + "' type=\"text\" class=\"col form-control\" placeholder=\"" + cfg[2] + "|" + cfg[1] + "\"/>" +
                         "</div>"
                     $("#conditions").append(cond);
                 }

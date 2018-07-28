@@ -62,12 +62,34 @@ function CMD.getTableData(map)
     if db then
         local data = db.instanse(condions)
         if data:isEmpty() then
-            return {}
+            return nil
         end
-        return {data:value2copy()}
+        return data:value2copy()
     else
-        return {}
+        return nil
     end
+end
+
+---@public 设置表数据
+function CMD.setTableData(map)
+    local tableName = map.tableName
+    local condions = json.decode(map.conditions)
+    local key = map.key
+    local val = map.val
+    local db = require("db" .. tableName)
+    if db then
+        local data = db.instanse(condions)
+        if data:isEmpty() then
+            return "get db error"
+        end
+        local func = db["set" .. key]
+        if func then
+            func(data, val)
+        else
+            return "get set func is nil"
+        end
+    end
+    return { success = true }
 end
 
 -- 取得table设计信息
