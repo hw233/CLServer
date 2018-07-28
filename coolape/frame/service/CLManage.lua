@@ -4,6 +4,7 @@ local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"
 ---@type dateEx
 local dateEx = require("dateEx")
+require("fileEx")
 local json = require("json.json")
 local table = table
 
@@ -93,10 +94,23 @@ function CMD.setTableData(map)
 end
 
 -- 取得table设计信息
-function CMD.getTableDesign(tableName)
+function CMD.getTableDesign(map)
+    local tableName = map.tableName
     local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign/" .. tableName .. ".lua")
     local t = dofile(tableDesinPath)
     return t
+end
+
+function CMD.getAllTableDesign()
+    local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign")
+    local files = fileEx.getFiles(tableDesinPath, "lua")
+    local ret = {}
+    table.sort(files)
+    for i, f in ipairs(files) do
+        local t = dofile(CLUtl.combinePath(tableDesinPath, f))
+        table.insert(ret, t)
+    end
+    return ret
 end
 
 skynet.start(function()

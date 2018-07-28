@@ -29,15 +29,22 @@ function CMD.getLeftSubMenu(map)
     local key = map.groupKey
     local ret = {}
     if key == "database" then
-        local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign")
-        local files = fileEx.getFiles(tableDesinPath, "lua")
-        table.sort(files)
-        for i, f in ipairs(files) do
-            local t = dofile(CLUtl.combinePath(tableDesinPath, f))
-            table.insert(ret, { name = t.name .. "." .. t.desc, key = t.name, url = "../../proctable.html", feather = "database" })
+        --local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign")
+        --local files = fileEx.getFiles(tableDesinPath, "lua")
+        --table.sort(files)
+        --for i, f in ipairs(files) do
+        --    local t = dofile(CLUtl.combinePath(tableDesinPath, f))
+        --    table.insert(ret, { name = t.name .. "." .. t.desc, key = t.name, url = "../../proctable.html", feather = "database" })
+        --end
+        local tabls = skynet.call(clmanager, "lua", "getAllTableDesign")
+        for i, t in ipairs(tabls) do
+            table.insert(ret, { name = t.name .. "." .. t.desc, key = t.name, url = "../../proctable.html", feather = "edit" })
         end
-
     elseif key == "tableDesin" then
+        local tabls = skynet.call(clmanager, "lua", "getAllTableDesign")
+        for i, t in ipairs(tabls) do
+            table.insert(ret, { name = t.name .. "." .. t.desc, key = t.name, url = "../../designtable.html", feather = "edit" })
+        end
     elseif key == "interface" then
     elseif key == "backconsole" then
     end
@@ -56,7 +63,7 @@ function CMD.getTableInfor(map)
         return
     end
     local ret = {}
-    ret.design = skynet.call(clmanager, "lua", "getTableDesign", tableName)
+    ret.design = skynet.call(clmanager, "lua", "getTableDesign", { tableName = tableName })
     local sql = "select count(*) as count from " .. tableName
     local result = skynet.call("CLMySQL", "lua", "EXESQL", sql)
     if result and result.errno then
