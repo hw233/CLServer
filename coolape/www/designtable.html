@@ -17,9 +17,28 @@
 <body>
 <div class="container-fluid">
     <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot">
-        <h6>表字段</h6>
+        <!--<div class="nav nav-pills nav-fill d-flex justify-content-start">-->
+        <h3>表字段&nbsp;&nbsp;
+            &nbsp;&nbsp;<a class="text-success" data-feather="refresh-cw" onclick="getTableInfor()"></a>
+            &nbsp;&nbsp;
+            &nbsp;&nbsp;</a><a class="text-warning" data-feather="save" onclick="save()"></a>
+        </h3>
+        <!--</div>-->
         <div class="table-responsive pt-3 pb-2 mb-3 border-bottom">
-            <table id="tabledesigninfor" class="table table-striped table-sm">
+            <table class="table table-striped table-sm">
+                <thead>
+                <tr>
+                    <th>操作</th>
+                    <th>字段ID</th>
+                    <th>字段类型</th>
+                    <th>主键</th>
+                    <th>缓存键</th>
+                    <th>组主键</th>
+                    <th>字段说明</th>
+                </tr>
+                </thead>
+                <tbody id="tabledesigninfor">
+                </tbody>
             </table>
         </div>
     </main>
@@ -32,6 +51,8 @@
 <script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
 <script src="../../bootstrap-4.1.1/assets/js/vendor/popper.min.js"></script>
 <script src="../../bootstrap-4.1.1/dist/js/bootstrap.min.js"></script>
+<script src="../../Bootstrap-Confirmation-master/dist/bootstrap-confirmation.js"></script>
+
 <script src="js/jquery.url.js"></script>
 <script src="js/myutl.js"></script>
 
@@ -45,7 +66,7 @@
 
     $("#contentRoot2").hide();
 
-    function iscachkey(key) {
+    function iscachekey(key) {
         for (var k in tabledesign.cacheKey) {
             if (key == tabledesign.cacheKey[k]) {
                 return true;
@@ -70,7 +91,74 @@
         return false;
     }
 
+    //保存
+    function save() {
+
+    }
+
+    //增加字段
+    function addrow() {
+        var key = $("#new-row-key").val();
+        var type = $("#new-row-type").val();
+        var primarykey = $("#new-row-primarykey").val();
+        var cachekey = $("#new-row-cachekey").val();
+        var groupkey = $("#new-row-groupkey").val();
+        var desc = $("#new-row-desc").val();
+
+        //判断是否已经当前key
+        for (var k in tabledesign.columns) {
+            if (key == (tabledesign.columns[k])[0]) {
+                alert("已经有同名字段！")
+                return;
+            }
+        }
+
+        var col = [];
+        col.push(key);
+        col.push(type);
+        col.push(desc);
+        tabledesign.columns.push(col);
+
+
+        var d = col;
+        tabledesign.columnsmap[d[0]] = d;
+        var tr = "<tr id='row-" + k + "'>";
+        tr = tr + "<td ><a class='row-del text-danger' data-feather=\"minus-circle\" data-toggle=\"confirmation\" data-singleton=\"true\" data-title=\"确认要删除?\"></a></td>";
+        tr = tr + "<td id='row-key'>" + d[0] + "</td>";
+        tr = tr + "<td id='row-type'><input value='" + d[1] + "'></td>";
+        tr = tr + "<td id='row-primarykey'><input type='checkbox' " + (isprimarykey(d[0]) ? "checked" : "") + "></td>";
+        tr = tr + "<td id='row-cachekey'><input type='checkbox' " + (iscachekey(d[0]) ? "checked" : "") + "></td>";
+        tr = tr + "<td ><input id='row-groupkey' name='options-groupkey' " + (isgroupkey(d[0]) ? "checked" : "") + " autocomplete=\"off\" type='radio'></td>";
+        tr = tr + "<td ><input id='row-desc' value='" + d[2] + "'></td>";
+        tr = tr + "</tr>";
+        $("#tabledesigninfor").append(tr).ready(function () {
+            $('[data-toggle=confirmation]').confirmation({
+                rootSelector: '[data-toggle=confirmation]',
+                container: 'body',
+                onConfirm: function (val) {
+                    var rowid = $(this).parent().parent().attr("id");
+                    delrow(rowid);
+                },
+                onCancel: function () {
+                    //null
+                }
+
+            });
+            feather.replace();
+        });
+        feather.replace();
+    }
+
+    //删除字段
+    function delrow(rowid) {
+        var row = $("#" + rowid);
+        var key = row.find("#row-key").text();
+        alert(key)
+    }
+
     function getTableInfor() {
+        var tabledesigninfor = $("#tabledesigninfor");
+        tabledesigninfor.empty();
         var params = {cmd: "getTableDesign", tableName: tableName, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {
@@ -78,50 +166,50 @@
                 var tabledesigninfor = $("#tabledesigninfor");
                 tabledesigninfor.empty();
 
-                $("#tabledesigninfor").append("<thead>");
-                var tr = "<tr >";
-                tr = tr + "<th >操作</td>";
-                tr = tr + "<th >字段ID</td>";
-                tr = tr + "<th >字段类型</td>";
-                tr = tr + "<th >主键</td>";
-                tr = tr + "<th >缓存键</td>";
-                tr = tr + "<th >组主键</td>";
-                tr = tr + "<th >字段说明</td>";
-                tr = tr + "</tr>";
-                tabledesigninfor.append(tr);
-                $("#tabledesigninfor").append("</thead>");
-
-                $("#tabledesigninfor").append("<tbody>");
-
                 ///////////////////////////////////////
-                tr = "<tr>";
-                tr = tr + "<td ><i class='text-success' data-feather=\"plus-circle\"></i></td>";
-                tr = tr + "<td ><input type='text' class='col-12'></td>";
-                tr = tr + "<td ><input type='text' ></td>";
-                tr = tr + "<td ><input type='checkbox' ></td>";
-                tr = tr + "<td ><input type='checkbox' ></td>";
-                tr = tr + "<td ><input id='new-groupkey' name='options-groupkey' autocomplete=\"off\" type='radio' ></td>";
-                tr = tr + "<td ><input type='text' ></td>";
+                var tr = "<tr>";
+                tr = tr + "<td ><a class='text-success' data-feather=\"plus-circle\" onclick='addrow()'></a></td>";
+                tr = tr + "<td ><input id='new-row-key' class='col-sm' type='text'></div></td>";
+                tr = tr + "<td ><input id='new-row-type' type='text' ></td>";
+                tr = tr + "<td ><input id='new-row-primarykey' type='checkbox' ></td>";
+                tr = tr + "<td ><input id='new-row-cachekey' type='checkbox' ></td>";
+                tr = tr + "<td ><input id='new-row-groupkey' name='options-groupkey' autocomplete=\"off\" type='radio' ></td>";
+                tr = tr + "<td ><input id='new-row-desc' type='text' ></td>";
                 tr = tr + "</tr>";
-                $("#tabledesigninfor").append(tr);
+                // $("#tabledesigninfor").append(tr);
                 ///////////////////////////////////////
                 var columnsmap = {};
                 for (var k in tabledesign.columns) {
                     var d = tabledesign.columns[k];
                     columnsmap[d[0]] = d
-                    tr = "<tr>";
-                    tr = tr + "<td ><i class='text-danger' data-feather=\"x-circle\"></i></td>";
-                    tr = tr + "<td >" + d[0] + "</td>";
-                    tr = tr + "<td ><input value='" + d[1] + "'></td>";
-                    tr = tr + "<td ><input type='checkbox' " + (isprimarykey(d[0]) ? "checked" : "") + "></td>";
-                    tr = tr + "<td ><input type='checkbox' " + (iscachkey(d[0]) ? "checked" : "") + "></td>";
-                    tr = tr + "<td ><input id='" + k + "'  name='options-groupkey' " + (isgroupkey(d[0]) ? "checked" : "") + " autocomplete=\"off\" type='radio'></td>";
-                    tr = tr + "<td ><input value='" + d[2] + "'></td>";
+                    tr = tr + "<tr id='row-" + k + "'>";
+                    tr = tr + "<td ><a class='row-del text-danger' data-feather=\"minus-circle\" data-toggle=\"confirmation\" data-singleton=\"true\" data-title=\"确认要删除?\"></a></td>";
+                    tr = tr + "<td id='row-key'>" + d[0] + "</td>";
+                    tr = tr + "<td id='row-type'><input value='" + d[1] + "'></td>";
+                    tr = tr + "<td id='row-primarykey'><input type='checkbox' " + (isprimarykey(d[0]) ? "checked" : "") + "></td>";
+                    tr = tr + "<td id='row-cachekey'><input type='checkbox' " + (iscachekey(d[0]) ? "checked" : "") + "></td>";
+                    tr = tr + "<td ><input id='row-groupkey' name='options-groupkey' " + (isgroupkey(d[0]) ? "checked" : "") + " autocomplete=\"off\" type='radio'></td>";
+                    tr = tr + "<td ><input id='row-desc' value='" + d[2] + "'></td>";
                     tr = tr + "</tr>";
-                    $("#tabledesigninfor").append(tr);
                 }
-                $("#tabledesigninfor").append("</tbody>");
                 tabledesign.columnsmap = columnsmap;
+                $("#tabledesigninfor").append(tr).ready(function () {
+
+                    $('[data-toggle=confirmation]').confirmation({
+                        rootSelector: '[data-toggle=confirmation]',
+                        container: 'body',
+
+                        onConfirm: function (val) {
+                            var rowid = $(this).parent().parent().attr("id");
+                            delrow(rowid);
+                        },
+                        onCancel: function () {
+                            //null
+                        }
+
+                    });
+                    feather.replace();
+                });
 
                 feather.replace();
             },
