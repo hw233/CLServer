@@ -101,6 +101,7 @@ function CMD.getTableDesign(map)
     return t
 end
 
+-- 取得所有表的设计
 function CMD.getAllTableDesign()
     local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign")
     local files = fileEx.getFiles(tableDesinPath, "lua")
@@ -111,6 +112,39 @@ function CMD.getAllTableDesign()
         table.insert(ret, t)
     end
     return ret
+end
+
+-- 保存表设计
+function CMD.saveTableDesign(map)
+    local tableName = map.tableName
+    local designinfor = json.decode(map.content)
+    local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign")
+    local filepath = CLUtl.combinePath(tableDesinPath, tableName .. ".lua")
+    local str = {}
+    table.insert(str, "local tab = {")
+    table.insert(str, "    name = \"" .. designinfor.name .. "\",")
+    table.insert(str, "    desc = \"" .. designinfor.desc .. "\",")
+    table.insert(str, "    columns = {" )
+    for i, v in ipairs(designinfor.columns) do
+        table.insert(str, '        { "' .. v[1] .. '", "' .. v[2] .. '", "' .. v[3] .. '" },')
+    end
+    table.insert(str, "    }," )
+    table.insert(str, "    primaryKey = {")
+    for i, v in ipairs(designinfor.primaryKey) do
+        table.insert(str, '        "' .. v .. '",')
+    end
+    table.insert(str, "    },")
+    table.insert(str, "    cacheKey = { -- 缓存key")
+    for i, v in ipairs(designinfor.cacheKey) do
+        table.insert(str, '        "' .. v .. '",')
+    end
+    table.insert(str, "    },")
+    table.insert(str, "    groupKey = \"" .. designinfor.groupKey .. "\", -- 组key")
+    table.insert(str, "    defaultData = {}, -- 初始数据")
+    table.insert(str, "}")
+    table.insert(str, "return tab\n")
+    fileEx.writeAll(filepath, table.concat(str, "\n"))
+    return { success = true }
 end
 
 skynet.start(function()

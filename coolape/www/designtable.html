@@ -23,6 +23,13 @@
             &nbsp;&nbsp;
             &nbsp;&nbsp;</a><a class="text-warning" data-feather="save" onclick="save()"></a>
         </h3>
+        <div class="input-group mb-1">
+            <div class="input-group-prepend">
+                <span class="input-group-text" id="tablename"></span>
+            </div>
+            <input type="text" class="form-control" id="tabledesc" aria-describedby="basic-addon3">
+        </div>
+
         <!--</div>-->
         <div class="table-responsive pt-3 pb-2 mb-3 border-bottom">
             <table class="table table-striped table-sm">
@@ -93,18 +100,26 @@
 
     //保存
     function save() {
-
+        var tabeljson = JSON.stringify(tabledesign)
+        var params = {cmd: "saveTableDesign", tableName: tableName, content: tabeljson, uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {
+                alert("保存完成");
+            },
+            function (jqXHR, textStatus, errorThrown) {
+                alert("保存表设置失败！");
+            }
+        );
     }
 
     //增加字段
     function addrow() {
         var key = $("#new-row-key").val();
         var type = $("#new-row-type").val();
-        var primarykey = $("#new-row-primarykey").val();
-        var cachekey = $("#new-row-cachekey").val();
-        var groupkey = $("#new-row-groupkey").val();
+        var primarykey = $("#new-row-primarykey").is(":checked");
+        var cachekey = $("#new-row-cachekey").is(":checked");
+        var groupkey = $("#new-row-groupkey").is(":checked");
         var desc = $("#new-row-desc").val();
-
         //判断是否已经当前key
         for (var k in tabledesign.columns) {
             if (key == (tabledesign.columns[k])[0]) {
@@ -119,10 +134,59 @@
         col.push(desc);
         tabledesign.columns.push(col);
 
-
         var d = col;
-        tabledesign.columnsmap[d[0]] = d;
-        var tr = "<tr id='row-" + k + "'>";
+        if (primarykey == true) {
+            tabledesign.primaryKey.push(key);
+        }
+        if (cachekey == true) {
+            tabledesign.cacheKey.push(key);
+        }
+        if (groupkey == true) {
+            tabledesign.groupKey = key;
+        }
+        appendonerow(d);
+
+        $("#new-row-key").val("");
+        $("#new-row-type").val("");
+        $("#new-row-primarykey").prop("checked", false);
+        $("#new-row-cachekey").prop("checked", false);
+        $("#new-row-groupkey").prop("checked", false);
+        $("#new-row-desc").val("");
+    }
+
+    //删除字段
+    function delrow(rowid) {
+        var row = $("#" + rowid);
+        var key = row.find("#row-key").text();
+        row.remove();
+        for (var i in tabledesign.columns) {
+            var d = tabledesign.columns[i];
+            if (d[0] == key) {
+                tabledesign.columns.remove(i);
+                break;
+            }
+        }
+        for (var i in tabledesign.primaryKey) {
+            if (tabledesign.primaryKey[i] == key) {
+                tabledesign.primaryKey.remove(i);
+                break;
+            }
+        }
+        for (var i in tabledesign.cacheKey) {
+            if (tabledesign.cacheKey[i] == key) {
+                tabledesign.cacheKey.remove(i);
+                break;
+            }
+        }
+        if (tabledesign.groupKey == key) {
+            tabledesign.groupKey = "";
+        }
+    }
+
+    function appendonerow(d) {
+        var k = d[0];
+        tabledesign.columnsmap[k] = d;
+        var tr = "<tr id='row-id-" + k + "'>";
         tr = tr + "<td ><a class='row-del text-danger' data-feather=\"minus-circle\" data-toggle=\"confirmation\" data-singleton=\"true\" data-title=\"确认要删除?\"></a></td>";
         tr = tr + "<td id='row-key'>" + d[0] + "</td>";
         tr = tr + "<td id='row-type'><input value='" + d[1] + "'></td>";
@@ -137,6 +201,7 @@
                 container: 'body',
                 onConfirm: function (val) {
                     var rowid = $(this).parent().parent().attr("id");
+                    $(this).confirmation('hide');
                     delrow(rowid);
                 },
                 onCancel: function () {
@@ -149,13 +214,6 @@
         feather.replace();
     }
 
-    //删除字段
-    function delrow(rowid) {
-        var row = $("#" + rowid);
-        var key = row.find("#row-key").text();
-        alert(key)
-    }
-
     function getTableInfor() {
         var tabledesigninfor = $("#tabledesigninfor");
         tabledesigninfor.empty();
@@ -163,6 +221,8 @@
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {
                 tabledesign = result;
+                $("#tablename").text(tabledesign.name);
+                $("#tabledesc").val(tabledesign.desc);
                 var tabledesigninfor = $("#tabledesigninfor");
                 tabledesigninfor.empty();
 
@@ -176,41 +236,13 @@
                 tr = tr + "<td ><input id='new-row-groupkey' name='options-groupkey' autocomplete=\"off\" type='radio' ></td>";
                 tr = tr + "<td ><input id='new-row-desc' type='text' ></td>";
                 tr = tr + "</tr>";
-                // $("#tabledesigninfor").append(tr);
+                $("#tabledesigninfor").append(tr);
                 ///////////////////////////////////////
-                var columnsmap = {};
+                tabledesign.columnsmap = {};
                 for (var k in tabledesign.columns) {
                     var d = tabledesign.columns[k];
-                    columnsmap[d[0]] = d
-                    tr = tr + "<tr id='row-" + k + "'>";
-                    tr = tr + "<td ><a class='row-del text-danger' data-feather=\"minus-circle\" data-toggle=\"confirmation\" data-singleton=\"true\" data-title=\"确认要删除?\"></a></td>";
-                    tr = tr + "<td id='row-key'>" + d[0] + "</td>";
-                    tr = tr + "<td id='row-type'><input value='" + d[1] + "'></td>";
-                    tr = tr + "<td id='row-primarykey'><input type='checkbox' " + (isprimarykey(d[0]) ? "checked" : "") + "></td>";
-                    tr = tr + "<td id='row-cachekey'><input type='checkbox' " + (iscachekey(d[0]) ? "checked" : "") + "></td>";
-                    tr = tr + "<td ><input id='row-groupkey' name='options-groupkey' " + (isgroupkey(d[0]) ? "checked" : "") + " autocomplete=\"off\" type='radio'></td>";
-                    tr = tr + "<td ><input id='row-desc' value='" + d[2] + "'></td>";
-                    tr = tr + "</tr>";
+                    appendonerow(d);
                 }
-                tabledesign.columnsmap = columnsmap;
-                $("#tabledesigninfor").append(tr).ready(function () {
-
-                    $('[data-toggle=confirmation]').confirmation({
-                        rootSelector: '[data-toggle=confirmation]',
-                        container: 'body',
-
-                        onConfirm: function (val) {
-                            var rowid = $(this).parent().parent().attr("id");
-                            delrow(rowid);
-                        },
-                        onCancel: function () {
-                            //null
-                        }
-
-                    });
-                    feather.replace();
-                });
-
                 feather.replace();
             },
             function (jqXHR, textStatus, errorThrown) {
