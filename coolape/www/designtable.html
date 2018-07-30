@@ -18,7 +18,7 @@
 <div class="container-fluid">
     <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot">
         <!--<div class="nav nav-pills nav-fill d-flex justify-content-start">-->
-        <h3>表信息&nbsp;&nbsp;
+        <h3 ><span id="title2">表信息</span>&nbsp;&nbsp;
             &nbsp;&nbsp;<button id="btnrefresh" class="btn btn-success" onclick="getTableInfor()"><span
                     data-feather="refresh-cw"></span></button>
             &nbsp;&nbsp;
@@ -275,11 +275,13 @@
             $("#tablename").val("");
             $("#tabledesc").val("");
             $("#btnrefresh").hide();
+            $("#title2").text("新建表");
         } else {
             $("#btnrefresh").show();
             $("#tablename").prop("disabled", true);
             $("#tablename").val(tabledesign.name);
             $("#tabledesc").val(tabledesign.desc);
+            $("#title2").text("表信息");
         }
         var tabledesigninfor = $("#tabledesigninfor");
         tabledesigninfor.empty();
