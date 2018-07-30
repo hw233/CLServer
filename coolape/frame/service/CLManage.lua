@@ -116,8 +116,8 @@ end
 
 -- 保存表设计
 function CMD.saveTableDesign(map)
-    local tableName = map.tableName
     local designinfor = json.decode(map.content)
+    local tableName = designinfor.name
     local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign")
     local filepath = CLUtl.combinePath(tableDesinPath, tableName .. ".lua")
     local str = {}

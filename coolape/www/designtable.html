@@ -18,16 +18,17 @@
 <div class="container-fluid">
     <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot">
         <!--<div class="nav nav-pills nav-fill d-flex justify-content-start">-->
-        <h3>表字段&nbsp;&nbsp;
-            &nbsp;&nbsp;<a class="text-success" data-feather="refresh-cw" onclick="getTableInfor()"></a>
+        <h3>表信息&nbsp;&nbsp;
+            &nbsp;&nbsp;<button id="btnrefresh" class="btn btn-success" onclick="getTableInfor()"><span
+                    data-feather="refresh-cw"></span></button>
             &nbsp;&nbsp;
-            &nbsp;&nbsp;</a><a class="text-warning" data-feather="save" onclick="save()"></a>
+            &nbsp;&nbsp;<button class="btn btn-warning" onclick="save()"><span data-feather="save"></span></button>
         </h3>
         <div class="input-group mb-1">
             <div class="input-group-prepend">
-                <span class="input-group-text" id="tablename"></span>
+                <input class="input-group-text" id="tablename" placeholder="请输入表名">
             </div>
-            <input type="text" class="form-control" id="tabledesc" aria-describedby="basic-addon3">
+            <input type="text" class="form-control" id="tabledesc" aria-describedby="basic-addon3" placeholder="请输入表描述">
         </div>
 
         <!--</div>-->
@@ -66,11 +67,11 @@
 <!-- Icons -->
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 <script>
-    var tableName = $.url.param("id")
-    var baseUrl = $.url.param("url")
+    var tableName = $.url.param("id");
+    var baseUrl = $.url.param("url");
+    var createmode = $.url.param("createmode");
     var tabledesign;
-    var currpageIndex = 0;
-    var fieldTypes = ["INT(11)", "VARCHAR(32)"];
+    var fieldTypes = ["TINYINT", "INT(10)", "BIGINT(10)", "FLOAT(10,2)", "DEC(10,2)", "DOUBLE(10,2)", "CHAR(128)", "VARCHAR(32)", "TEXT", "LONGTEXT", "BOOL", "DATE", "TIME", "DATETIME", "TIMESTAMP"];
 
     $("#contentRoot2").hide();
 
@@ -101,8 +102,25 @@
 
     //保存
     function save() {
+        if (createmode == "true") {
+            tabledesign.name = $("#tablename").val();
+            tabledesign.desc = $("#tabledesc").val();
+        }
+        if (tabledesign.name == null || tabledesign.name == "") {
+            alert("表名不能为空！");
+            return;
+        }
+        if(tabledesign.columns.length == 0) {
+            alert("至少有一个表字段！")
+            return;
+        }
+        if(tabledesign.cacheKey.length == 0) {
+            alert("没有设置缓存key！");
+            return;
+        }
+
         var tabeljson = JSON.stringify(tabledesign)
-        var params = {cmd: "saveTableDesign", tableName: tableName, content: tabeljson, uid: "000"};
+        var params = {cmd: "saveTableDesign", content: tabeljson, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {
                 alert("保存完成");
@@ -121,6 +139,10 @@
         var cachekey = $("#new-row-cachekey").is(":checked");
         var groupkey = $("#new-row-groupkey").is(":checked");
         var desc = $("#new-row-desc").val();
+        if(key == "" || type == "") {
+            alert("字段及类型不能为空！")
+            return;
+        }
         //判断是否已经当前key
         for (var k in tabledesign.columns) {
             if (key == (tabledesign.columns[k])[0]) {
@@ -220,11 +242,12 @@
 
     function onselectroletype(obj) {
         var inputid = obj.attr("inputid");
-        if (obj.find("#notnull").is("checked")) {
+        if (obj.parent().find("#notnull").is(":checked")) {
             $("#" + inputid).val(obj.text());
         } else {
             $("#" + inputid).val(obj.text() + " NOT NULL");
         }
+        obj.parent().find("#notnull").prop("checked", true)
     }
 
     function createselectinput(inputid, optionlist, defaultVal) {
@@ -235,7 +258,7 @@
         tr = tr + "<button class='btn btn-outline-secondary dropdown-toggle' type='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'></button>";
         tr = tr + "<div class='dropdown-menu'>";
         for (var i in optionlist) {
-            tr = tr + "<div class='row'>"
+            tr = tr + "<div class='border-bottom row d-flex justify-content-start align-items-center'>"
             tr = tr + "<a class='col' class='dropdown-item' href='#" + inputid + "' inputid='" + inputid + "' onclick='onselectroletype($(this))'>" + optionlist[i] + "</a>";
             tr = tr + "<a class='col'><input id='notnull' type='checkbox' value='NOT NULL' checked/>NULL</a>";
             tr = tr + "</div>";
@@ -246,6 +269,41 @@
         return tr;
     }
 
+    function setcontent() {
+        if (createmode == "true") {
+            $("#tablename").prop("disabled", false);
+            $("#tablename").val("");
+            $("#tabledesc").val("");
+            $("#btnrefresh").hide();
+        } else {
+            $("#btnrefresh").show();
+            $("#tablename").prop("disabled", true);
+            $("#tablename").val(tabledesign.name);
+            $("#tabledesc").val(tabledesign.desc);
+        }
+        var tabledesigninfor = $("#tabledesigninfor");
+        tabledesigninfor.empty();
+
+        ///////////////////////////////////////
+        var tr = "<tr>";
+        tr = tr + "<td ><a class='text-success' data-feather=\"plus-circle\" onclick='addrow()'></a></td>";
+        tr = tr + "<td ><input class='form-control' id='new-row-key' class='col-sm' type='text'></div></td>";
+        tr = tr + createselectinput("new-row-type", fieldTypes, "");
+        tr = tr + "<td ><input id='new-row-primarykey' type='checkbox' ></td>";
+        tr = tr + "<td ><input id='new-row-cachekey' type='checkbox' ></td>";
+        tr = tr + "<td ><input id='new-row-groupkey' name='options-groupkey' autocomplete=\"off\" type='radio' ></td>";
+        tr = tr + "<td ><input class='form-control' id='new-row-desc' type='text' ></td>";
+        tr = tr + "</tr>";
+        $("#tabledesigninfor").append(tr);
+        ///////////////////////////////////////
+        tabledesign.columnsmap = {};
+        for (var k in tabledesign.columns) {
+            var d = tabledesign.columns[k];
+            appendonerow(d);
+        }
+        feather.replace();
+    }
+
     function getTableInfor() {
         var tabledesigninfor = $("#tabledesigninfor");
         tabledesigninfor.empty();
@@ -253,29 +311,7 @@
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {
                 tabledesign = result;
-                $("#tablename").text(tabledesign.name);
-                $("#tabledesc").val(tabledesign.desc);
-                var tabledesigninfor = $("#tabledesigninfor");
-                tabledesigninfor.empty();
-
-                ///////////////////////////////////////
-                var tr = "<tr>";
-                tr = tr + "<td ><a class='text-success' data-feather=\"plus-circle\" onclick='addrow()'></a></td>";
-                tr = tr + "<td ><input class='form-control' id='new-row-key' class='col-sm' type='text'></div></td>";
-                tr = tr + createselectinput("new-row-type", fieldTypes, "");
-                tr = tr + "<td ><input id='new-row-primarykey' type='checkbox' ></td>";
-                tr = tr + "<td ><input id='new-row-cachekey' type='checkbox' ></td>";
-                tr = tr + "<td ><input id='new-row-groupkey' name='options-groupkey' autocomplete=\"off\" type='radio' ></td>";
-                tr = tr + "<td ><input class='form-control' id='new-row-desc' type='text' ></td>";
-                tr = tr + "</tr>";
-                $("#tabledesigninfor").append(tr);
-                ///////////////////////////////////////
-                tabledesign.columnsmap = {};
-                for (var k in tabledesign.columns) {
-                    var d = tabledesign.columns[k];
-                    appendonerow(d);
-                }
-                feather.replace();
+                setcontent();
             },
             function (jqXHR, textStatus, errorThrown) {
                 alert("取得信息失败！");
@@ -283,7 +319,17 @@
     }
 
     function init() {
-        getTableInfor();
+        if (createmode == "true") {
+            tabledesign = {};
+            tabledesign.primaryKey = [];
+            tabledesign.cacheKey = [];
+            tabledesign.columns = [];
+            tabledesign.groupKey = "";
+            tabledesign.defaultData = [];
+            setcontent();
+        } else {
+            getTableInfor();
+        }
         feather.replace();
     }
 

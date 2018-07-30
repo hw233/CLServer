@@ -17,7 +17,7 @@ function CMD.getLeftMenu(map)
     local ret = {
         { name = "基本信息", key = "baseinfor", url = "../../projectInfor.html?name=usermgr" },
         { name = "数据库", key = "database", isGroupMenu = true, feather = "database", url = "../../database.html" },
-        { name = "表设计", key = "tableDesin", isGroupMenu = true, feather = "edit" },
+        { name = "表设计", key = "tableDesin", isGroupMenu = true, feather = "edit", url = "../../designtable.html?createmode=true" },
         { name = "接口设计", key = "interface", isGroupMenu = true, feather = "edit" },
         { name = "后台处理", key = "backconsole", isGroupMenu = true, feather = "command" },
     }
