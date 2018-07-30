@@ -70,6 +70,7 @@
     var baseUrl = $.url.param("url")
     var tabledesign;
     var currpageIndex = 0;
+    var fieldTypes = ["INT(11)", "VARCHAR(32)"];
 
     $("#contentRoot2").hide();
 
@@ -189,11 +190,14 @@
         var tr = "<tr id='row-id-" + k + "'>";
         tr = tr + "<td ><a class='row-del text-danger' data-feather=\"minus-circle\" data-toggle=\"confirmation\" data-singleton=\"true\" data-title=\"确认要删除?\"></a></td>";
         tr = tr + "<td id='row-key'>" + d[0] + "</td>";
-        tr = tr + "<td id='row-type'><input value='" + d[1] + "'></td>";
+//        tr = tr + "<td id='row-type'><input value='" + d[1] + "'></td>";
+
+        tr = tr + createselectinput("row-type", fieldTypes, d[1]);
+
         tr = tr + "<td id='row-primarykey'><input type='checkbox' " + (isprimarykey(d[0]) ? "checked" : "") + "></td>";
         tr = tr + "<td id='row-cachekey'><input type='checkbox' " + (iscachekey(d[0]) ? "checked" : "") + "></td>";
         tr = tr + "<td ><input id='row-groupkey' name='options-groupkey' " + (isgroupkey(d[0]) ? "checked" : "") + " autocomplete=\"off\" type='radio'></td>";
-        tr = tr + "<td ><input id='row-desc' value='" + d[2] + "'></td>";
+        tr = tr + "<td ><input class='form-control' id='row-desc' value='" + d[2] + "'></td>";
         tr = tr + "</tr>";
         $("#tabledesigninfor").append(tr).ready(function () {
             $('[data-toggle=confirmation]').confirmation({
@@ -214,6 +218,34 @@
         feather.replace();
     }
 
+    function onselectroletype(obj) {
+        var inputid = obj.attr("inputid");
+        if (obj.find("#notnull").is("checked")) {
+            $("#" + inputid).val(obj.text());
+        } else {
+            $("#" + inputid).val(obj.text() + " NOT NULL");
+        }
+    }
+
+    function createselectinput(inputid, optionlist, defaultVal) {
+        var tr = "";
+        tr = tr + "<td><div class=\"input-group\">";
+        tr = tr + "<input type='text' id='" + inputid + "' class='form-control' aria-label='Text input with dropdown button' value='" + defaultVal + "'>";
+        tr = tr + "<div class='input-group-append'>";
+        tr = tr + "<button class='btn btn-outline-secondary dropdown-toggle' type='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'></button>";
+        tr = tr + "<div class='dropdown-menu'>";
+        for (var i in optionlist) {
+            tr = tr + "<div class='row'>"
+            tr = tr + "<a class='col' class='dropdown-item' href='#" + inputid + "' inputid='" + inputid + "' onclick='onselectroletype($(this))'>" + optionlist[i] + "</a>";
+            tr = tr + "<a class='col'><input id='notnull' type='checkbox' value='NOT NULL' checked/>NULL</a>";
+            tr = tr + "</div>";
+        }
+        tr = tr + "</div>";
+        tr = tr + "</div>";
+        tr = tr + "</div></td>";
+        return tr;
+    }
+
     function getTableInfor() {
         var tabledesigninfor = $("#tabledesigninfor");
         tabledesigninfor.empty();
@@ -229,12 +261,12 @@
                 ///////////////////////////////////////
                 var tr = "<tr>";
                 tr = tr + "<td ><a class='text-success' data-feather=\"plus-circle\" onclick='addrow()'></a></td>";
-                tr = tr + "<td ><input id='new-row-key' class='col-sm' type='text'></div></td>";
-                tr = tr + "<td ><input id='new-row-type' type='text' ></td>";
+                tr = tr + "<td ><input class='form-control' id='new-row-key' class='col-sm' type='text'></div></td>";
+                tr = tr + createselectinput("new-row-type", fieldTypes, "");
                 tr = tr + "<td ><input id='new-row-primarykey' type='checkbox' ></td>";
                 tr = tr + "<td ><input id='new-row-cachekey' type='checkbox' ></td>";
                 tr = tr + "<td ><input id='new-row-groupkey' name='options-groupkey' autocomplete=\"off\" type='radio' ></td>";
-                tr = tr + "<td ><input id='new-row-desc' type='text' ></td>";
+                tr = tr + "<td ><input class='form-control' id='new-row-desc' type='text' ></td>";
                 tr = tr + "</tr>";
                 $("#tabledesigninfor").append(tr);
                 ///////////////////////////////////////
