@@ -13,10 +13,15 @@ local tab = {
         { "androidVer", "varchar(24)", "客户端android版本" },
         { "iosVer", "varchar(24)", "客户端ios版本" },
     },
-    primaryKey = { "idx", "appid", "channel" },
-    cacheKey = { "idx" }, -- 缓存key
+    primaryKey = {
+        "idx",
+        "appid",
+        "channel",
+    },
+    cacheKey = { -- 缓存key
+        "idx",
+    },
     groupKey = "appid", -- 组key
     defaultData = {}, -- 初始数据
 }
-
 return tab

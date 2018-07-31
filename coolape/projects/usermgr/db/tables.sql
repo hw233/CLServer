@@ -106,6 +106,7 @@ CREATE TABLE `user` (
   `channel` varchar(45),
   `deviceid` varchar(45),
   `deviceinfor` varchar(128),
+  `groupid` TINYINT,
   PRIMARY KEY (`idx`, `uid`, `uidChl`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------

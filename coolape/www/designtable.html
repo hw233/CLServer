@@ -119,7 +119,7 @@
             return;
         }
 
-        var tabeljson = JSON.stringify(tabledesign)
+        var tabeljson = JSON.stringify(tabledesign);
         var params = {cmd: "saveTableDesign", content: tabeljson, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {
@@ -185,25 +185,26 @@
         for (var i in tabledesign.columns) {
             var d = tabledesign.columns[i];
             if (d[0] == key) {
-                tabledesign.columns.remove(i);
+                tabledesign.columns.splice(i, 1);
                 break;
             }
         }
         for (var i in tabledesign.primaryKey) {
             if (tabledesign.primaryKey[i] == key) {
-                tabledesign.primaryKey.remove(i);
+                tabledesign.primaryKey.splice(i, 1);
                 break;
             }
         }
         for (var i in tabledesign.cacheKey) {
             if (tabledesign.cacheKey[i] == key) {
-                tabledesign.cacheKey.remove(i);
+                tabledesign.cacheKey.splice(i, 1);
                 break;
             }
         }
         if (tabledesign.groupKey == key) {
             tabledesign.groupKey = "";
         }
+        delete tabledesign.columnsmap[key];
     }
 
     function appendonerow(d) {
@@ -214,7 +215,7 @@
         tr = tr + "<td id='row-key'>" + d[0] + "</td>";
 //        tr = tr + "<td id='row-type'><input value='" + d[1] + "'></td>";
 
-        tr = tr + createselectinput("row-type", fieldTypes, d[1]);
+        tr = tr + createselectinput("row-type-" + k, fieldTypes, d[1]);
 
         tr = tr + "<td id='row-primarykey'><input type='checkbox' " + (isprimarykey(d[0]) ? "checked" : "") + "></td>";
         tr = tr + "<td id='row-cachekey'><input type='checkbox' " + (iscachekey(d[0]) ? "checked" : "") + "></td>";
@@ -328,6 +329,7 @@
             tabledesign.columns = [];
             tabledesign.groupKey = "";
             tabledesign.defaultData = [];
+            tabledesign.columnsmap = {};
             setcontent();
         } else {
             getTableInfor();

@@ -161,13 +161,17 @@
     function getData() {
         var conds = {};
         var conditions = $("#conditions");
+        var isAllKeyNull = true;
         for (var k in tabledesign.cacheKey) {
             var key = tabledesign.cacheKey[k];
             conds[key] = conditions.find("#" + key).val();
-            if (conds[key] == null || conds[key] == "") {
-                alert(key + "==null！");
-                return;
+            if (conds[key] != null && conds[key] != "") {
+                isAllKeyNull = false;
             }
+        }
+        if(isAllKeyNull) {
+            alert("all key is null!");
+            return;
         }
 
         var params = {cmd: "getTableData", tableName: tableName, conditions: JSON.stringify(conds), uid: "000"};

@@ -4,6 +4,7 @@ local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"
 ---@type dateEx
 local dateEx = require("dateEx")
+require("CLGlobal")
 require("fileEx")
 local json = require("json.json")
 local table = table
@@ -97,8 +98,13 @@ end
 function CMD.getTableDesign(map)
     local tableName = map.tableName
     local tableDesinPath = CLUtl.combinePath(skynet.getenv("projectPath"), "dbDesign/" .. tableName .. ".lua")
-    local t = dofile(tableDesinPath)
-    return t
+    --local t = dofile(tableDesinPath)
+    local f = load(fileEx.readAll(tableDesinPath))
+    if f then
+        local t = f()
+        return t
+    end
+    return nil
 end
 
 -- 取得所有表的设计

@@ -2,7 +2,6 @@ local tab = {
     name = "user",
     desc = "用户表",
     columns = {
-        --{ "idx", "int(11) NOT NULL AUTO_INCREMENT", "唯一标识" },
         { "idx", "int(11) NOT NULL", "唯一标识" },
         { "uidChl", "varchar(45) NOT NULL", "用户id(第三方渠道用户)" },
         { "uid", "varchar(45) NOT NULL", "用户id" },
@@ -14,11 +13,18 @@ local tab = {
         { "channel", "varchar(45)", "渠道" },
         { "deviceid", "varchar(45)", "机器id" },
         { "deviceinfor", "varchar(128)", "机器信息" },
+        { "groupid", "TINYINT", "组id" },
     },
-    primaryKey = {"idx", "uid", "uidChl" },
-    cacheKey = { "uid", "uidChl" }, -- 缓存key
+    primaryKey = {
+        "idx",
+        "uid",
+        "uidChl",
+    },
+    cacheKey = { -- 缓存key
+        "uid",
+        "uidChl",
+    },
     groupKey = "", -- 组key
     defaultData = {}, -- 初始数据
 }
-
 return tab

@@ -202,6 +202,19 @@ function dbuser:getdeviceinfor()
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "deviceinfor")
 end
 
+function dbuser:setgroupid(v)
+    -- 组id
+    if self:isEmpty() then
+        skynet.error("[dbuser:setgroupid],please init first!!")
+        return nil
+    end
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "groupid", v)
+end
+function dbuser:getgroupid()
+    -- 组id
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "groupid")
+end
+
 -- 把数据flush到mysql里， immd=true 立即生效
 function dbuser:flush(immd)
     local sql
