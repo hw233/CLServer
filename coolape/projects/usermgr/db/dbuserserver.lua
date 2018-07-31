@@ -66,7 +66,7 @@ function dbuserserver:setsidx(v)
         skynet.error("[dbuserserver:setsidx],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "sidx", v)
 end
 function dbuserserver:getsidx()
@@ -80,7 +80,7 @@ function dbuserserver:setuidx(v)
         skynet.error("[dbuserserver:setuidx],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uidx", v)
 end
 function dbuserserver:getuidx()
@@ -94,7 +94,7 @@ function dbuserserver:setappid(v)
         skynet.error("[dbuserserver:setappid],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
 function dbuserserver:getappid()

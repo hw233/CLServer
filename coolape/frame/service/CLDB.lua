@@ -80,8 +80,8 @@ function command.GET(tableName, key, ...)
     if t == nil then
         return nil
     end
-
-    t = t[tostring(key)]
+    key = tostring(key)
+    t = t[key]
     if t == nil then
         return nil
     end
@@ -103,19 +103,21 @@ end
     更新user表的key＝"u001"记录的，字段为name的值为"小张"
 ]]
 function command.SET(tableName, key, ...)
-    local t = db[tableName]
-    if t == nil then
-        t = {}
-        db[tableName] = t
-    end
     local params = { ... }
     if #params < 1 then
         printe("[CLDB.SET] parmas error")
         return nil;
     end
+
+    local t = db[tableName]
+    if t == nil then
+        t = {}
+        db[tableName] = t
+    end
+    key = tostring(key)
     local count = #params
     local val = params[count]
-    local last = t[tostring(key)]
+    local last = t[key]
     if count > 1 then
         local subt = nil;
         for i = 1, count - 1 do
@@ -127,9 +129,9 @@ function command.SET(tableName, key, ...)
         end
         subt[params[count - 1]] = val   -- 设置成新数据
     else
-        t[tostring(key)] = val
+        t[key] = val
     end
-    db[tableName] = t
+
     --..........................................
     if last ~= val then
         local d = command.GET(tableName, key)

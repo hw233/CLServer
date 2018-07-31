@@ -281,8 +281,27 @@ function genDB.genLuaFile(outPath, tableCfg)
         table.insert(getsetFunc, "    end")
 
         local types = v[2]:upper()
-        if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
-            table.insert(getsetFunc, "    v = tonumber(v)")
+        if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
+            table.insert(getsetFunc, "    v = tonumber(v) or 0")
+        elseif types:find("BOOL") then
+            table.insert(getsetFunc, "    local val = 0")
+            table.insert(getsetFunc, "    if type(v) == \"string\" then")
+            table.insert(getsetFunc, "        if v == \"false\" or v ==\"0\" then")
+            table.insert(getsetFunc, "            v = 0")
+            table.insert(getsetFunc, "        else")
+            table.insert(getsetFunc, "            v = 1")
+            table.insert(getsetFunc, "        end")
+            table.insert(getsetFunc, "    elseif type(v) == \"number\" then")
+            table.insert(getsetFunc, "        if v == 0 then")
+            table.insert(getsetFunc, "            v = 0")
+            table.insert(getsetFunc, "        else")
+            table.insert(getsetFunc, "            v = 1")
+            table.insert(getsetFunc, "        end")
+            table.insert(getsetFunc, "    else")
+            table.insert(getsetFunc, "        val = 1")
+            table.insert(getsetFunc, "    end")
+        else
+            table.insert(getsetFunc, "    v = v or \"\"")
         end
         table.insert(getsetFunc, "    skynet.call(\"CLDB\", \"lua\", \"set\", self.__name__, self.__key__, \"" .. v[1] .. "\", v)")
         table.insert(getsetFunc, "end")

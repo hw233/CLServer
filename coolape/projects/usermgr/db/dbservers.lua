@@ -66,7 +66,7 @@ function dbservers:setidx(v)
         skynet.error("[dbservers:setidx],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
 function dbservers:getidx()
@@ -80,7 +80,7 @@ function dbservers:setappid(v)
         skynet.error("[dbservers:setappid],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
 function dbservers:getappid()
@@ -94,6 +94,7 @@ function dbservers:setchannel(v)
         skynet.error("[dbservers:setchannel],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "channel", v)
 end
 function dbservers:getchannel()
@@ -107,6 +108,7 @@ function dbservers:setname(v)
         skynet.error("[dbservers:setname],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
 end
 function dbservers:getname()
@@ -120,7 +122,7 @@ function dbservers:setstatus(v)
         skynet.error("[dbservers:setstatus],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbservers:getstatus()
@@ -134,7 +136,22 @@ function dbservers:setisnew(v)
         skynet.error("[dbservers:setisnew],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    local val = 0
+    if type(v) == "string" then
+        if v == "false" or v =="0" then
+            v = 0
+        else
+            v = 1
+        end
+    elseif type(v) == "number" then
+        if v == 0 then
+            v = 0
+        else
+            v = 1
+        end
+    else
+        val = 1
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "isnew", v)
 end
 function dbservers:getisnew()
@@ -153,6 +170,7 @@ function dbservers:sethost(v)
         skynet.error("[dbservers:sethost],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "host", v)
 end
 function dbservers:gethost()
@@ -166,7 +184,7 @@ function dbservers:setport(v)
         skynet.error("[dbservers:setport],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "port", v)
 end
 function dbservers:getport()
@@ -180,6 +198,7 @@ function dbservers:setandroidVer(v)
         skynet.error("[dbservers:setandroidVer],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "androidVer", v)
 end
 function dbservers:getandroidVer()
@@ -193,6 +212,7 @@ function dbservers:setiosVer(v)
         skynet.error("[dbservers:setiosVer],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "iosVer", v)
 end
 function dbservers:getiosVer()
@@ -285,7 +305,6 @@ function dbservers.instanse(idx)
     ---@type dbservers
     local obj = dbservers.new()
     obj.__key__ = key
-    printe(dbservers.name .. " ==key===" .. key)
     local d = skynet.call("CLDB", "lua", "get", dbservers.name, key)
     if d == nil then
         d = skynet.call("CLMySQL", "lua", "exesql", dbservers.querySql(idx, nil, nil))

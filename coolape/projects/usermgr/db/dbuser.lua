@@ -66,7 +66,7 @@ function dbuser:setidx(v)
         skynet.error("[dbuser:setidx],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
 function dbuser:getidx()
@@ -80,6 +80,7 @@ function dbuser:setuidChl(v)
         skynet.error("[dbuser:setuidChl],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uidChl", v)
 end
 function dbuser:getuidChl()
@@ -93,6 +94,7 @@ function dbuser:setuid(v)
         skynet.error("[dbuser:setuid],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uid", v)
 end
 function dbuser:getuid()
@@ -106,6 +108,7 @@ function dbuser:setpassword(v)
         skynet.error("[dbuser:setpassword],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "password", v)
 end
 function dbuser:getpassword()
@@ -119,6 +122,7 @@ function dbuser:setcrtTime(v)
         skynet.error("[dbuser:setcrtTime],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "crtTime", v)
 end
 function dbuser:getcrtTime()
@@ -132,6 +136,7 @@ function dbuser:setlastEnTime(v)
         skynet.error("[dbuser:setlastEnTime],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lastEnTime", v)
 end
 function dbuser:getlastEnTime()
@@ -145,7 +150,7 @@ function dbuser:setstatus(v)
         skynet.error("[dbuser:setstatus],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbuser:getstatus()
@@ -159,7 +164,7 @@ function dbuser:setappid(v)
         skynet.error("[dbuser:setappid],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
 function dbuser:getappid()
@@ -173,6 +178,7 @@ function dbuser:setchannel(v)
         skynet.error("[dbuser:setchannel],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "channel", v)
 end
 function dbuser:getchannel()
@@ -186,6 +192,7 @@ function dbuser:setdeviceid(v)
         skynet.error("[dbuser:setdeviceid],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "deviceid", v)
 end
 function dbuser:getdeviceid()
@@ -199,6 +206,7 @@ function dbuser:setdeviceinfor(v)
         skynet.error("[dbuser:setdeviceinfor],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "deviceinfor", v)
 end
 function dbuser:getdeviceinfor()
@@ -212,7 +220,7 @@ function dbuser:setgroupid(v)
         skynet.error("[dbuser:setgroupid],please init first!!")
         return nil
     end
-    v = tonumber(v)
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "groupid", v)
 end
 function dbuser:getgroupid()

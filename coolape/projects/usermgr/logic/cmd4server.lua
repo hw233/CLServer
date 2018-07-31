@@ -52,7 +52,6 @@ cmd4server.CMD = {
             ret.code = Errcode.error
             return skynet.call(NetProto, "lua", "send", "getServerInfor", ret)
         end
-        printe("m.idx==========" .. m.idx)
         local s = dbservers.instanse(m.idx)
         if s:isEmpty() then
             -- 未找到
@@ -68,7 +67,6 @@ cmd4server.CMD = {
         s:setisnew(false)
         result.isnew = s:getisnew()
         s:release()
-        printe(CLUtl.dump(result))
         return skynet.call(NetProto, "lua", "send", "getServerInfor", ret, result)
     end,
 
