@@ -10,6 +10,7 @@ local DBUtl = require "DBUtl"
 local dateEx = require("dateEx")
 ---@type NetProtoUsermgr
 local NetProto = "NetProtoUsermgr"
+require("CLGlobal")
 local table = table
 
 local cmd4user = {}
@@ -27,8 +28,6 @@ local function getServerid(uidx, appid, channel)
         local list = dbservers.getList(appid)
         if list and #list > 0 then
             for i, v in ipairs(list) do
-                CLUtl.dump(v)
-                print(v.isnew)
                 if v.isnew and (channel == nil or channel == "" or v.channel == channel) then
                     serveridx = v.idx
                     break
@@ -192,7 +191,6 @@ cmd4user.CMD = {
             -- 1001:咪宝
             serveridx = getServerid(user.idx, m.appid, m.channel)
         end
-
         local ret = skynet.call(NetProto, "lua", "send", "loginAccountChannel", ret, user, serveridx, dateEx.nowMS())
         myself:release()
         return ret

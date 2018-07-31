@@ -16,6 +16,7 @@
 
 require("class")
 local skynet = require "skynet"
+local tonumber = tonumber
 
 -- 用户表
 ---@class dbuser
@@ -65,6 +66,7 @@ function dbuser:setidx(v)
         skynet.error("[dbuser:setidx],please init first!!")
         return nil
     end
+    v = tonumber(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
 function dbuser:getidx()
@@ -143,6 +145,7 @@ function dbuser:setstatus(v)
         skynet.error("[dbuser:setstatus],please init first!!")
         return nil
     end
+    v = tonumber(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbuser:getstatus()
@@ -156,6 +159,7 @@ function dbuser:setappid(v)
         skynet.error("[dbuser:setappid],please init first!!")
         return nil
     end
+    v = tonumber(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
 function dbuser:getappid()
@@ -208,6 +212,7 @@ function dbuser:setgroupid(v)
         skynet.error("[dbuser:setgroupid],please init first!!")
         return nil
     end
+    v = tonumber(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "groupid", v)
 end
 function dbuser:getgroupid()

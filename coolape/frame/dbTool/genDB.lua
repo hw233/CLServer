@@ -279,6 +279,11 @@ function genDB.genLuaFile(outPath, tableCfg)
         table.insert(getsetFunc, "        skynet.error(\"[" .. name .. ":set" .. v[1] .. "],please init first!!\")")
         table.insert(getsetFunc, "        return nil")
         table.insert(getsetFunc, "    end")
+
+        local types = v[2]:upper()
+        if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
+            table.insert(getsetFunc, "    v = tonumber(v)")
+        end
         table.insert(getsetFunc, "    skynet.call(\"CLDB\", \"lua\", \"set\", self.__name__, self.__key__, \"" .. v[1] .. "\", v)")
         table.insert(getsetFunc, "end")
         table.insert(getsetFunc, "function " .. name .. ":get" .. v[1] .. "()")
@@ -299,7 +304,7 @@ function genDB.genLuaFile(outPath, tableCfg)
 
         table.insert(columns, "`" .. v[1] .. "`" )
         local types = v[2]:upper()
-        if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
+        if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
             table.insert(dataInit, "    self." .. v[1] .. " = 0" .. ( v[3] and "    -- " .. v[3] or ""))
             table.insert(dataSet, "    self." .. v[1] .. " = data." .. v[1] .. ( v[3] and "    -- " .. v[3] or ""))
             table.insert(dataInsert, "(self." .. v[1] .. " and self." .. v[1] .. " or 0)");
@@ -337,7 +342,7 @@ function genDB.genLuaFile(outPath, tableCfg)
                     end
                 end
             end
-            if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
+            if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
                 table.insert(where, "\"`" .. pkey .. "`=\" .. (self." .. pkey .. " and self." .. pkey .. " or 0)");
                 table.insert(where2, "\"`" .. pkey .. "`=\" .. (" .. pkey .. " and " .. pkey .. " or 0)");
             else
@@ -365,6 +370,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "")
     table.insert(str, "require(\"class\")")
     table.insert(str, "local skynet = require \"skynet\"")
+    table.insert(str, "local tonumber = tonumber")
     table.insert(str, "")
     table.insert(str, "-- " .. tableCfg.desc)
     table.insert(str, "---@class " .. name)
@@ -493,7 +499,7 @@ function genDB.genLuaFile(outPath, tableCfg)
                 end
             end
             table.insert(str, "    if " .. k .. " then")
-            if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
+            if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
                 table.insert(str, "        table.insert(where, \"`" .. k .. "`=\" .. " .. k .. ")")
             else
                 table.insert(str, "        table.insert(where, \"`" .. k .. "`=\" .. \"'\" .. " .. k .. "  .. \"'\")")
@@ -522,7 +528,7 @@ function genDB.genLuaFile(outPath, tableCfg)
             end
         end
         local where = ""
-        if types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
+        if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
             where = " .. " .. tableCfg.groupKey .. " .. "
         else
             where = " .. \"'\" .. " .. tableCfg.groupKey .. " .. \"'\" .. "

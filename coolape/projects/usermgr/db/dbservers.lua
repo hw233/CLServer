@@ -16,6 +16,7 @@
 
 require("class")
 local skynet = require "skynet"
+local tonumber = tonumber
 
 -- 服务器列表
 ---@class dbservers
@@ -65,6 +66,7 @@ function dbservers:setidx(v)
         skynet.error("[dbservers:setidx],please init first!!")
         return nil
     end
+    v = tonumber(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
 function dbservers:getidx()
@@ -78,6 +80,7 @@ function dbservers:setappid(v)
         skynet.error("[dbservers:setappid],please init first!!")
         return nil
     end
+    v = tonumber(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
 function dbservers:getappid()
@@ -117,6 +120,7 @@ function dbservers:setstatus(v)
         skynet.error("[dbservers:setstatus],please init first!!")
         return nil
     end
+    v = tonumber(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbservers:getstatus()
@@ -130,6 +134,7 @@ function dbservers:setisnew(v)
         skynet.error("[dbservers:setisnew],please init first!!")
         return nil
     end
+    v = tonumber(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "isnew", v)
 end
 function dbservers:getisnew()
@@ -161,6 +166,7 @@ function dbservers:setport(v)
         skynet.error("[dbservers:setport],please init first!!")
         return nil
     end
+    v = tonumber(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "port", v)
 end
 function dbservers:getport()
@@ -279,6 +285,7 @@ function dbservers.instanse(idx)
     ---@type dbservers
     local obj = dbservers.new()
     obj.__key__ = key
+    printe(dbservers.name .. " ==key===" .. key)
     local d = skynet.call("CLDB", "lua", "get", dbservers.name, key)
     if d == nil then
         d = skynet.call("CLMySQL", "lua", "exesql", dbservers.querySql(idx, nil, nil))
