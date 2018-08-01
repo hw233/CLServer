@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="icon" href="">
 
-    <title>island Manager</title>
+    <title>usermger Manager</title>
 
     <!-- Bootstrap core CSS -->
     <link href="../../../../bootstrap-4.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -19,7 +19,7 @@
 <body>
 
 <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">island(海战)</a>
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="#">usermgr(账号管理)</a>
     <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
     <ul class="navbar-nav px-3">
         <li class="nav-item text-nowrap">
@@ -30,14 +30,14 @@
 
 <div class="container">
     <div class="row">
-        <nav class="col-md-2 ml-sm-2 col-lg-2 d-none d-md-block bg-light sidebar">
+        <nav class="3 ml-sm-3 col-lg-3 d-none d-md-block bg-light sidebar">
             <div class="sidebar-sticky">
                 <ul class="nav flex-column" id="leftTreeRoot">
                 </ul>
             </div>
         </nav>
 
-        <main role="main" class="col-md-10 ml-sm-auto col-lg-10 px-4">
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-9 px-4">
             <div class="container">
                 <ul class="nav nav-tabs" role="tablist" id="tabsRoot" style="position:relative;top:8px"></ul>
                 <!-- 加上clearfix 这个class，不然tab切换时，滚动就不启动作用了-->
@@ -54,26 +54,103 @@
 <script>window.jQuery || document.write('<script src="../../../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
 <script src="../../../../bootstrap-4.1.1/assets/js/vendor/popper.min.js"></script>
 <script src="../../../../bootstrap-4.1.1/dist/js/bootstrap.min.js"></script>
+<script src="../../../../Bootstrap-Confirmation-master/dist/bootstrap-confirmation.js"></script>
 
 <!-- Icons -->
 <script src="../../feather-icons/dist/feather.min.js"></script>
+
 <!-- tab 处理-->
 <script src="js/glcfg.js"></script>
 <script src="../../js/myutl.js"></script>
 <script src="../../js/tabEx.js"></script>
 <script>
+    var leftMenuList = null;
+
     function onclickLeftMenu(id, name, url) {
-        if (typeof(url) == "undefined" || url == null || url == "") {
-            alert("url是空！")
-            return;
-        }
-        if (url.indexOf("?") >= 0) {
-            url = url + "&url=" + glcfg.baseUrl
+        if (typeof(url) != "undefined" && url != null && url != "") {
+            if (url.indexOf("?") >= 0) {
+                url = url + "&url=" + glcfg.baseUrl+"&id="+id
+            } else {
+                url = url + "?url=" + glcfg.baseUrl+"&id="+id
+            }
+            // if (params != null) {
+            //     for (var k in params) {
+            //         url = url + "&" + k + "=" + params[k]
+            //     }
+            // }
+            var item = {'id': id, 'name': name, 'url': url, 'closable': true, 'forceRefresh': true};
+            tabEx.addTab(item);
         } else {
-            url = url + "?url=" + glcfg.baseUrl
+            alert("url是空！");
         }
-        var item = {'id': id, 'name': name, 'url': url, 'closable': true, 'forceRefresh': true};
-        tabEx.addTab(item);
+        feather.replace();
+    }
+
+    function onclickLeftGroupMenu(elem, menu) {
+        var id, name, url;
+        id = menu.key;
+        name = menu.name;
+        url = menu.url;
+        if (typeof(url) != "undefined" && url != null && url != "") {
+            onclickLeftMenu(id, name, url)
+        } else {
+            alert("url是空！")
+        }
+        feather.replace();
+    }
+    function onclickLeftGroupMenuCircle(elem, menu) {
+        //处理子菜单
+        if (menu.isGroupMenu) {
+            if (menu.isShowing == null || menu.isShowing == false) {
+                //显示
+                var subMenu = $("#leftMenu_group_" + menu.key);
+                if ($.isEmptyObject(subMenu) || subMenu.length == 0) {
+                    elem.after("<ul id='leftMenu_group_" + menu.key + "' class=\"nav flex-column\"></ul>");
+
+                    var baseUrl = glcfg.baseUrl
+                    var params = {cmd: "getLeftSubMenu", groupKey: menu.key, uid: "000"}
+                    myutl.ajaxJSONP(baseUrl, params,
+                        function (result, status, xhr) {
+                            var list = result;
+                            var feather;
+                            var url;
+                            var item;
+                            subMenu = $("#leftMenu_group_" + menu.key);
+                            for (var k in list) {
+                                item = list[k];
+                                feather = item.feather == null ? "crop" : item.feather;
+                                url = typeof(item.url) == "undefined" ? "" : item.url;
+                                var child = "<li id='leftMenu_sub_" + item.key + "' class=\"nav-item\">\n" +
+                                    "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + item.key + "\" ,\"" + item.name + "\",\"" + item.url + "\")'>\n" +
+                                    "&nbsp;&nbsp;<span data-feather=\"" + feather + "\"></span>\n" +
+                                    item.name + "</a> </li>";
+                                subMenu.append(child);
+                            }
+                            menu.isShowing = true;
+                            // $("#leftMenu_circle_" + menu.key).attr("data-feather", "minus-circle")
+                            $("#leftMenu_circle_" + menu.key).text("⊖");
+                            feather.replace();
+                        }, null);
+                } else {
+                    subMenu.show();
+                    menu.isShowing = true;
+                    // $("#leftMenu_circle_" + menu.key).attr("data-feather", "minus-circle");
+                    $("#leftMenu_circle_" + menu.key).text("⊖");
+                    feather.replace();
+                }
+            } else {
+                //隐藏
+                var subMenu = $("#leftMenu_group_" + menu.key);
+                if (subMenu != null) {
+                    subMenu.hide();
+                    menu.isShowing = false;
+                    // $("#leftMenu_circle_" + menu.key).attr("data-feather", "plus-circle")
+                    $("#leftMenu_circle_" + menu.key).text("⊕")
+                    feather.replace();
+                }
+            }
+        }
+
         feather.replace();
     }
 
@@ -88,22 +165,34 @@
         var params = {cmd: "getLeftMenu", uid: "000"}
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
-                var list = result;
-                var leftTreeRoot = $("#leftTreeRoot")
+                leftMenuList = result;
+                var leftTreeRoot = $("#leftTreeRoot");
                 var feather;
                 var url;
                 var item;
-                for (var k in list) {
-                    item = list[k];
+                for (var k in leftMenuList) {
+                    item = leftMenuList[k];
                     feather = item.feather == null ? "crop" : item.feather;
                     url = typeof(item.url) == "undefined" ? "" : item.url;
-                    var child = "<li class=\"nav-item\">\n" +
-                        "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftMenu(\"" + item.key + "\" ,\"" + item.name + "\",\"" + url + "\")'>\n" +
-                        " <span data-feather=\"" + feather + "\"></span>\n" +
-                        item.name + "</a> </li>";
-                    leftTreeRoot.append(child);
+                    var child = "";
+                    if (item.isGroupMenu) {
+                        child = "<h6 id='leftMenu_" + item.key + "' class=\"nav-item  d-flex justify-content-start align-items-center\">\n" +
+                            "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftGroupMenu($(this).parent(), leftMenuList[" + k + "])'>\n" +
+                            " <span data-feather=\"" + feather + "\"></span>\n" +
+                            item.name + "</a> <a id='leftMenu_circle_" + item.key + "' class='text-xl-left' onclick='onclickLeftGroupMenuCircle($(this).parent(), leftMenuList[" + k + "])'>⊕</a>\n" + " </h6>\n";
+                    } else {
+                        child = "<li id='leftMenu_" + item.key + "' class=\"nav-item\">\n" +
+                            "<a class=\"nav-link\" href=\"#\" onclick='onclickLeftGroupMenu($(this).parent(), leftMenuList[" + k + "])'>\n" +
+                            " <span data-feather=\"" + feather + "\"></span>\n" +
+                            item.name + "</a> </li>";
+                    }
+                    leftTreeRoot.append(child).ready(function () {
+                        feather.replace();
+                    });
+
+                    feather.replace();
                 }
-                feather.replace();
+
             },
             function (jqXHR, textStatus, errorThrown) {
                 alert("取得菜单失败:" + textStatus);

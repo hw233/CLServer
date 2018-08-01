@@ -603,7 +603,11 @@ cmd4city.CMD = {
 skynet.start(function()
     skynet.dispatch("lua", function(_, _, command, ...)
         local f = cmd4city.CMD[command]
-        skynet.ret(skynet.pack(f(...)))
+        if f == nil then
+            error("func is nill.cmd =" .. command)
+        else
+            skynet.ret(skynet.pack(f(...)))
+        end
     end)
 end)
 

@@ -141,7 +141,6 @@
 
         currsql = sql;
         sql = sql + " LIMIT 0, " + pagesize;
-        alert(sql)
 
         var params = {cmd: "doSQL", sql: sql, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
@@ -176,6 +175,10 @@
                 dataList = result;
                 refreshContent();
                 feather.replace();
+                if(currpageIndex == 1) {
+                    $("#pageprev").addClass("disabled");
+                }
+                $("#pagenext").removeClass("disabled");
             },
             function (jqXHR, textStatus, errorThrown) {
                 alert("error:" + textStatus);
@@ -185,7 +188,6 @@
 
     function nextPage() {
         var sql = currsql + " LIMIT " + currpageIndex * pagesize + ", " + pagesize;
-        alert(sql)
 
         var params = {cmd: "doSQL", sql: sql, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
@@ -197,6 +199,7 @@
                     currpageIndex = currpageIndex + 1;
                     dataList = result;
                     refreshContent();
+                    $("#pageprev").removeClass("disabled");
                     feather.replace();
                 }
             },

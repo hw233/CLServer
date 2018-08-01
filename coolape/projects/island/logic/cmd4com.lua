@@ -17,6 +17,9 @@ cmd4com.CMD = {
 skynet.start(function()
     skynet.dispatch("lua", function(_, _, command, ...)
         local f = cmd4com.CMD[command]
+        if f == nil then
+            error("cmd func is nil.cmd == " .. command)
+        end
         skynet.ret(skynet.pack(f(...)))
     end)
 end)
