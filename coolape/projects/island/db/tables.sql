@@ -99,7 +99,6 @@ CREATE TABLE `city` (
   `pidx` int(11) NOT NULL,
   `pos` int(11),
   `status` int(11),
-  `lev` int(4),
   PRIMARY KEY (`idx`, `pidx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------

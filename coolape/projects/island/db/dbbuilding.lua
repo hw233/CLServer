@@ -7,15 +7,16 @@
     else
         -- 有数据
     end
-2、使用如下用法时，程序认为mysql已经有数据了，只会做更新操作
+2、使用如下用法时，程序会自动判断是否是insert还是update
     local obj＝ dbbuilding.new(data);
-3、使用如下用法时，程序认为mysql没有数据，会插入一条记录到表
+3、使用如下用法时，程序会自动判断是否是insert还是update
     local obj＝ dbbuilding.new();
     obj:init(data);
 ]]
 
 require("class")
 local skynet = require "skynet"
+local tonumber = tonumber
 
 -- 建筑表
 ---@class dbbuilding
@@ -25,17 +26,27 @@ dbbuilding.name = "building"
 
 function dbbuilding:ctor(v)
     self.__name__ = "building"    -- 表名
+    self.__isNew__ = nil -- false:说明mysql里已经有数据了
     if v then
-        self.__isNew__ = false -- 说明mysql里已经有数据了
         self:init(v)
-    else
-        self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-        self.__key__ = nil -- 缓存数据的key
     end
 end
 
 function dbbuilding:init(data)
     self.__key__ = data.idx
+    if self.__isNew__ == nil then
+        local d = skynet.call("CLDB", "lua", "get", dbbuilding.name, self.__key__)
+        if d == nil then
+            d = skynet.call("CLMySQL", "lua", "exesql", dbbuilding.querySql(data.idx, nil))
+            if d and d.errno == nil and #d > 0 then
+                self.__isNew__ = false
+            else
+                self.__isNew__ = true
+            end
+        else
+            self.__isNew__ = false
+        end
+    end
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
@@ -65,6 +76,7 @@ function dbbuilding:setidx(v)
         skynet.error("[dbbuilding:setidx],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
 function dbbuilding:getidx()
@@ -78,6 +90,7 @@ function dbbuilding:setcidx(v)
         skynet.error("[dbbuilding:setcidx],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "cidx", v)
 end
 function dbbuilding:getcidx()
@@ -91,6 +104,7 @@ function dbbuilding:setpos(v)
         skynet.error("[dbbuilding:setpos],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pos", v)
 end
 function dbbuilding:getpos()
@@ -104,6 +118,7 @@ function dbbuilding:setattrid(v)
         skynet.error("[dbbuilding:setattrid],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "attrid", v)
 end
 function dbbuilding:getattrid()
@@ -117,6 +132,7 @@ function dbbuilding:setlev(v)
         skynet.error("[dbbuilding:setlev],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lev", v)
 end
 function dbbuilding:getlev()
@@ -130,6 +146,7 @@ function dbbuilding:setval(v)
         skynet.error("[dbbuilding:setval],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "val", v)
 end
 function dbbuilding:getval()
@@ -143,6 +160,7 @@ function dbbuilding:setval2(v)
         skynet.error("[dbbuilding:setval2],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "val2", v)
 end
 function dbbuilding:getval2()
@@ -156,6 +174,7 @@ function dbbuilding:setval3(v)
         skynet.error("[dbbuilding:setval3],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "val3", v)
 end
 function dbbuilding:getval3()
@@ -169,6 +188,7 @@ function dbbuilding:setval4(v)
         skynet.error("[dbbuilding:setval4],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "val4", v)
 end
 function dbbuilding:getval4()
@@ -193,6 +213,8 @@ end
 
 function dbbuilding:release()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
+    self.__isNew__ = nil
+    self.__key__ = nil
 end
 
 function dbbuilding:delete()

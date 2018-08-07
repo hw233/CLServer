@@ -7,15 +7,16 @@
     else
         -- 有数据
     end
-2、使用如下用法时，程序认为mysql已经有数据了，只会做更新操作
+2、使用如下用法时，程序会自动判断是否是insert还是update
     local obj＝ dbtile.new(data);
-3、使用如下用法时，程序认为mysql没有数据，会插入一条记录到表
+3、使用如下用法时，程序会自动判断是否是insert还是update
     local obj＝ dbtile.new();
     obj:init(data);
 ]]
 
 require("class")
 local skynet = require "skynet"
+local tonumber = tonumber
 
 -- 地块表
 ---@class dbtile
@@ -25,17 +26,27 @@ dbtile.name = "tile"
 
 function dbtile:ctor(v)
     self.__name__ = "tile"    -- 表名
+    self.__isNew__ = nil -- false:说明mysql里已经有数据了
     if v then
-        self.__isNew__ = false -- 说明mysql里已经有数据了
         self:init(v)
-    else
-        self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-        self.__key__ = nil -- 缓存数据的key
     end
 end
 
 function dbtile:init(data)
     self.__key__ = data.idx
+    if self.__isNew__ == nil then
+        local d = skynet.call("CLDB", "lua", "get", dbtile.name, self.__key__)
+        if d == nil then
+            d = skynet.call("CLMySQL", "lua", "exesql", dbtile.querySql(data.idx, nil))
+            if d and d.errno == nil and #d > 0 then
+                self.__isNew__ = false
+            else
+                self.__isNew__ = true
+            end
+        else
+            self.__isNew__ = false
+        end
+    end
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
@@ -65,6 +76,7 @@ function dbtile:setidx(v)
         skynet.error("[dbtile:setidx],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
 function dbtile:getidx()
@@ -78,6 +90,7 @@ function dbtile:setcidx(v)
         skynet.error("[dbtile:setcidx],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "cidx", v)
 end
 function dbtile:getcidx()
@@ -91,6 +104,7 @@ function dbtile:setattrid(v)
         skynet.error("[dbtile:setattrid],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "attrid", v)
 end
 function dbtile:getattrid()
@@ -104,6 +118,7 @@ function dbtile:setpos(v)
         skynet.error("[dbtile:setpos],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pos", v)
 end
 function dbtile:getpos()
@@ -128,6 +143,8 @@ end
 
 function dbtile:release()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
+    self.__isNew__ = nil
+    self.__key__ = nil
 end
 
 function dbtile:delete()

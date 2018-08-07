@@ -116,12 +116,15 @@ cmd4player.CMD = {
     logout = function(m, fd)
         skynet.call("watchdog", "lua", "close", fd)
     end,
-
 }
 
 skynet.start(function()
     skynet.dispatch("lua", function(_, _, command, ...)
         local f = cmd4player.CMD[command]
-        skynet.ret(skynet.pack(f(...)))
+        if f then
+            skynet.ret(skynet.pack(f(...)))
+        else
+            error("cmd func is nil.cmd == " .. command)
+        end
     end)
 end)

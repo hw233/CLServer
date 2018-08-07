@@ -7,15 +7,16 @@
     else
         -- 有数据
     end
-2、使用如下用法时，程序认为mysql已经有数据了，只会做更新操作
+2、使用如下用法时，程序会自动判断是否是insert还是update
     local obj＝ dbcity.new(data);
-3、使用如下用法时，程序认为mysql没有数据，会插入一条记录到表
+3、使用如下用法时，程序会自动判断是否是insert还是update
     local obj＝ dbcity.new();
     obj:init(data);
 ]]
 
 require("class")
 local skynet = require "skynet"
+local tonumber = tonumber
 
 -- 主城表
 ---@class dbcity
@@ -25,17 +26,27 @@ dbcity.name = "city"
 
 function dbcity:ctor(v)
     self.__name__ = "city"    -- 表名
+    self.__isNew__ = nil -- false:说明mysql里已经有数据了
     if v then
-        self.__isNew__ = false -- 说明mysql里已经有数据了
         self:init(v)
-    else
-        self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-        self.__key__ = nil -- 缓存数据的key
     end
 end
 
 function dbcity:init(data)
     self.__key__ = data.idx
+    if self.__isNew__ == nil then
+        local d = skynet.call("CLDB", "lua", "get", dbcity.name, self.__key__)
+        if d == nil then
+            d = skynet.call("CLMySQL", "lua", "exesql", dbcity.querySql(data.idx, nil))
+            if d and d.errno == nil and #d > 0 then
+                self.__isNew__ = false
+            else
+                self.__isNew__ = true
+            end
+        else
+            self.__isNew__ = false
+        end
+    end
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
@@ -65,6 +76,7 @@ function dbcity:setidx(v)
         skynet.error("[dbcity:setidx],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
 function dbcity:getidx()
@@ -78,6 +90,7 @@ function dbcity:setname(v)
         skynet.error("[dbcity:setname],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
 end
 function dbcity:getname()
@@ -91,6 +104,7 @@ function dbcity:setpidx(v)
         skynet.error("[dbcity:setpidx],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pidx", v)
 end
 function dbcity:getpidx()
@@ -104,6 +118,7 @@ function dbcity:setpos(v)
         skynet.error("[dbcity:setpos],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pos", v)
 end
 function dbcity:getpos()
@@ -117,24 +132,12 @@ function dbcity:setstatus(v)
         skynet.error("[dbcity:setstatus],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbcity:getstatus()
     -- 状态 1:正常;
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
-end
-
-function dbcity:setlev(v)
-    -- 等级
-    if self:isEmpty() then
-        skynet.error("[dbcity:setlev],please init first!!")
-        return nil
-    end
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lev", v)
-end
-function dbcity:getlev()
-    -- 等级
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lev")
 end
 
 -- 把数据flush到mysql里， immd=true 立即生效
@@ -154,6 +157,8 @@ end
 
 function dbcity:release()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
+    self.__isNew__ = nil
+    self.__key__ = nil
 end
 
 function dbcity:delete()

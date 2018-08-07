@@ -19,7 +19,8 @@ skynet.start(function()
         local f = cmd4com.CMD[command]
         if f == nil then
             error("cmd func is nil.cmd == " .. command)
+        else
+            skynet.ret(skynet.pack(f(...)))
         end
-        skynet.ret(skynet.pack(f(...)))
     end)
 end)

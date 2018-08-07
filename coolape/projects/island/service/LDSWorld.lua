@@ -5,9 +5,9 @@ require "skynet.manager"    -- import skynet.register
 require("Grid")
 require("public.cfgUtl")
 
-local constCfg = cfgUtl.getConstCfg()
+local constCfg  -- 常量配置
 local grid
-local gridSize = constCfg.GridWorld
+local gridSize -- 网格size
 local screenSize = 10   -- 大地图一屏size
 local cellSize = 1
 local screenCells = {}  -- 每屏的网格信息
@@ -53,6 +53,9 @@ function CMD.getIdleIdx(screenOrder)
 end
 
 skynet.start(function()
+    constCfg = cfgUtl.getConstCfg()
+    gridSize = constCfg.GridWorld
+
     -- 初始化网格
     grid = Grid.new()
     grid:init(Vector3.zero, gridSize, gridSize, cellSize)

@@ -2,6 +2,7 @@ local skynet = require "skynet"
 require("public.include")
 
 local max_client = 1024 * 1024
+local dataSynSec = 60 -- 数据同步时间（秒）
 
 skynet.start(
         function()
@@ -24,7 +25,7 @@ skynet.start(
                 user = "root",
                 password = "123.",
                 max_packet_size = 1024 * 1024,
-                synchrotime = 1 * 60 * 100, -- 同步数据时间间隔 100=1秒
+                synchrotime = dataSynSec * 100, -- 同步数据时间间隔 100=1秒
                 isDebug = true,
             })
 
@@ -33,7 +34,7 @@ skynet.start(
 
             -- 简单缓存数据库
             skynet.uniqueservice("CLDB")
-            skynet.call("CLDB", "lua", "SETTIMEOUT", 10 * 60)     -- 设置数据缓存时间 秒
+            skynet.call("CLDB", "lua", "SETTIMEOUT", 20 * dataSynSec)     -- 设置数据缓存时间 秒
 
             -- world Grid
             skynet.uniqueservice("LDSWorld")

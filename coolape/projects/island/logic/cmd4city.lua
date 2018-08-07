@@ -10,15 +10,14 @@ require("Errcode")
 local math = math
 local table = table
 
-local constCfg = cfgUtl.getConstCfg()
-local gridSize = constCfg.GridCity
+local constCfg -- 常量配置
+local gridSize  -- 网格size
 local cellSize = 1
 local tileSize = 2
 
 local NetProtoIsland = "NetProtoIsland"
 ---@type Grid
-local grid = Grid.new()
-grid:init(Vector3.zero, gridSize, gridSize, cellSize)
+local grid
 
 -- 网格状态
 local gridState4Tile = {}
@@ -28,6 +27,8 @@ local gridState4Building = {}
 local myself
 local tiles = {}        -- 地块信息 key=idx, val=dbtile
 local buildings = {}    -- 建筑信息 key=idx, val=dbbuilding
+---@type dbbuilding
+local headquarters -- 主基地
 
 function cmd4city.new (uidx)
     tiles = {}        -- 地块信息 key=idx
@@ -52,6 +53,7 @@ function cmd4city.new (uidx)
     local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2), numEx.getIntPart(gridSize / 2)), idx)
     if building then
         buildings[building:getidx()] = building
+        headquarters = building
         cmd4city.placeBuilding(building)
     end
 
@@ -199,12 +201,21 @@ function cmd4city.initTree(city)
     end
 end
 
+-- 取得主城的等级，其实就是主基地的等级
+function cmd4city.getCityLev()
+    if headquarters then
+        headquarters:getlev()
+    else
+        return 1
+    end
+end
+
 -- 初始化地块
 ---@param city dbcity
 function cmd4city.initTiles(city)
-    local headquartersLevsAttr = cfgUtl.getHeadquartersLevsByID(city:getlev())
+    local headquartersLevsAttr = cfgUtl.getHeadquartersLevsByID(cmd4city.getCityLev())
     if headquartersLevsAttr == nil then
-        printe("get DBCFHeadquartersLevsData attr is nil. key=" .. city:getlev())
+        printe("get DBCFHeadquartersLevsData attr is nil. key=" .. cmd4city.getCityLev())
         return nil
     end
 
@@ -437,6 +448,10 @@ function cmd4city.setSelfBuildings()
     for i, v in ipairs(list) do
         b = dbbuilding.new(v)
         buildings[v.idx] = b
+        if v.attrid == 1 then
+            -- 说明是主基地
+            headquarters = v
+        end
         cmd4city.placeBuilding(b)
     end
 end
@@ -621,9 +636,17 @@ cmd4city.CMD = {
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", "upLevBuilding", ret)
     end,
+    release = function (m, fd)
+        cmd4city.release()
+    end,
 }
 
 skynet.start(function()
+    constCfg = cfgUtl.getConstCfg()
+    gridSize = constCfg.GridCity
+    grid = Grid.new()
+    grid:init(Vector3.zero, gridSize, gridSize, cellSize)
+
     skynet.dispatch("lua", function(_, _, command, ...)
         local f = cmd4city.CMD[command]
         if f == nil then

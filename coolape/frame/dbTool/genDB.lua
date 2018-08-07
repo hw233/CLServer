@@ -272,6 +272,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     local shardataKey = {}
     local shardataKey2 = {}
     local callParams = {}
+    local callParamswithData = {}
     for i, v in ipairs(tableCfg.columns) do
         table.insert(getsetFunc, "function " .. name .. ":set" .. v[1] .. "(v)")
         table.insert(getsetFunc, "    " .. ( v[3] and "-- " .. v[3] or ""))
@@ -354,10 +355,12 @@ function genDB.genLuaFile(outPath, tableCfg)
             for j, ck in ipairs(tableCfg.cacheKey) do
                 if ck == pkey then
                     table.insert(callParams, pkey);
+                    table.insert(callParamswithData, "data." .. pkey)
                     break
                 else
                     if j == #(tableCfg.cacheKey) then
                         table.insert(callParams, "nil");
+                        table.insert(callParamswithData, "nil")
                     end
                 end
             end
@@ -380,9 +383,9 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "    else")
     table.insert(str, "        -- 有数据")
     table.insert(str, "    end")
-    table.insert(str, "2、使用如下用法时，程序认为mysql已经有数据了，只会做更新操作")
+    table.insert(str, "2、使用如下用法时，程序会自动判断是否是insert还是update")
     table.insert(str, "    local obj＝ " .. name .. ".new(data);")
-    table.insert(str, "3、使用如下用法时，程序认为mysql没有数据，会插入一条记录到表")
+    table.insert(str, "3、使用如下用法时，程序会自动判断是否是insert还是update")
     table.insert(str, "    local obj＝ " .. name .. ".new();")
     table.insert(str, "    obj:init(data);")
     table.insert(str, "]]")
@@ -399,12 +402,9 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "")
     table.insert(str, "function " .. name .. ":ctor(v)")
     table.insert(str, "    self.__name__ = \"" .. tableCfg.name .. "\"    -- 表名")
+    table.insert(str, "    self.__isNew__ = nil -- false:说明mysql里已经有数据了")
     table.insert(str, "    if v then")
-    table.insert(str, "        self.__isNew__ = false -- 说明mysql里已经有数据了")
     table.insert(str, "        self:init(v)")
-    table.insert(str, "    else")
-    table.insert(str, "        self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据")
-    table.insert(str, "        self.__key__ = nil -- 缓存数据的key")
     table.insert(str, "    end")
     --table.insert(str, table.concat(dataInit, "\n"))
     table.insert(str, "end")
@@ -413,6 +413,19 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "function " .. name .. ":init(data)")
     --table.insert(str, table.concat(dataSet, "\n"))
     table.insert(str, "    self.__key__ = " .. table.concat(shardataKey, " .. \"_\" .. "))
+    table.insert(str, "    if self.__isNew__ == nil then")
+    table.insert(str, "        local d = skynet.call(\"CLDB\", \"lua\", \"get\", " .. name .. ".name, self.__key__)")
+    table.insert(str, "        if d == nil then")
+    table.insert(str, "            d = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", " .. name .. ".querySql(" .. table.concat(callParamswithData, ", ") .. "))")
+    table.insert(str, "            if d and d.errno == nil and #d > 0 then")
+    table.insert(str, "                self.__isNew__ = false")
+    table.insert(str, "            else")
+    table.insert(str, "                self.__isNew__ = true")
+    table.insert(str, "            end")
+    table.insert(str, "        else")
+    table.insert(str, "            self.__isNew__ = false")
+    table.insert(str, "        end")
+    table.insert(str, "    end")
     table.insert(str, "    if self.__isNew__ then")
     table.insert(str, "        -- 说明之前表里没有数据，先入库")
     table.insert(str, "        local sql = skynet.call(\"CLDB\", \"lua\", \"GETINSERTSQL\", self.__name__, data)")
@@ -462,6 +475,8 @@ function genDB.genLuaFile(outPath, tableCfg)
 
     table.insert(str, "function " .. name .. ":release()")
     table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"SETUNUSE\", self.__name__, self.__key__)")
+    table.insert(str, "    self.__isNew__ = nil")
+    table.insert(str, "    self.__key__ = nil")
     table.insert(str, "end")
     table.insert(str, "")
 
@@ -585,8 +600,8 @@ function genDB.genLuaFile(outPath, tableCfg)
         table.insert(str, "function " .. name .. ".instanse()")
     end
 
-    table.insert(str, "    if type(".. tableCfg.cacheKey[1] .. ") == \"table\" then")
-    table.insert(str, "        local d = ".. tableCfg.cacheKey[1])
+    table.insert(str, "    if type(" .. tableCfg.cacheKey[1] .. ") == \"table\" then")
+    table.insert(str, "        local d = " .. tableCfg.cacheKey[1])
     for i, v in ipairs(tableCfg.cacheKey) do
         table.insert(str, "        " .. v .. " = d." .. v)
     end

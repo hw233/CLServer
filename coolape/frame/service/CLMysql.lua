@@ -15,6 +15,7 @@ local db;
 local sqlQueue = CLLQueue.new();
 local synchrotime -- 数据同步时间
 local isDebugSql = false
+local maxExesqlOnece = 200      -- 一次最多执行多少条sql
 
 ---------------------------------------------
 -- 数据入库
@@ -26,7 +27,7 @@ local function storeData(db)
             sql = {}
             i = 1
             -- 每次最多处理100条
-            while (not sqlQueue:isEmpty()) and i < 100 do
+            while (not sqlQueue:isEmpty()) and i < maxExesqlOnece do
                 table.insert(sql, sqlQueue:deQueue())
                 i = i + 1
             end

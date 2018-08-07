@@ -7,15 +7,16 @@
     else
         -- 有数据
     end
-2、使用如下用法时，程序认为mysql已经有数据了，只会做更新操作
+2、使用如下用法时，程序会自动判断是否是insert还是update
     local obj＝ dbplayer.new(data);
-3、使用如下用法时，程序认为mysql没有数据，会插入一条记录到表
+3、使用如下用法时，程序会自动判断是否是insert还是update
     local obj＝ dbplayer.new();
     obj:init(data);
 ]]
 
 require("class")
 local skynet = require "skynet"
+local tonumber = tonumber
 
 -- 玩家表
 ---@class dbplayer
@@ -25,17 +26,27 @@ dbplayer.name = "player"
 
 function dbplayer:ctor(v)
     self.__name__ = "player"    -- 表名
+    self.__isNew__ = nil -- false:说明mysql里已经有数据了
     if v then
-        self.__isNew__ = false -- 说明mysql里已经有数据了
         self:init(v)
-    else
-        self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-        self.__key__ = nil -- 缓存数据的key
     end
 end
 
 function dbplayer:init(data)
     self.__key__ = data.idx
+    if self.__isNew__ == nil then
+        local d = skynet.call("CLDB", "lua", "get", dbplayer.name, self.__key__)
+        if d == nil then
+            d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(data.idx))
+            if d and d.errno == nil and #d > 0 then
+                self.__isNew__ = false
+            else
+                self.__isNew__ = true
+            end
+        else
+            self.__isNew__ = false
+        end
+    end
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
@@ -65,6 +76,7 @@ function dbplayer:setidx(v)
         skynet.error("[dbplayer:setidx],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
 function dbplayer:getidx()
@@ -78,6 +90,7 @@ function dbplayer:setstatus(v)
         skynet.error("[dbplayer:setstatus],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbplayer:getstatus()
@@ -91,6 +104,7 @@ function dbplayer:setname(v)
         skynet.error("[dbplayer:setname],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
 end
 function dbplayer:getname()
@@ -104,6 +118,7 @@ function dbplayer:setlev(v)
         skynet.error("[dbplayer:setlev],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lev", v)
 end
 function dbplayer:getlev()
@@ -117,6 +132,7 @@ function dbplayer:setmoney(v)
         skynet.error("[dbplayer:setmoney],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "money", v)
 end
 function dbplayer:getmoney()
@@ -130,6 +146,7 @@ function dbplayer:setdiam(v)
         skynet.error("[dbplayer:setdiam],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "diam", v)
 end
 function dbplayer:getdiam()
@@ -143,6 +160,7 @@ function dbplayer:setcityidx(v)
         skynet.error("[dbplayer:setcityidx],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "cityidx", v)
 end
 function dbplayer:getcityidx()
@@ -156,6 +174,7 @@ function dbplayer:setunionidx(v)
         skynet.error("[dbplayer:setunionidx],please init first!!")
         return nil
     end
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "unionidx", v)
 end
 function dbplayer:getunionidx()
@@ -169,6 +188,7 @@ function dbplayer:setcrtTime(v)
         skynet.error("[dbplayer:setcrtTime],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "crtTime", v)
 end
 function dbplayer:getcrtTime()
@@ -182,6 +202,7 @@ function dbplayer:setlastEnTime(v)
         skynet.error("[dbplayer:setlastEnTime],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lastEnTime", v)
 end
 function dbplayer:getlastEnTime()
@@ -195,6 +216,7 @@ function dbplayer:setchannel(v)
         skynet.error("[dbplayer:setchannel],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "channel", v)
 end
 function dbplayer:getchannel()
@@ -208,6 +230,7 @@ function dbplayer:setdeviceid(v)
         skynet.error("[dbplayer:setdeviceid],please init first!!")
         return nil
     end
+    v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "deviceid", v)
 end
 function dbplayer:getdeviceid()
@@ -232,6 +255,8 @@ end
 
 function dbplayer:release()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
+    self.__isNew__ = nil
+    self.__key__ = nil
 end
 
 function dbplayer:delete()
