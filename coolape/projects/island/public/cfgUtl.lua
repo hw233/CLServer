@@ -2,6 +2,11 @@ local skynet = require "skynet"
 ---@class cfgUtl
 cfgUtl = {}
 
+-- 取得常量配置
+function cfgUtl.getConstCfg()
+    return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFCfgData", 1)
+end
+
 -- 取得主基地等级开放
 function cfgUtl.getHeadquartersLevsByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFHeadquartersLevsData", id)

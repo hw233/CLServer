@@ -66,7 +66,7 @@ do
         add(content, "            map.__currIndex__ = map.__currIndex__ + 1")
         add(content, "        end")
         add(content, "        val = map[key]")
-        add(content, "        return val;")
+        add(content, "        return val")
         add(content, "    end")
 
         add(content, "    return KeyCodeProtocol")

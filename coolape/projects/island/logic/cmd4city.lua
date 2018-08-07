@@ -10,24 +10,24 @@ require("Errcode")
 local math = math
 local table = table
 
-local gridSize = 48
+local constCfg = cfgUtl.getConstCfg()
+local gridSize = constCfg.GridCity
 local cellSize = 1
+local tileSize = 2
 
 local NetProtoIsland = "NetProtoIsland"
 ---@type Grid
-local grid4Building = Grid.new()
-grid4Building:init(Vector3.zero, gridSize, gridSize, cellSize)
----@type Grid 地块的网格
-local grid4Tile = Grid.new()
-grid4Tile:init(Vector3.zero, gridSize / 2, gridSize / 2, cellSize * 2)
+local grid = Grid.new()
+grid:init(Vector3.zero, gridSize, gridSize, cellSize)
+
 -- 网格状态
 local gridState4Tile = {}
 local gridState4Building = {}
 
 ---@type dbcity
 local myself
-local tiles = {}        -- 地块信息 key=idx
-local buildings = {}    -- 建筑信息 key=idx
+local tiles = {}        -- 地块信息 key=idx, val=dbtile
+local buildings = {}    -- 建筑信息 key=idx, val=dbbuilding
 
 function cmd4city.new (uidx)
     tiles = {}        -- 地块信息 key=idx
@@ -49,7 +49,7 @@ function cmd4city.new (uidx)
 
     --TODO: 初始化建筑
     -- add base buildings
-    local building = cmd4city.newBuilding(1, grid4Building:GetCellIndex(numEx.getIntPart(gridSize / 2), numEx.getIntPart(gridSize / 2)), idx)
+    local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2), numEx.getIntPart(gridSize / 2)), idx)
     if building then
         buildings[building:getidx()] = building
         cmd4city.placeBuilding(building)
@@ -64,12 +64,10 @@ end
 ---@param building dbbuilding
 function cmd4city.placeBuilding(building)
     local center = building:getpos()
-    print(building:getattrid())
     local attr = cfgUtl.getBuildingByID(building:getattrid())
     local size = attr.Size
-    --gridState4Building[center] = true
-    local indexs = grid4Building:getCells(center, size)
-    for i,index in ipairs(indexs) do
+    local indexs = grid:getCells(center, size)
+    for i, index in ipairs(indexs) do
         gridState4Building[index] = true
     end
 end
@@ -79,9 +77,8 @@ function cmd4city.unPlaceBuilding(building)
     local center = building:getpos()
     local attr = cfgUtl.getBuildingByID(building:getattrid())
     local size = attr.Size
-    --gridState4Building[center] = nil
-    local indexs = grid4Building:getCells(center, size)
-    for i,index in ipairs(indexs) do
+    local indexs = grid:getCells(center, size)
+    for i, index in ipairs(indexs) do
         gridState4Building[index] = nil
     end
 end
@@ -89,25 +86,51 @@ end
 ---@param tile dbtile
 function cmd4city.placeTile(tile)
     local center = tile:getpos()
-    gridState4Tile[center] = true
+
+    local indexs = grid:getCells(center, tileSize)
+    for i, index in ipairs(indexs) do
+        gridState4Tile[index] = true
+    end
 end
 ---@param tile dbtile
 function cmd4city.unPlaceTile(tile)
     local center = tile:getpos()
-    gridState4Tile[center] = nil
+    local indexs = grid:getCells(center, tileSize)
+    for i, index in ipairs(indexs) do
+        gridState4Tile[index] = nil
+    end
 end
 
-function cmd4city.canPlaceBuilding(index)
-    return (not gridState4Building[index])
+function cmd4city.canPlaceBuilding(index, id)
+    if id then
+        local attr = cfgUtl.getBuildingByID(id)
+        local size = attr.Size
+        local indexs = grid:getCells(index, size)
+        for i, v in ipairs(indexs) do
+            if gridState4Building[v] then
+                return false
+            end
+        end
+        return true
+    else
+        return (not gridState4Building[index])
+    end
 end
 
 function cmd4city.canPlaceTile(index)
-    return (not gridState4Tile[index])
+    local indexs = grid:getCells(index, tileSize)
+    for i, v in ipairs(indexs) do
+        if gridState4Tile[v] then
+            return false
+        end
+    end
+
+    return true
 end
 
-function cmd4city.canPlace(index, is4Building)
+function cmd4city.canPlace(index, is4Building, attrid)
     if is4Building then
-        return cmd4city.canPlaceBuilding(index)
+        return cmd4city.canPlaceBuilding(index, attrid)
     else
         return cmd4city.canPlaceTile(index)
     end
@@ -149,13 +172,13 @@ end
 -- 取得一定范围内可用的地块
 ---@param rangeV4 Vector4
 function cmd4city.getFreeGridIdx4Tile(rangeV4)
-    return getFreeGridIdx(rangeV4, grid4Tile)
+    return getFreeGridIdx(rangeV4, grid)
 end
 
 -- 取得一定范围内可用的地块
 ---@param rangeV4 Vector4
 function cmd4city.getFreeGridIdx4Building(rangeV4)
-    return getFreeGridIdx(rangeV4, grid4Building, true)
+    return getFreeGridIdx(rangeV4, grid, true)
 end
 
 -- 初始化树
@@ -188,7 +211,7 @@ function cmd4city.initTiles(city)
     local tileCount = headquartersLevsAttr.Tiles
     --local range = headquartersLevsAttr.Range
     local range = math.ceil(math.sqrt(tileCount))
-    local gridCells = grid4Tile:getCells(grid4Tile:GetCellIndex( numEx.getIntPart(gridSize / 4 - 1), numEx.getIntPart(gridSize / 4 - 1)), range)
+    local gridCells = grid:getCells(grid:GetCellIndex( numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range)
     for i, v in ipairs(gridCells) do
         if i <= tileCount then
             local tile = cmd4city.newTile(v, 0, city:getidx())
@@ -209,16 +232,16 @@ function cmd4city.setTilesAttr(tiles)
     local tile
     local attrid
     ---@type dbtile
-    local left,right,up,down
+    local left, right, up, down
     for idx, t in pairs(tiles) do
         tile = t
-        left = grid4Tile:Left(tile:getpos())
+        left = grid:Left(tile:getpos())
         left = tiles[left]
-        right = grid4Tile:Right(tile:getpos())
+        right = grid:Right(tile:getpos())
         right = tiles[right]
-        up = grid4Tile:Up(tile:getpos())
+        up = grid:Up(tile:getpos())
         up = tiles[up]
-        down = grid4Tile:Down(tile:getpos())
+        down = grid:Down(tile:getpos())
         down = tiles[down]
         attrid = cmd4city.getTileAttrWithAround(
                 left and left:getattrid() or 0,
@@ -231,7 +254,7 @@ function cmd4city.setTilesAttr(tiles)
 end
 
 function cmd4city.getTileAttrWithAround(leftAttrId, righAttrId, upAttrId, downAttrId)
-    local all = {1,2,3,4,5,6,7}
+    local all = { 1, 2, 3, 4, 5, 6, 7 }
     local ret1 = all
     local ret2 = all
     local ret3 = all
@@ -255,7 +278,7 @@ function cmd4city.getTileAttrWithAround(leftAttrId, righAttrId, upAttrId, downAt
     end
 
     local ret = {}
-    for i,v in ipairs(all) do
+    for i, v in ipairs(all) do
         if ret1[v] and ret2[v] and ret3[v] and ret4[v] then
             table.insert(ret, v)
         end
@@ -358,7 +381,7 @@ end
 ---@param pos grid地块idx
 ---@param cidx 城idx
 function cmd4city.newBuilding(attrid, pos, cidx)
-    if not cmd4city.canPlace(pos, true) then
+    if not cmd4city.canPlace(pos, true, attrid) then
         printe("该位置不能放置建筑, pos ==" .. pos)
         return nil
     end
@@ -493,7 +516,7 @@ cmd4city.CMD = {
         local tiles = cmd4city.getSelfTiles()
         if tiles then
             local tiles2 = {}
-            for k,v in pairs(tiles) do
+            for k, v in pairs(tiles) do
                 tiles2[k] = v:value2copy()
             end
             return tiles2
@@ -504,7 +527,7 @@ cmd4city.CMD = {
         local buildings = cmd4city.getSelfBuildings()
         if buildings then
             local buildings2 = {}
-            for k,v in pairs(buildings) do
+            for k, v in pairs(buildings) do
                 buildings2[k] = v:value2copy()
             end
             return buildings2

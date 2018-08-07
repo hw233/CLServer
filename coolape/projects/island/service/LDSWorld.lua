@@ -3,10 +3,13 @@ local skynet = require "skynet"
 require "skynet.manager"    -- import skynet.register
 ---@type Grid
 require("Grid")
+require("public.cfgUtl")
+
+local constCfg = cfgUtl.getConstCfg()
 local grid
-local gridSize = 1000
+local gridSize = constCfg.GridWorld
 local screenSize = 10   -- 大地图一屏size
-local cellSize = 55
+local cellSize = 1
 local screenCells = {}  -- 每屏的网格信息
 local screenCneterIndexs = {}
 local currScreenOrder = 1
