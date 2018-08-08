@@ -222,7 +222,7 @@ function cmd4city.initTiles(city)
     local tileCount = headquartersLevsAttr.Tiles
     --local range = headquartersLevsAttr.Range
     local range = math.ceil(math.sqrt(tileCount))
-    local gridCells = grid:getCells(grid:GetCellIndex( numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range)
+    local gridCells = grid:getCells(grid:GetCellIndex( numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range*2)
     for i, v in ipairs(gridCells) do
         if i <= tileCount then
             local tile = cmd4city.newTile(v, 0, city:getidx())
@@ -644,6 +644,7 @@ cmd4city.CMD = {
 skynet.start(function()
     constCfg = cfgUtl.getConstCfg()
     gridSize = constCfg.GridCity
+    printe("gridSize===" .. gridSize)
     grid = Grid.new()
     grid:init(Vector3.zero, gridSize, gridSize, cellSize)
 
