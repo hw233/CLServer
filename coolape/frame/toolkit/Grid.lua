@@ -2,6 +2,7 @@
 require("class")
 require("Math")
 require("Vector3")
+require("Vector4")
 require("Bounds")
 require("numEx")
 ---@class Grid
@@ -281,6 +282,7 @@ function Grid:getCells ( center, size)
     local tpindex
     local numRows = self.m_numberOfRows
     local half = numEx.getIntPart(size / 2)
+    local rangV4
     if (size % 2 == 0) then
         for row = 0, half do
             for i = 1, half do
@@ -352,7 +354,8 @@ function Grid:getCells ( center, size)
             end
         end
     end
-    return ret
+    rangV4 = Vector4.New(center - half * numRows - half, center - half * numRows + half, center + half * numRows - half, center + half * numRows + half)
+    return ret, rangV4
 end
 --===================================================
 return Grid

@@ -46,19 +46,20 @@ function cmd4city.new (uidx)
     d.lev = 1
     myself:init(d, true)
     --初始化地块
-    cmd4city.initTiles(myself)
+    local v4 = cmd4city.initTiles(myself)
 
     --TODO: 初始化建筑
     -- add base buildings
-    local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2), numEx.getIntPart(gridSize / 2)), idx)
+    local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), idx)
     if building then
         buildings[building:getidx()] = building
         headquarters = building
         cmd4city.placeBuilding(building)
     end
 
+    printe(v4.x, v4.y, v4.z, v4.w)
     -- 初始化树
-    cmd4city.initTree(myself)
+    cmd4city.initTree(myself, v4)
 
     return myself
 end
@@ -109,7 +110,7 @@ function cmd4city.canPlaceBuilding(index, id)
         local size = attr.Size
         local indexs = grid:getCells(index, size)
         for i, v in ipairs(indexs) do
-            if gridState4Building[v] then
+            if (not grid:IsInBounds(v)) or gridState4Building[v] then
                 return false
             end
         end
@@ -122,7 +123,7 @@ end
 function cmd4city.canPlaceTile(index)
     local indexs = grid:getCells(index, tileSize)
     for i, v in ipairs(indexs) do
-        if gridState4Tile[v] then
+        if (not grid:IsInBounds(v)) or gridState4Tile[v] then
             return false
         end
     end
@@ -185,10 +186,10 @@ end
 
 -- 初始化树
 ---@param dbcity
-function cmd4city.initTree(city)
+function cmd4city.initTree(city, rangeV4)
     local max = math.random(5, 12)
     for i = 1, max do
-        local pos = cmd4city.getFreeGridIdx4Building(Vector4.New(20, 20, 30, 30))
+        local pos = cmd4city.getFreeGridIdx4Building(rangeV4)
         if pos >= 0 then
             -- attrid 32到36都是树的配制
             local treeAttrid = math.random(30, 34)
@@ -221,11 +222,11 @@ function cmd4city.initTiles(city)
 
     local tileCount = headquartersLevsAttr.Tiles
     --local range = headquartersLevsAttr.Range
-    local range = math.ceil(math.sqrt(tileCount))
-    local gridCells = grid:getCells(grid:GetCellIndex( numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range*2)
+    local range = math.ceil(math.sqrt(tileCount * 4))
+    local gridCells, rangeV4 = grid:getCells(grid:GetCellIndex( numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range)
     local counter = 0
     for i, v in ipairs(gridCells) do
-        if counter <= tileCount then
+        if counter < tileCount then
             local tile = cmd4city.newTile(v, 0, city:getidx())
             if tile then
                 counter = counter + 1
@@ -237,6 +238,7 @@ function cmd4city.initTiles(city)
     end
 
     cmd4city.setTilesAttr(tiles)
+    return rangeV4
 end
 
 -- 设置tile属性
@@ -638,7 +640,7 @@ cmd4city.CMD = {
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", "upLevBuilding", ret)
     end,
-    release = function (m, fd)
+    release = function(m, fd)
         cmd4city.release()
     end,
 }
@@ -646,7 +648,6 @@ cmd4city.CMD = {
 skynet.start(function()
     constCfg = cfgUtl.getConstCfg()
     gridSize = constCfg.GridCity
-    printe("gridSize===" .. gridSize)
     grid = Grid.new()
     grid:init(Vector3.zero, gridSize, gridSize, cellSize)
 
