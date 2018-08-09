@@ -32,9 +32,9 @@ function dbtile:ctor(v)
     end
 end
 
-function dbtile:init(data)
+function dbtile:init(data, isNew)
     self.__key__ = data.idx
-    if self.__isNew__ == nil then
+    if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbtile.name, self.__key__)
         if d == nil then
             d = skynet.call("CLMySQL", "lua", "exesql", dbtile.querySql(data.idx, nil))
@@ -46,6 +46,8 @@ function dbtile:init(data)
         else
             self.__isNew__ = false
         end
+    else
+        self.__isNew__ = isNew
     end
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库

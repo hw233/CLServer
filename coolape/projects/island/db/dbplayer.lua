@@ -32,9 +32,9 @@ function dbplayer:ctor(v)
     end
 end
 
-function dbplayer:init(data)
+function dbplayer:init(data, isNew)
     self.__key__ = data.idx
-    if self.__isNew__ == nil then
+    if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbplayer.name, self.__key__)
         if d == nil then
             d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(data.idx))
@@ -46,6 +46,8 @@ function dbplayer:init(data)
         else
             self.__isNew__ = false
         end
+    else
+        self.__isNew__ = isNew
     end
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库

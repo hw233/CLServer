@@ -8,9 +8,14 @@ local DBUtl = require "DBUtl"
 local NetProto = "NetProtoIsland"
 
 cmd4com.CMD = {
---心跳
-    heart = function()
+    --心跳
+    heart = function(map)
         return skynet.call(NetProto, "lua", "send", "heart")
+    end,
+
+    -- 释放
+    release = function(map)
+        --todo:
     end,
 
 }

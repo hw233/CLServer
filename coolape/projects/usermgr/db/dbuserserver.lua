@@ -7,9 +7,9 @@
     else
         -- 有数据
     end
-2、使用如下用法时，程序认为mysql已经有数据了，只会做更新操作
+2、使用如下用法时，程序会自动判断是否是insert还是update
     local obj＝ dbuserserver.new(data);
-3、使用如下用法时，程序认为mysql没有数据，会插入一条记录到表
+3、使用如下用法时，程序会自动判断是否是insert还是update
     local obj＝ dbuserserver.new();
     obj:init(data);
 ]]
@@ -26,17 +26,29 @@ dbuserserver.name = "userserver"
 
 function dbuserserver:ctor(v)
     self.__name__ = "userserver"    -- 表名
+    self.__isNew__ = nil -- false:说明mysql里已经有数据了
     if v then
-        self.__isNew__ = false -- 说明mysql里已经有数据了
         self:init(v)
-    else
-        self.__isNew__ = true    -- 新建数据，说明mysql表里没有数据
-        self.__key__ = nil -- 缓存数据的key
     end
 end
 
-function dbuserserver:init(data)
+function dbuserserver:init(data, isNew)
     self.__key__ = data.uidx .. "_" .. data.appid
+    if self.__isNew__ == nil and isNew == nil then
+        local d = skynet.call("CLDB", "lua", "get", dbuserserver.name, self.__key__)
+        if d == nil then
+            d = skynet.call("CLMySQL", "lua", "exesql", dbuserserver.querySql(data.uidx, data.appid))
+            if d and d.errno == nil and #d > 0 then
+                self.__isNew__ = false
+            else
+                self.__isNew__ = true
+            end
+        else
+            self.__isNew__ = false
+        end
+    else
+        self.__isNew__ = isNew
+    end
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
@@ -119,6 +131,8 @@ end
 
 function dbuserserver:release()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
+    self.__isNew__ = nil
+    self.__key__ = nil
 end
 
 function dbuserserver:delete()

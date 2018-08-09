@@ -32,9 +32,9 @@ function dbbuilding:ctor(v)
     end
 end
 
-function dbbuilding:init(data)
+function dbbuilding:init(data, isNew)
     self.__key__ = data.idx
-    if self.__isNew__ == nil then
+    if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbbuilding.name, self.__key__)
         if d == nil then
             d = skynet.call("CLMySQL", "lua", "exesql", dbbuilding.querySql(data.idx, nil))
@@ -46,6 +46,8 @@ function dbbuilding:init(data)
         else
             self.__isNew__ = false
         end
+    else
+        self.__isNew__ = isNew
     end
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库

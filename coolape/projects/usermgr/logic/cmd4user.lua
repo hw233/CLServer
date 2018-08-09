@@ -40,7 +40,7 @@ local function getServerid(uidx, appid, channel)
             d.appid = appid
             d.sidx = serveridx
             d.uidx = uidx
-            us:init(d)
+            us:init(d, true)
             us:release()
         end
     else
@@ -79,7 +79,7 @@ cmd4user.CMD = {
         newuser.channel = m.channel
         newuser.deviceid = m.deviceID
         newuser.deviceinfor = m.deviceInfor
-        if not myself:init(newuser) then
+        if not myself:init(newuser, true) then
             ret.msg = "注册失败";
             ret.code = Errcode.error
             return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS())
@@ -173,7 +173,7 @@ cmd4user.CMD = {
             newuser.channel = m.channel
             newuser.deviceid = m.deviceID
             newuser.deviceinfor = m.deviceInfor
-            if not myself:init(newuser) then
+            if not myself:init(newuser, true) then
                 ret.msg = "注册失败";
                 ret.code = Errcode.error
                 return skynet.call(NetProto, "lua", "send", "loginAccountChannel", ret, 0, dateEx.nowMS())

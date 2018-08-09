@@ -35,7 +35,7 @@ cmd4server.CMD = {
             data.sidx = sidx
             data.uidx = uidx
             data.appid = appid
-            us:init(data)
+            us:init(data, true)
         end
         us:release()
         local ret = {}

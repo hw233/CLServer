@@ -44,7 +44,7 @@ function cmd4city.new (uidx)
     d.pos = skynet.call("LDSWorld", "lua", "getIdleIdx")
     d.status = 1
     d.lev = 1
-    myself:init(d)
+    myself:init(d, true)
     --初始化地块
     cmd4city.initTiles(myself)
 
@@ -223,10 +223,12 @@ function cmd4city.initTiles(city)
     --local range = headquartersLevsAttr.Range
     local range = math.ceil(math.sqrt(tileCount))
     local gridCells = grid:getCells(grid:GetCellIndex( numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range*2)
+    local counter = 0
     for i, v in ipairs(gridCells) do
-        if i <= tileCount then
+        if counter <= tileCount then
             local tile = cmd4city.newTile(v, 0, city:getidx())
             if tile then
+                counter = counter + 1
                 tiles[tile:getidx()] = tile
             end
         else
@@ -331,7 +333,7 @@ function cmd4city.newTile(pos, attrid, cidx)
     t.attrid = attrid --"属性id"
     t.cidx = cidx --"主城idx"
     t.pos = pos -- "城所在世界grid的index"
-    if tile:init(t) then
+    if tile:init(t, true) then
         cmd4city.placeTile(tile)
         return tile
     else
@@ -408,7 +410,7 @@ function cmd4city.newBuilding(attrid, pos, cidx)
     b.val3 = 0 -- 值。如:产量，仓库的存储量等
     b.val4 = 0 -- 值。如:产量，仓库的存储量等
 
-    if building:init(b) then
+    if building:init(b, true) then
         cmd4city.placeBuilding(building)
         return building
     else

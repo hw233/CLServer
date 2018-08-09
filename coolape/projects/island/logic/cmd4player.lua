@@ -48,7 +48,7 @@ cmd4player.CMD = {
             player.lastEnTime = dateEx.nowStr()
             player.channel = m.channel
             player.deviceid = m.deviceID
-            if myself:init(player) then
+            if myself:init(player, true) then
                 local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
                 city = skynet.call(cityServer, "lua", "new", m.uidx)
                 myself:setcityidx(city.idx)
