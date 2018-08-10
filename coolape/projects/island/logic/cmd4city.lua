@@ -45,8 +45,6 @@ function cmd4city.new (uidx)
     d.status = 1
     d.lev = 1
     myself:init(d, true)
-    --初始化地块
-    local v4 = cmd4city.initTiles(myself)
 
     --TODO: 初始化建筑
     -- add base buildings
@@ -57,9 +55,11 @@ function cmd4city.new (uidx)
         cmd4city.placeBuilding(building)
     end
 
-    printe(v4.x, v4.y, v4.z, v4.w)
+    --初始化地块
+    cmd4city.initTiles(myself)
+
     -- 初始化树
-    cmd4city.initTree(myself, v4)
+    --cmd4city.initTree(myself, v4)
 
     return myself
 end
@@ -204,8 +204,8 @@ end
 
 -- 取得主城的等级，其实就是主基地的等级
 function cmd4city.getCityLev()
-    if headquarters then
-        headquarters:getlev()
+    if headquarters and (not headquarters:isEmpty()) then
+        return headquarters:getlev()
     else
         return 1
     end
@@ -223,14 +223,32 @@ function cmd4city.initTiles(city)
     local tileCount = headquartersLevsAttr.Tiles
     --local range = headquartersLevsAttr.Range
     local range = math.ceil(math.sqrt(tileCount * 4))
-    local gridCells, rangeV4 = grid:getCells(grid:GetCellIndex( numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range)
+    local gridCells = grid:getCells(grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range)
     local counter = 0
-    for i, v in ipairs(gridCells) do
+    local treeCounter = 0
+    local maxTree = math.random(10, 20)
+    for i, index in ipairs(gridCells) do
         if counter < tileCount then
-            local tile = cmd4city.newTile(v, 0, city:getidx())
+            local tile = cmd4city.newTile(index, 0, city:getidx())
             if tile then
                 counter = counter + 1
                 tiles[tile:getidx()] = tile
+
+                -- 初始化树
+                if treeCounter < maxTree then
+                    local tileCells = grid:getCells(index, tileSize)
+                    for i, index2 in ipairs(tileCells) do
+                        if numEx.nextBool() then
+                            -- attrid 32到36都是树的配制
+                            local treeAttrid = math.random(30, 34)
+                            local tree = cmd4city.newBuilding(treeAttrid, index2, city:getidx())
+                            if tree then
+                                treeCounter = treeCounter + 1
+                                buildings[tree:getidx()] = tree
+                            end
+                        end
+                    end
+                end
             end
         else
             break

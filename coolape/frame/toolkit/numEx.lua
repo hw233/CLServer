@@ -13,4 +13,8 @@ function numEx.getIntPart(x)
     return flag * x;
 end
 
+function numEx.nextBool()
+    return (math.random(0, 100) > 50)
+end
+
 return numEx

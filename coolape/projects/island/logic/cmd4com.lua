@@ -2,6 +2,7 @@
 local cmd4com = {}
 local skynet = require("skynet")
 require("Errcode")
+require("public.include")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"

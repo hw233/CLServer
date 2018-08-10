@@ -35,9 +35,9 @@ end
 ---@return Vector3
 function Grid:GetNearestCellCenter(pos)
     local index = self:GetCellIndex(pos)
-    local cellPos = self:GetCellPosition( index )
-    cellPos.x = cellPos.x + ( self.m_cellSize / 2.0)
-    cellPos.z = cellPos.z + ( self.m_cellSize / 2.0)
+    local cellPos = self:GetCellPosition(index)
+    cellPos.x = cellPos.x + (self.m_cellSize / 2.0)
+    cellPos.z = cellPos.z + (self.m_cellSize / 2.0)
     return cellPos
 end
 
@@ -45,8 +45,8 @@ end
 ---@return Vector3
 function Grid:GetCellCenterByIndex(index)
     local cellPosition = self:GetCellPosition(index)
-    cellPosition.x = cellPosition.x + ( self.m_cellSize / 2.0)
-    cellPosition.z = cellPosition.z + ( self.m_cellSize / 2.0)
+    cellPosition.x = cellPosition.x + (self.m_cellSize / 2.0)
+    cellPosition.z = cellPosition.z + (self.m_cellSize / 2.0)
     return cellPosition
 end
 function Grid:GetCellCenter(...)
@@ -80,7 +80,7 @@ end
 
 -- pass in world space coords. Get the tile index at the passed position
 function Grid:GetCellIndexByPos(pos)
-    if ( not self:IsInBounds(pos) ) then
+    if (not self:IsInBounds(pos)) then
         return kInvalidIndex
     end
     pos = pos - self.Origin
@@ -120,8 +120,8 @@ end
 
 function Grid:GetCellBounds(index)
     local cellCenterPos = self:GetCellPosition(index)
-    cellCenterPos.x = cellCenterPos.x + ( self.m_cellSize / 2.0)
-    cellCenterPos.z = cellCenterPos.z + ( self.m_cellSize / 2.0 )
+    cellCenterPos.x = cellCenterPos.x + (self.m_cellSize / 2.0)
+    cellCenterPos.z = cellCenterPos.z + (self.m_cellSize / 2.0)
     local cellBounds = Bounds.New(cellCenterPos, Vector3(self.m_cellSize, kDepth, self.m_cellSize))
     return cellBounds
 end
@@ -186,7 +186,6 @@ function Grid:Down(index)
     end
 end
 
-
 function Grid:LeftUp(index)
     local col = self:GetColumn(index)
     local row = self:GetRow(index)
@@ -250,7 +249,7 @@ function Grid:IsInBounds(...)
         end
     else
         local index = paras[1]
-        return ( index >= 0 and index < self.NumberOfCells )
+        return (index >= 0 and index < self.NumberOfCells)
     end
 end
 
@@ -274,7 +273,7 @@ end
 /// Size. Size * Size的范围
 /// </param>
 ]]
-function Grid:getCells ( center, size)
+function Grid:getCells (center, size)
     local ret = {}
     if (center < 0) then
         return ret
@@ -282,7 +281,6 @@ function Grid:getCells ( center, size)
     local tpindex
     local numRows = self.m_numberOfRows
     local half = numEx.getIntPart(size / 2)
-    local rangV4
     if (size % 2 == 0) then
         for row = 0, half do
             for i = 1, half do
@@ -354,8 +352,7 @@ function Grid:getCells ( center, size)
             end
         end
     end
-    rangV4 = Vector4.New(center - half * numRows - half, center - half * numRows + half, center + half * numRows - half, center + half * numRows + half)
-    return ret, rangV4
+    return ret
 end
 --===================================================
 return Grid

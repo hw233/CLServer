@@ -6,6 +6,7 @@
 local cmd4player = {}
 
 local skynet = require("skynet")
+require("public.include")
 require("Errcode")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
