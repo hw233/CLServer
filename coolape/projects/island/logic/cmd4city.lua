@@ -372,7 +372,7 @@ function cmd4city.getSelfTile(idx)
         printe("主城为空")
         return nil
     end
-    if tiles == nil or #tiles == 0 then
+    if tiles == nil then
         printe("地块信息列表为空")
         return nil
     end
