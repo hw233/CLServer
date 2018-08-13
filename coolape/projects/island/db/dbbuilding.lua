@@ -252,12 +252,12 @@ function dbbuilding.getList(cidx, orderby, limitOffset, limitNum)
      end
      local cachlist = skynet.call("CLDB", "lua", "GETGROUP", dbbuilding.name, cidx) or {}
      for i, v in ipairs(list) do
-         local key = v.idx
+         local key = tostring(v.idx)
          local d = cachlist[key]
          if d ~= nil then
              -- 用缓存的数据才是最新的
              list[i] = d
-             cachlist = nil
+             cachlist[key] = nil
          end
      end
      for k ,v in pairs(cachlist) do
