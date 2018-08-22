@@ -72,7 +72,7 @@ function dbcity:value2copy()  -- 取得数据复样，注意是只读的数据�
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
 end
 
-function dbcity:setidx(v)
+function dbcity:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
         skynet.error("[dbcity:setidx],please init first!!")
@@ -81,12 +81,12 @@ function dbcity:setidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
-function dbcity:getidx()
+function dbcity:get_idx()
     -- 唯一标识
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
 end
 
-function dbcity:setname(v)
+function dbcity:set_name(v)
     -- 名称
     if self:isEmpty() then
         skynet.error("[dbcity:setname],please init first!!")
@@ -95,12 +95,12 @@ function dbcity:setname(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
 end
-function dbcity:getname()
+function dbcity:get_name()
     -- 名称
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "name")
 end
 
-function dbcity:setpidx(v)
+function dbcity:set_pidx(v)
     -- 玩家idx
     if self:isEmpty() then
         skynet.error("[dbcity:setpidx],please init first!!")
@@ -109,12 +109,12 @@ function dbcity:setpidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pidx", v)
 end
-function dbcity:getpidx()
+function dbcity:get_pidx()
     -- 玩家idx
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pidx")
 end
 
-function dbcity:setpos(v)
+function dbcity:set_pos(v)
     -- 城所在世界grid的index
     if self:isEmpty() then
         skynet.error("[dbcity:setpos],please init first!!")
@@ -123,12 +123,12 @@ function dbcity:setpos(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pos", v)
 end
-function dbcity:getpos()
+function dbcity:get_pos()
     -- 城所在世界grid的index
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pos")
 end
 
-function dbcity:setstatus(v)
+function dbcity:set_status(v)
     -- 状态 1:正常;
     if self:isEmpty() then
         skynet.error("[dbcity:setstatus],please init first!!")
@@ -137,7 +137,7 @@ function dbcity:setstatus(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
-function dbcity:getstatus()
+function dbcity:get_status()
     -- 状态 1:正常;
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
 end
@@ -154,7 +154,7 @@ function dbcity:flush(immd)
 end
 
 function dbcity:isEmpty()
-    return (self.__key__ == nil) or (self:getidx() == nil)
+    return (self.__key__ == nil) or (self:get_idx() == nil)
 end
 
 function dbcity:release()

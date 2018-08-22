@@ -64,8 +64,8 @@ cmd4server.CMD = {
         ret.msg = nil
         ret.code = Errcode.ok
         local result = s:value2copy()
-        s:setisnew(false)
-        result.isnew = s:getisnew()
+        s:set_isnew(false)
+        result.isnew = s:get_isnew()
         s:release()
         return skynet.call(NetProto, "lua", "send", "getServerInfor", ret, result)
     end,

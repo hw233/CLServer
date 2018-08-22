@@ -72,7 +72,7 @@ function dbuserserver:value2copy()  -- 取得数据复样，注意是只读的�
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
 end
 
-function dbuserserver:setsidx(v)
+function dbuserserver:set_sidx(v)
     -- 服务器id
     if self:isEmpty() then
         skynet.error("[dbuserserver:setsidx],please init first!!")
@@ -81,12 +81,12 @@ function dbuserserver:setsidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "sidx", v)
 end
-function dbuserserver:getsidx()
+function dbuserserver:get_sidx()
     -- 服务器id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "sidx")
 end
 
-function dbuserserver:setuidx(v)
+function dbuserserver:set_uidx(v)
     -- 用户id
     if self:isEmpty() then
         skynet.error("[dbuserserver:setuidx],please init first!!")
@@ -95,12 +95,12 @@ function dbuserserver:setuidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uidx", v)
 end
-function dbuserserver:getuidx()
+function dbuserserver:get_uidx()
     -- 用户id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "uidx")
 end
 
-function dbuserserver:setappid(v)
+function dbuserserver:set_appid(v)
     -- 应用id
     if self:isEmpty() then
         skynet.error("[dbuserserver:setappid],please init first!!")
@@ -109,7 +109,7 @@ function dbuserserver:setappid(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
-function dbuserserver:getappid()
+function dbuserserver:get_appid()
     -- 应用id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "appid")
 end
@@ -126,7 +126,7 @@ function dbuserserver:flush(immd)
 end
 
 function dbuserserver:isEmpty()
-    return (self.__key__ == nil) or (self:getuidx() == nil) or (self:getappid() == nil)
+    return (self.__key__ == nil) or (self:get_uidx() == nil) or (self:get_appid() == nil)
 end
 
 function dbuserserver:release()

@@ -72,7 +72,7 @@ function dbtile:value2copy()  -- 取得数据复样，注意是只读的数据�
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
 end
 
-function dbtile:setidx(v)
+function dbtile:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
         skynet.error("[dbtile:setidx],please init first!!")
@@ -81,12 +81,12 @@ function dbtile:setidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
-function dbtile:getidx()
+function dbtile:get_idx()
     -- 唯一标识
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
 end
 
-function dbtile:setcidx(v)
+function dbtile:set_cidx(v)
     -- 主城idx
     if self:isEmpty() then
         skynet.error("[dbtile:setcidx],please init first!!")
@@ -95,12 +95,12 @@ function dbtile:setcidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "cidx", v)
 end
-function dbtile:getcidx()
+function dbtile:get_cidx()
     -- 主城idx
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cidx")
 end
 
-function dbtile:setattrid(v)
+function dbtile:set_attrid(v)
     -- 属性id
     if self:isEmpty() then
         skynet.error("[dbtile:setattrid],please init first!!")
@@ -109,12 +109,12 @@ function dbtile:setattrid(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "attrid", v)
 end
-function dbtile:getattrid()
+function dbtile:get_attrid()
     -- 属性id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "attrid")
 end
 
-function dbtile:setpos(v)
+function dbtile:set_pos(v)
     -- 城所在世界grid的index
     if self:isEmpty() then
         skynet.error("[dbtile:setpos],please init first!!")
@@ -123,7 +123,7 @@ function dbtile:setpos(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pos", v)
 end
-function dbtile:getpos()
+function dbtile:get_pos()
     -- 城所在世界grid的index
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pos")
 end
@@ -140,7 +140,7 @@ function dbtile:flush(immd)
 end
 
 function dbtile:isEmpty()
-    return (self.__key__ == nil) or (self:getidx() == nil)
+    return (self.__key__ == nil) or (self:get_idx() == nil)
 end
 
 function dbtile:release()

@@ -44,7 +44,7 @@ local function getServerid(uidx, appid, channel)
             us:release()
         end
     else
-        serveridx = (us:getsidx() or 0)
+        serveridx = (us:get_sidx() or 0)
         us:release()
     end
     return serveridx
@@ -61,7 +61,7 @@ cmd4user.CMD = {
         end
         ---@type dbuser
         local myself = dbuser.instanse(m.userId, nil)
-        if not CLUtl.isNilOrEmpty(myself:getuid()) then
+        if not CLUtl.isNilOrEmpty(myself:get_uid()) then
             ret.msg = "用户名已经存在";
             ret.code = Errcode.uidregisted
             myself:release()
@@ -88,7 +88,7 @@ cmd4user.CMD = {
         ret.msg = nil;
         ret.code = Errcode.ok
         local user = {}
-        user.idx = myself:getidx()
+        user.idx = myself:get_idx()
         --user.name = "user" --  string
 
         local serveridx = 0
@@ -116,7 +116,7 @@ cmd4user.CMD = {
             ret.msg = "用户不存在";
             ret.code = Errcode.needregist
             return skynet.call(NetProto, "lua", "send", "loginAccount", ret, nil, 0, dateEx.nowMS())
-        elseif m.password ~= myself:getpassword() then
+        elseif m.password ~= myself:get_password() then
             -- 说明密码错误
             local ret = {}
             ret.msg = "密码错误";
@@ -128,8 +128,8 @@ cmd4user.CMD = {
             ret.msg = nil;
             ret.code = Errcode.ok
             local user = {}
-            user.idx = myself:getidx()
-            myself:setlastEnTime(dateEx.nowStr())
+            user.idx = myself:get_idx()
+            myself:set_lastEnTime(dateEx.nowStr())
             --user.name = "user" --  string
 
             local serveridx = 0
@@ -182,8 +182,8 @@ cmd4user.CMD = {
         ret.msg = nil;
         ret.code = Errcode.ok
         local user = {}
-        user.idx = myself:getidx()
-        myself:setlastEnTime(dateEx.nowStr())
+        user.idx = myself:get_idx()
+        myself:set_lastEnTime(dateEx.nowStr())
         --user.name = "user" --  string
 
         local serveridx = 0

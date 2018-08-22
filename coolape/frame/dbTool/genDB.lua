@@ -274,7 +274,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     local callParams = {}
     local callParamswithData = {}
     for i, v in ipairs(tableCfg.columns) do
-        table.insert(getsetFunc, "function " .. name .. ":set" .. v[1] .. "(v)")
+        table.insert(getsetFunc, "function " .. name .. ":set_" .. v[1] .. "(v)")
         table.insert(getsetFunc, "    " .. ( v[3] and "-- " .. v[3] or ""))
         table.insert(getsetFunc, "    if self:isEmpty() then")
         table.insert(getsetFunc, "        skynet.error(\"[" .. name .. ":set" .. v[1] .. "],please init first!!\")")
@@ -306,7 +306,7 @@ function genDB.genLuaFile(outPath, tableCfg)
         end
         table.insert(getsetFunc, "    skynet.call(\"CLDB\", \"lua\", \"set\", self.__name__, self.__key__, \"" .. v[1] .. "\", v)")
         table.insert(getsetFunc, "end")
-        table.insert(getsetFunc, "function " .. name .. ":get" .. v[1] .. "()")
+        table.insert(getsetFunc, "function " .. name .. ":get_" .. v[1] .. "()")
         table.insert(getsetFunc, "    " .. ( v[3] and "-- " .. v[3] or ""))
         if v[2]:upper():find("BOOL") then
             table.insert(getsetFunc, "    local val = skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__, \"" .. v[1] .. "\")")
@@ -469,7 +469,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "function " .. name .. ":isEmpty()")
     local tmp = {}
     for i, v in ipairs(tableCfg.cacheKey) do
-        table.insert(tmp, "(self:get" .. v .. "() == nil)")
+        table.insert(tmp, "(self:get_" .. v .. "() == nil)")
     end
     table.insert(str, "    return (self.__key__ == nil) or " .. table.concat(tmp, " or ") )
     table.insert(str, "end")

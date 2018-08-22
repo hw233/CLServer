@@ -72,7 +72,7 @@ function dbuser:value2copy()  -- 取得数据复样，注意是只读的数据�
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
 end
 
-function dbuser:setidx(v)
+function dbuser:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
         skynet.error("[dbuser:setidx],please init first!!")
@@ -81,12 +81,12 @@ function dbuser:setidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
-function dbuser:getidx()
+function dbuser:get_idx()
     -- 唯一标识
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
 end
 
-function dbuser:setuidChl(v)
+function dbuser:set_uidChl(v)
     -- 用户id(第三方渠道用户)
     if self:isEmpty() then
         skynet.error("[dbuser:setuidChl],please init first!!")
@@ -95,12 +95,12 @@ function dbuser:setuidChl(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uidChl", v)
 end
-function dbuser:getuidChl()
+function dbuser:get_uidChl()
     -- 用户id(第三方渠道用户)
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "uidChl")
 end
 
-function dbuser:setuid(v)
+function dbuser:set_uid(v)
     -- 用户id
     if self:isEmpty() then
         skynet.error("[dbuser:setuid],please init first!!")
@@ -109,12 +109,12 @@ function dbuser:setuid(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "uid", v)
 end
-function dbuser:getuid()
+function dbuser:get_uid()
     -- 用户id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "uid")
 end
 
-function dbuser:setpassword(v)
+function dbuser:set_password(v)
     -- 用户密码
     if self:isEmpty() then
         skynet.error("[dbuser:setpassword],please init first!!")
@@ -123,12 +123,12 @@ function dbuser:setpassword(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "password", v)
 end
-function dbuser:getpassword()
+function dbuser:get_password()
     -- 用户密码
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "password")
 end
 
-function dbuser:setcrtTime(v)
+function dbuser:set_crtTime(v)
     -- 创建时间
     if self:isEmpty() then
         skynet.error("[dbuser:setcrtTime],please init first!!")
@@ -137,12 +137,12 @@ function dbuser:setcrtTime(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "crtTime", v)
 end
-function dbuser:getcrtTime()
+function dbuser:get_crtTime()
     -- 创建时间
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "crtTime")
 end
 
-function dbuser:setlastEnTime(v)
+function dbuser:set_lastEnTime(v)
     -- 最后登陆时间
     if self:isEmpty() then
         skynet.error("[dbuser:setlastEnTime],please init first!!")
@@ -151,12 +151,12 @@ function dbuser:setlastEnTime(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lastEnTime", v)
 end
-function dbuser:getlastEnTime()
+function dbuser:get_lastEnTime()
     -- 最后登陆时间
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lastEnTime")
 end
 
-function dbuser:setstatus(v)
+function dbuser:set_status(v)
     -- 状态 0:正常;
     if self:isEmpty() then
         skynet.error("[dbuser:setstatus],please init first!!")
@@ -165,12 +165,12 @@ function dbuser:setstatus(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
-function dbuser:getstatus()
+function dbuser:get_status()
     -- 状态 0:正常;
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
 end
 
-function dbuser:setappid(v)
+function dbuser:set_appid(v)
     -- 应用id
     if self:isEmpty() then
         skynet.error("[dbuser:setappid],please init first!!")
@@ -179,12 +179,12 @@ function dbuser:setappid(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
-function dbuser:getappid()
+function dbuser:get_appid()
     -- 应用id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "appid")
 end
 
-function dbuser:setchannel(v)
+function dbuser:set_channel(v)
     -- 渠道
     if self:isEmpty() then
         skynet.error("[dbuser:setchannel],please init first!!")
@@ -193,12 +193,12 @@ function dbuser:setchannel(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "channel", v)
 end
-function dbuser:getchannel()
+function dbuser:get_channel()
     -- 渠道
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "channel")
 end
 
-function dbuser:setdeviceid(v)
+function dbuser:set_deviceid(v)
     -- 机器id
     if self:isEmpty() then
         skynet.error("[dbuser:setdeviceid],please init first!!")
@@ -207,12 +207,12 @@ function dbuser:setdeviceid(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "deviceid", v)
 end
-function dbuser:getdeviceid()
+function dbuser:get_deviceid()
     -- 机器id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "deviceid")
 end
 
-function dbuser:setdeviceinfor(v)
+function dbuser:set_deviceinfor(v)
     -- 机器信息
     if self:isEmpty() then
         skynet.error("[dbuser:setdeviceinfor],please init first!!")
@@ -221,12 +221,12 @@ function dbuser:setdeviceinfor(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "deviceinfor", v)
 end
-function dbuser:getdeviceinfor()
+function dbuser:get_deviceinfor()
     -- 机器信息
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "deviceinfor")
 end
 
-function dbuser:setgroupid(v)
+function dbuser:set_groupid(v)
     -- 组id
     if self:isEmpty() then
         skynet.error("[dbuser:setgroupid],please init first!!")
@@ -235,7 +235,7 @@ function dbuser:setgroupid(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "groupid", v)
 end
-function dbuser:getgroupid()
+function dbuser:get_groupid()
     -- 组id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "groupid")
 end
@@ -252,7 +252,7 @@ function dbuser:flush(immd)
 end
 
 function dbuser:isEmpty()
-    return (self.__key__ == nil) or (self:getuid() == nil) or (self:getuidChl() == nil)
+    return (self.__key__ == nil) or (self:get_uid() == nil) or (self:get_uidChl() == nil)
 end
 
 function dbuser:release()

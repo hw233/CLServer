@@ -50,7 +50,7 @@ function cmd4city.new (uidx)
     -- add base buildings
     local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), idx)
     if building then
-        buildings[building:getidx()] = building
+        buildings[building:get_idx()] = building
         headquarters = building
         cmd4city.placeBuilding(building)
     end
@@ -66,8 +66,8 @@ end
 
 ---@param building dbbuilding
 function cmd4city.placeBuilding(building)
-    local center = building:getpos()
-    local attr = cfgUtl.getBuildingByID(building:getattrid())
+    local center = building:get_pos()
+    local attr = cfgUtl.getBuildingByID(building:get_attrid())
     local size = attr.Size
     local indexs = grid:getCells(center, size)
     for i, index in ipairs(indexs) do
@@ -77,8 +77,8 @@ end
 
 ---@param building dbbuilding
 function cmd4city.unPlaceBuilding(building)
-    local center = building:getpos()
-    local attr = cfgUtl.getBuildingByID(building:getattrid())
+    local center = building:get_pos()
+    local attr = cfgUtl.getBuildingByID(building:get_attrid())
     local size = attr.Size
     local indexs = grid:getCells(center, size)
     for i, index in ipairs(indexs) do
@@ -88,7 +88,7 @@ end
 
 ---@param tile dbtile
 function cmd4city.placeTile(tile)
-    local center = tile:getpos()
+    local center = tile:get_pos()
 
     local indexs = grid:getCells(center, tileSize)
     for i, index in ipairs(indexs) do
@@ -97,7 +97,7 @@ function cmd4city.placeTile(tile)
 end
 ---@param tile dbtile
 function cmd4city.unPlaceTile(tile)
-    local center = tile:getpos()
+    local center = tile:get_pos()
     local indexs = grid:getCells(center, tileSize)
     for i, index in ipairs(indexs) do
         gridState4Tile[index] = nil
@@ -193,9 +193,9 @@ function cmd4city.initTree(city, rangeV4)
         if pos >= 0 then
             -- attrid 32到36都是树的配制
             local treeAttrid = math.random(30, 34)
-            local tree = cmd4city.newBuilding(treeAttrid, pos, city:getidx())
+            local tree = cmd4city.newBuilding(treeAttrid, pos, city:get_idx())
             if tree then
-                buildings[tree:getidx()] = tree
+                buildings[tree:get_idx()] = tree
                 --gridState4Building[tree:getpos()] = true
             end
         end
@@ -205,7 +205,7 @@ end
 -- 取得主城的等级，其实就是主基地的等级
 function cmd4city.getCityLev()
     if headquarters and (not headquarters:isEmpty()) then
-        return headquarters:getlev()
+        return headquarters:get_lev()
     else
         return 1
     end
@@ -229,10 +229,10 @@ function cmd4city.initTiles(city)
     local maxTree = math.random(10, 20)
     for i, index in ipairs(gridCells) do
         if counter < tileCount then
-            local tile = cmd4city.newTile(index, 0, city:getidx())
+            local tile = cmd4city.newTile(index, 0, city:get_idx())
             if tile then
                 counter = counter + 1
-                tiles[tile:getidx()] = tile
+                tiles[tile:get_idx()] = tile
 
                 -- 初始化树
                 if treeCounter < maxTree then
@@ -241,10 +241,10 @@ function cmd4city.initTiles(city)
                         if numEx.nextBool() then
                             -- attrid 32到36都是树的配制
                             local treeAttrid = math.random(30, 34)
-                            local tree = cmd4city.newBuilding(treeAttrid, index2, city:getidx())
+                            local tree = cmd4city.newBuilding(treeAttrid, index2, city:get_idx())
                             if tree then
                                 treeCounter = treeCounter + 1
-                                buildings[tree:getidx()] = tree
+                                buildings[tree:get_idx()] = tree
                             end
                         end
                     end
@@ -268,21 +268,21 @@ function cmd4city.setTilesAttr(tiles)
     local left, right, up, down
     for idx, t in pairs(tiles) do
         tile = t
-        left = grid:Left(tile:getpos())
+        left = grid:Left(tile:get_pos())
         left = tiles[left]
-        right = grid:Right(tile:getpos())
+        right = grid:Right(tile:get_pos())
         right = tiles[right]
-        up = grid:Up(tile:getpos())
+        up = grid:Up(tile:get_pos())
         up = tiles[up]
-        down = grid:Down(tile:getpos())
+        down = grid:Down(tile:get_pos())
         down = tiles[down]
         attrid = cmd4city.getTileAttrWithAround(
-                left and left:getattrid() or 0,
-                right and right:getattrid() or 0,
-                up and up:getattrid() or 0,
-                down and down:getattrid() or 0
+                left and left:get_attrid() or 0,
+                right and right:get_attrid() or 0,
+                up and up:get_attrid() or 0,
+                down and down:get_attrid() or 0
         )
-        tile:setattrid(attrid)
+        tile:set_attrid(attrid)
     end
 end
 
@@ -386,9 +386,9 @@ function cmd4city.getSelfTile(idx)
 end
 
 function cmd4city.setSelfTiles()
-    local list = cmd4city.queryTiles(myself:getidx())
+    local list = cmd4city.queryTiles(myself:get_idx())
     if list == nil then
-        printe("[cmd4city.setSelfTiles]:get tiles is nil. cidx=" .. myself:getidx())
+        printe("[cmd4city.setSelfTiles]:get tiles is nil. cidx=" .. myself:get_idx())
         return
     end
     tiles = {}
@@ -459,9 +459,9 @@ function cmd4city.setSelfBuildings()
         printe("[cmd4city.getSelfBuildings]:the city data is nil")
         return
     end
-    local list = cmd4city.queryBuildings(myself:getidx())
+    local list = cmd4city.queryBuildings(myself:get_idx())
     if list == nil then
-        printe("[cmd4city.getSelfBuildings]:get buildings is nil. cidx=" .. myself:getidx())
+        printe("[cmd4city.getSelfBuildings]:get buildings is nil. cidx=" .. myself:get_idx())
         return
     end
     buildings = {}
@@ -586,14 +586,14 @@ cmd4city.CMD = {
             ret.msg = "该位置不能放置建筑"
             return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, nil)
         end
-        local building = cmd4city.newBuilding(m.attrid, m.pos, myself:getidx())
+        local building = cmd4city.newBuilding(m.attrid, m.pos, myself:get_idx())
         if building == nil then
             printe("新建建筑失败")
             ret.code = Errcode.error
             ret.msg = "新建建筑失败"
             return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, nil)
         end
-        buildings[building:getidx()] = building
+        buildings[building:get_idx()] = building
 
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, building:value2copy())
@@ -621,7 +621,7 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", "moveTile", ret, nil)
         end
         cmd4city.unPlaceTile(t)
-        t:setpos(m.pos)
+        t:set_pos(m.pos)
         cmd4city.placeTile(t)
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", "moveTile", ret, t:value2copy())
@@ -638,7 +638,7 @@ cmd4city.CMD = {
         end
         -- 先释放之前的网格状态
         cmd4city.unPlaceBuilding(b)
-        b:setpos(m.pos)
+        b:set_pos(m.pos)
         -- 设置新的网格的状态
         cmd4city.placeBuilding(b)
         ret.code = Errcode.ok
@@ -654,7 +654,7 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", "upLevBuilding", ret)
         end
         --TODO: check max lev
-        b:setlev(b:getlev() + 1)
+        b:set_lev(b:get_lev() + 1)
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", "upLevBuilding", ret)
     end,

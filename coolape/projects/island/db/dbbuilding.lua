@@ -72,7 +72,7 @@ function dbbuilding:value2copy()  -- 取得数据复样，注意是只读的数�
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
 end
 
-function dbbuilding:setidx(v)
+function dbbuilding:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
         skynet.error("[dbbuilding:setidx],please init first!!")
@@ -81,12 +81,12 @@ function dbbuilding:setidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
-function dbbuilding:getidx()
+function dbbuilding:get_idx()
     -- 唯一标识
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
 end
 
-function dbbuilding:setcidx(v)
+function dbbuilding:set_cidx(v)
     -- 主城idx
     if self:isEmpty() then
         skynet.error("[dbbuilding:setcidx],please init first!!")
@@ -95,12 +95,12 @@ function dbbuilding:setcidx(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "cidx", v)
 end
-function dbbuilding:getcidx()
+function dbbuilding:get_cidx()
     -- 主城idx
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cidx")
 end
 
-function dbbuilding:setpos(v)
+function dbbuilding:set_pos(v)
     -- 位置，即在城的gird中的index
     if self:isEmpty() then
         skynet.error("[dbbuilding:setpos],please init first!!")
@@ -109,12 +109,12 @@ function dbbuilding:setpos(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pos", v)
 end
-function dbbuilding:getpos()
+function dbbuilding:get_pos()
     -- 位置，即在城的gird中的index
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pos")
 end
 
-function dbbuilding:setattrid(v)
+function dbbuilding:set_attrid(v)
     -- 属性配置id
     if self:isEmpty() then
         skynet.error("[dbbuilding:setattrid],please init first!!")
@@ -123,12 +123,12 @@ function dbbuilding:setattrid(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "attrid", v)
 end
-function dbbuilding:getattrid()
+function dbbuilding:get_attrid()
     -- 属性配置id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "attrid")
 end
 
-function dbbuilding:setlev(v)
+function dbbuilding:set_lev(v)
     -- 等级
     if self:isEmpty() then
         skynet.error("[dbbuilding:setlev],please init first!!")
@@ -137,12 +137,12 @@ function dbbuilding:setlev(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lev", v)
 end
-function dbbuilding:getlev()
+function dbbuilding:get_lev()
     -- 等级
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lev")
 end
 
-function dbbuilding:setval(v)
+function dbbuilding:set_val(v)
     -- 值。如:产量，仓库的存储量等
     if self:isEmpty() then
         skynet.error("[dbbuilding:setval],please init first!!")
@@ -151,12 +151,12 @@ function dbbuilding:setval(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "val", v)
 end
-function dbbuilding:getval()
+function dbbuilding:get_val()
     -- 值。如:产量，仓库的存储量等
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val")
 end
 
-function dbbuilding:setval2(v)
+function dbbuilding:set_val2(v)
     -- 值2。如:产量，仓库的存储量等
     if self:isEmpty() then
         skynet.error("[dbbuilding:setval2],please init first!!")
@@ -165,12 +165,12 @@ function dbbuilding:setval2(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "val2", v)
 end
-function dbbuilding:getval2()
+function dbbuilding:get_val2()
     -- 值2。如:产量，仓库的存储量等
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val2")
 end
 
-function dbbuilding:setval3(v)
+function dbbuilding:set_val3(v)
     -- 值3。如:产量，仓库的存储量等
     if self:isEmpty() then
         skynet.error("[dbbuilding:setval3],please init first!!")
@@ -179,12 +179,12 @@ function dbbuilding:setval3(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "val3", v)
 end
-function dbbuilding:getval3()
+function dbbuilding:get_val3()
     -- 值3。如:产量，仓库的存储量等
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val3")
 end
 
-function dbbuilding:setval4(v)
+function dbbuilding:set_val4(v)
     -- 值4。如:产量，仓库的存储量等
     if self:isEmpty() then
         skynet.error("[dbbuilding:setval4],please init first!!")
@@ -193,7 +193,7 @@ function dbbuilding:setval4(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "val4", v)
 end
-function dbbuilding:getval4()
+function dbbuilding:get_val4()
     -- 值4。如:产量，仓库的存储量等
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val4")
 end
@@ -210,7 +210,7 @@ function dbbuilding:flush(immd)
 end
 
 function dbbuilding:isEmpty()
-    return (self.__key__ == nil) or (self:getidx() == nil)
+    return (self.__key__ == nil) or (self:get_idx() == nil)
 end
 
 function dbbuilding:release()

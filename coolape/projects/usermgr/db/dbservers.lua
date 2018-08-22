@@ -72,7 +72,7 @@ function dbservers:value2copy()  -- 取得数据复样，注意是只读的数�
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
 end
 
-function dbservers:setidx(v)
+function dbservers:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
         skynet.error("[dbservers:setidx],please init first!!")
@@ -81,12 +81,12 @@ function dbservers:setidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
-function dbservers:getidx()
+function dbservers:get_idx()
     -- 唯一标识
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
 end
 
-function dbservers:setappid(v)
+function dbservers:set_appid(v)
     -- 应用id
     if self:isEmpty() then
         skynet.error("[dbservers:setappid],please init first!!")
@@ -95,12 +95,12 @@ function dbservers:setappid(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "appid", v)
 end
-function dbservers:getappid()
+function dbservers:get_appid()
     -- 应用id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "appid")
 end
 
-function dbservers:setchannel(v)
+function dbservers:set_channel(v)
     -- 渠道id
     if self:isEmpty() then
         skynet.error("[dbservers:setchannel],please init first!!")
@@ -109,12 +109,12 @@ function dbservers:setchannel(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "channel", v)
 end
-function dbservers:getchannel()
+function dbservers:get_channel()
     -- 渠道id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "channel")
 end
 
-function dbservers:setname(v)
+function dbservers:set_name(v)
     -- 服务器名
     if self:isEmpty() then
         skynet.error("[dbservers:setname],please init first!!")
@@ -123,12 +123,12 @@ function dbservers:setname(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
 end
-function dbservers:getname()
+function dbservers:get_name()
     -- 服务器名
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "name")
 end
 
-function dbservers:setstatus(v)
+function dbservers:set_status(v)
     -- 状态 1:正常; 2:爆满; 3:维护
     if self:isEmpty() then
         skynet.error("[dbservers:setstatus],please init first!!")
@@ -137,12 +137,12 @@ function dbservers:setstatus(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
-function dbservers:getstatus()
+function dbservers:get_status()
     -- 状态 1:正常; 2:爆满; 3:维护
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
 end
 
-function dbservers:setisnew(v)
+function dbservers:set_isnew(v)
     -- 新服
     if self:isEmpty() then
         skynet.error("[dbservers:setisnew],please init first!!")
@@ -166,7 +166,7 @@ function dbservers:setisnew(v)
     end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "isnew", v)
 end
-function dbservers:getisnew()
+function dbservers:get_isnew()
     -- 新服
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "isnew")
     if val == nil or val == 0 or val == false then
@@ -176,7 +176,7 @@ function dbservers:getisnew()
     end
 end
 
-function dbservers:sethost(v)
+function dbservers:set_host(v)
     -- ip
     if self:isEmpty() then
         skynet.error("[dbservers:sethost],please init first!!")
@@ -185,12 +185,12 @@ function dbservers:sethost(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "host", v)
 end
-function dbservers:gethost()
+function dbservers:get_host()
     -- ip
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "host")
 end
 
-function dbservers:setport(v)
+function dbservers:set_port(v)
     -- port
     if self:isEmpty() then
         skynet.error("[dbservers:setport],please init first!!")
@@ -199,12 +199,12 @@ function dbservers:setport(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "port", v)
 end
-function dbservers:getport()
+function dbservers:get_port()
     -- port
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "port")
 end
 
-function dbservers:setandroidVer(v)
+function dbservers:set_androidVer(v)
     -- 客户端android版本
     if self:isEmpty() then
         skynet.error("[dbservers:setandroidVer],please init first!!")
@@ -213,12 +213,12 @@ function dbservers:setandroidVer(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "androidVer", v)
 end
-function dbservers:getandroidVer()
+function dbservers:get_androidVer()
     -- 客户端android版本
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "androidVer")
 end
 
-function dbservers:setiosVer(v)
+function dbservers:set_iosVer(v)
     -- 客户端ios版本
     if self:isEmpty() then
         skynet.error("[dbservers:setiosVer],please init first!!")
@@ -227,7 +227,7 @@ function dbservers:setiosVer(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "iosVer", v)
 end
-function dbservers:getiosVer()
+function dbservers:get_iosVer()
     -- 客户端ios版本
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "iosVer")
 end
@@ -244,7 +244,7 @@ function dbservers:flush(immd)
 end
 
 function dbservers:isEmpty()
-    return (self.__key__ == nil) or (self:getidx() == nil)
+    return (self.__key__ == nil) or (self:get_idx() == nil)
 end
 
 function dbservers:release()

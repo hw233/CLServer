@@ -72,7 +72,7 @@ function dbplayer:value2copy()  -- 取得数据复样，注意是只读的数据
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
 end
 
-function dbplayer:setidx(v)
+function dbplayer:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
         skynet.error("[dbplayer:setidx],please init first!!")
@@ -81,12 +81,12 @@ function dbplayer:setidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "idx", v)
 end
-function dbplayer:getidx()
+function dbplayer:get_idx()
     -- 唯一标识
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
 end
 
-function dbplayer:setstatus(v)
+function dbplayer:set_status(v)
     -- 状态 1:正常;
     if self:isEmpty() then
         skynet.error("[dbplayer:setstatus],please init first!!")
@@ -95,12 +95,12 @@ function dbplayer:setstatus(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
-function dbplayer:getstatus()
+function dbplayer:get_status()
     -- 状态 1:正常;
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
 end
 
-function dbplayer:setname(v)
+function dbplayer:set_name(v)
     -- 名称
     if self:isEmpty() then
         skynet.error("[dbplayer:setname],please init first!!")
@@ -109,12 +109,12 @@ function dbplayer:setname(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
 end
-function dbplayer:getname()
+function dbplayer:get_name()
     -- 名称
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "name")
 end
 
-function dbplayer:setlev(v)
+function dbplayer:set_lev(v)
     -- 等级
     if self:isEmpty() then
         skynet.error("[dbplayer:setlev],please init first!!")
@@ -123,12 +123,12 @@ function dbplayer:setlev(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lev", v)
 end
-function dbplayer:getlev()
+function dbplayer:get_lev()
     -- 等级
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lev")
 end
 
-function dbplayer:setmoney(v)
+function dbplayer:set_money(v)
     -- 充值总数
     if self:isEmpty() then
         skynet.error("[dbplayer:setmoney],please init first!!")
@@ -137,12 +137,12 @@ function dbplayer:setmoney(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "money", v)
 end
-function dbplayer:getmoney()
+function dbplayer:get_money()
     -- 充值总数
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "money")
 end
 
-function dbplayer:setdiam(v)
+function dbplayer:set_diam(v)
     -- 钻石
     if self:isEmpty() then
         skynet.error("[dbplayer:setdiam],please init first!!")
@@ -151,12 +151,12 @@ function dbplayer:setdiam(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "diam", v)
 end
-function dbplayer:getdiam()
+function dbplayer:get_diam()
     -- 钻石
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "diam")
 end
 
-function dbplayer:setcityidx(v)
+function dbplayer:set_cityidx(v)
     -- 主城idx
     if self:isEmpty() then
         skynet.error("[dbplayer:setcityidx],please init first!!")
@@ -165,12 +165,12 @@ function dbplayer:setcityidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "cityidx", v)
 end
-function dbplayer:getcityidx()
+function dbplayer:get_cityidx()
     -- 主城idx
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cityidx")
 end
 
-function dbplayer:setunionidx(v)
+function dbplayer:set_unionidx(v)
     -- 联盟idx
     if self:isEmpty() then
         skynet.error("[dbplayer:setunionidx],please init first!!")
@@ -179,12 +179,12 @@ function dbplayer:setunionidx(v)
     v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "unionidx", v)
 end
-function dbplayer:getunionidx()
+function dbplayer:get_unionidx()
     -- 联盟idx
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "unionidx")
 end
 
-function dbplayer:setcrtTime(v)
+function dbplayer:set_crtTime(v)
     -- 创建时间
     if self:isEmpty() then
         skynet.error("[dbplayer:setcrtTime],please init first!!")
@@ -193,12 +193,12 @@ function dbplayer:setcrtTime(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "crtTime", v)
 end
-function dbplayer:getcrtTime()
+function dbplayer:get_crtTime()
     -- 创建时间
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "crtTime")
 end
 
-function dbplayer:setlastEnTime(v)
+function dbplayer:set_lastEnTime(v)
     -- 最后登陆时间
     if self:isEmpty() then
         skynet.error("[dbplayer:setlastEnTime],please init first!!")
@@ -207,12 +207,12 @@ function dbplayer:setlastEnTime(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lastEnTime", v)
 end
-function dbplayer:getlastEnTime()
+function dbplayer:get_lastEnTime()
     -- 最后登陆时间
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lastEnTime")
 end
 
-function dbplayer:setchannel(v)
+function dbplayer:set_channel(v)
     -- 渠道
     if self:isEmpty() then
         skynet.error("[dbplayer:setchannel],please init first!!")
@@ -221,12 +221,12 @@ function dbplayer:setchannel(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "channel", v)
 end
-function dbplayer:getchannel()
+function dbplayer:get_channel()
     -- 渠道
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "channel")
 end
 
-function dbplayer:setdeviceid(v)
+function dbplayer:set_deviceid(v)
     -- 机器id
     if self:isEmpty() then
         skynet.error("[dbplayer:setdeviceid],please init first!!")
@@ -235,7 +235,7 @@ function dbplayer:setdeviceid(v)
     v = v or ""
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "deviceid", v)
 end
-function dbplayer:getdeviceid()
+function dbplayer:get_deviceid()
     -- 机器id
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "deviceid")
 end
@@ -252,7 +252,7 @@ function dbplayer:flush(immd)
 end
 
 function dbplayer:isEmpty()
-    return (self.__key__ == nil) or (self:getidx() == nil)
+    return (self.__key__ == nil) or (self:get_idx() == nil)
 end
 
 function dbplayer:release()
