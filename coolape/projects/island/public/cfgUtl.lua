@@ -50,12 +50,12 @@ function cfgUtl.getBuildingByID(id)
 end
 
 -- 取得成长值
-function cfgUtl.getVal(min, max, curverId, persent)
+function cfgUtl.getGrowingVal(min, max, curveID, persent)
     if curves == nil then
         cfgUtl.initCurves()
     end
     ---@type curve
-    local curveins = curves[curverId]
+    local curveins = curves[curveID]
     local persent = curveins:evaluate(persent)
     return min + (max - min) * persent
 end

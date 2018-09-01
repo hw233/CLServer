@@ -240,7 +240,7 @@ function cmd4city.initTiles(city)
                     for i, index2 in ipairs(tileCells) do
                         if numEx.nextBool() then
                             -- attrid 32到36都是树的配制
-                            local treeAttrid = math.random(30, 34)
+                            local treeAttrid = math.random(32, 36)
                             local tree = cmd4city.newBuilding(treeAttrid, index2, city:get_idx())
                             if tree then
                                 treeCounter = treeCounter + 1
