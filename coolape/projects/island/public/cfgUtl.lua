@@ -2,6 +2,7 @@ local skynet = require "skynet"
 
 ---@type curve
 local curve = require("curve")
+local numEx = require("numEx")
 ---@class cfgUtl
 cfgUtl = {}
 
@@ -11,14 +12,14 @@ function cfgUtl.initCurves()
     curves = {}
     local curveIns = curve.new(1, 0, 1, curve.easing.linear)
     table.insert(curves, curveIns)
-    curveIns = curve.new(1, 0, 1, curve.easing.inQuad)
-    table.insert(curves, curveIns)
-    curveIns = curve.new(1, 0, 1, curve.easing.outQuad)
-    table.insert(curves, curveIns)
-    curveIns = curve.new(1, 0, 1, curve.easing.inOutQuad)
-    table.insert(curves, curveIns)
-    curveIns = curve.new(1, 0, 1, curve.easing.outInQuad)
-    table.insert(curves, curveIns)
+    --curveIns = curve.new(1, 0, 1, curve.easing.inQuad)
+    --table.insert(curves, curveIns)
+    --curveIns = curve.new(1, 0, 1, curve.easing.outQuad)
+    --table.insert(curves, curveIns)
+    --curveIns = curve.new(1, 0, 1, curve.easing.inOutQuad)
+    --table.insert(curves, curveIns)
+    --curveIns = curve.new(1, 0, 1, curve.easing.outInQuad)
+    --table.insert(curves, curveIns)
     curveIns = curve.new(1, 0, 1, curve.easing.inCirc)
     table.insert(curves, curveIns)
     curveIns = curve.new(1, 0, 1, curve.easing.outCirc)
@@ -26,6 +27,15 @@ function cfgUtl.initCurves()
     curveIns = curve.new(1, 0, 1, curve.easing.inOutCirc)
     table.insert(curves, curveIns)
     curveIns = curve.new(1, 0, 1, curve.easing.outInCirc)
+    table.insert(curves, curveIns)
+
+    curveIns = curve.new(1,0,1, curve.easing.inExpo)
+    table.insert(curves, curveIns)
+    curveIns = curve.new(1,0,1, curve.easing.outExpo)
+    table.insert(curves, curveIns)
+    curveIns = curve.new(1,0,1, curve.easing.inOutExpo)
+    table.insert(curves, curveIns)
+    curveIns = curve.new(1,0,1, curve.easing.outInExpo)
     table.insert(curves, curveIns)
 end
 
@@ -49,15 +59,30 @@ function cfgUtl.getBuildingByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFBuildingData", id)
 end
 
--- 取得成长值
-function cfgUtl.getGrowingVal(min, max, curveID, persent)
+---@public 取得成长值
+---@param min 基础值
+---@param max 最大值
+---@param curveID 曲线id
+---@param persent 百分比
+---@param precision 小数点后几位
+function cfgUtl.getGrowingVal(min, max, curveID, persent, precision)
     if curves == nil then
         cfgUtl.initCurves()
     end
+
     ---@type curve
     local curveins = curves[curveID]
+    if curveins == nil then
+        return 0
+    end
     local persent = curveins:evaluate(persent)
-    return min + (max - min) * persent
+    local val = min + (max - min) * persent
+
+    if precision == nil or precision == 0 then
+        return math.ceil(val)
+    else
+        return numEx.getPreciseDecimal(val, precision)
+    end
 end
 
 return cfgUtl
