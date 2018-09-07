@@ -29,6 +29,8 @@ local tiles = {}        -- 地块信息 key=idx, val=dbtile
 local buildings = {}    -- 建筑信息 key=idx, val=dbbuilding
 ---@type dbbuilding
 local headquarters -- 主基地
+local buildingCountMap = {}  -- key=buildingAttrid;value=count
+local hadTileCount = 0
 
 function cmd4city.new (uidx)
     tiles = {}        -- 地块信息 key=idx
@@ -51,6 +53,7 @@ function cmd4city.new (uidx)
     local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), idx)
     if building then
         buildings[building:get_idx()] = building
+        buildingCountMap[1] = (buildingCountMap[1] or 0) + 1
         headquarters = building
         cmd4city.placeBuilding(building)
     end
@@ -196,6 +199,7 @@ function cmd4city.initTree(city, rangeV4)
             local tree = cmd4city.newBuilding(treeAttrid, pos, city:get_idx())
             if tree then
                 buildings[tree:get_idx()] = tree
+                buildingCountMap[treeAttrid] = (buildingCountMap[treeAttrid] or 0) + 1
                 --gridState4Building[tree:getpos()] = true
             end
         end
@@ -214,7 +218,7 @@ end
 -- 初始化地块
 ---@param city dbcity
 function cmd4city.initTiles(city)
-    local headquartersLevsAttr = cfgUtl.getHeadquartersLevsByID(cmd4city.getCityLev())
+    local headquartersLevsAttr = cfgUtl.getHeadquartersLevsByID(1)
     if headquartersLevsAttr == nil then
         printe("get DBCFHeadquartersLevsData attr is nil. key=" .. cmd4city.getCityLev())
         return nil
@@ -233,6 +237,7 @@ function cmd4city.initTiles(city)
             if tile then
                 counter = counter + 1
                 tiles[tile:get_idx()] = tile
+                hadTileCount = hadTileCount + 1
 
                 -- 初始化树
                 if treeCounter < maxTree then
@@ -245,6 +250,7 @@ function cmd4city.initTiles(city)
                             if tree then
                                 treeCounter = treeCounter + 1
                                 buildings[tree:get_idx()] = tree
+                                buildingCountMap[treeAttrid] = (buildingCountMap[treeAttrid] or 0) + 1
                             end
                         end
                     end
@@ -343,6 +349,13 @@ end
 ---@param pos grid地块的idx
 ---@param cidx 城idx
 function cmd4city.newTile(pos, attrid, cidx)
+    local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters.get_lev())
+    local maxNum = headquartersOpen.Tiles
+    if hadTileCount >= maxNum then
+        printe("地块数量已经达上限！")
+        return nil
+    end
+
     if not cmd4city.canPlace(pos, false) then
         printe("【cmd4city.newTile】该位置不能放置地块, pos ==" .. pos)
         return nil
@@ -355,6 +368,9 @@ function cmd4city.newTile(pos, attrid, cidx)
     t.pos = pos -- "城所在世界grid的index"
     if tile:init(t, true) then
         cmd4city.placeTile(tile)
+
+        tiles[tile:get_idx()] = tile
+        hadTileCount = hadTileCount + 1
         return tile
     else
         printe("[cmd4city.newTile]==" .. CLUtl.dump(t))
@@ -397,6 +413,7 @@ function cmd4city.setSelfTiles()
     for i, v in ipairs(list) do
         t = dbtile.new(v)
         tiles[v.idx] = t
+        hadTileCount = hadTileCount + 1
         cmd4city.placeTile(t)
     end
 end
@@ -409,11 +426,25 @@ function cmd4city.getSelfTiles()
     return tiles
 end
 
--- 新建筑
+---@public 取得当前等级建筑的最大数量
+function cmd4city.getBuildingCountAtCurrLev(buildingAttrId)
+    local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters.get_lev())
+    return headquartersOpen[buildingAttrId] or 1
+end
+
+---@public 新建筑
 ---@param attrid 建筑的配置id
 ---@param pos grid地块idx
 ---@param cidx 城idx
 function cmd4city.newBuilding(attrid, pos, cidx)
+    -- 数量判断
+    local hadNum = (buildingCountMap[attrid] or 0)
+    local maxNum = cmd4city.getBuildingCountAtCurrLev(attrid)
+    if hadNum >= maxNum then
+        printe("已经达到建筑最大数量！")
+        return nil
+    end
+
     if not cmd4city.canPlace(pos, true, attrid) then
         printe("该位置不能放置建筑, pos ==" .. pos)
         return nil
@@ -431,6 +462,8 @@ function cmd4city.newBuilding(attrid, pos, cidx)
     b.val4 = 0 -- 值。如:产量，仓库的存储量等
 
     if building:init(b, true) then
+        buildings[v.idx] = b
+        buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
         cmd4city.placeBuilding(building)
         return building
     else
@@ -470,6 +503,7 @@ function cmd4city.setSelfBuildings()
     for i, v in ipairs(list) do
         b = dbbuilding.new(v)
         buildings[v.idx] = b
+        buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
         if v.attrid == 1 then
             -- 说明是主基地
             headquarters = v
