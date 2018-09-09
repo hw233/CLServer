@@ -84,10 +84,14 @@ CREATE TABLE `building` (
   `pos` int(8) NOT NULL,
   `attrid` int(5),
   `lev` int(5),
+  `state` INT(1),
+  `starttime` DATETIME,
+  `endtime` DATETIME,
   `val` int(11),
   `val2` int(11),
   `val3` int(11),
   `val4` int(11),
+  `val5` INT(11),
   PRIMARY KEY (`idx`, `cidx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------

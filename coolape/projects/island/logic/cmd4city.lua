@@ -7,6 +7,8 @@ require("dbcity")
 require("dbtile")
 require("dbbuilding")
 require("Errcode")
+local ConstVals = require("ConstVals")
+
 local math = math
 local table = table
 
@@ -539,6 +541,89 @@ function cmd4city.getSelfBuilding(idx)
     return b
 end
 
+---@public 取得仓库建筑列表
+---@param attrid 建筑配置id
+---@return list 建筑列表
+---@return totalStore 总存储量
+function cmd4city.getStoreBuildings(attrid)
+    ---@type dbbuilding
+    local b, list, totalStore
+    list = {}
+    totalStore = 0
+    for k, v in pairs(buildings) do
+        b = v
+        if b:get_attrid() == attrid then
+            table.insert(list, v)
+            totalStore = totalStore + b:get_val()
+        end
+    end
+    return list, totalStore
+end
+
+---@public 处理其中一种资源变化
+local consumeOneRes = function(val, list)
+    ---@type dbbuilding
+    local b
+    local attr, maxStore, tmpval
+    if val ~= 0 then
+        for i, v in ipairs(list) do
+            b = v
+            if val > 0 then
+                -- 说明是扣除
+                tmpval = b:get_val() - val
+                if tmpval >= 0 then
+                    b:set_val(tmpval)
+                    break
+                else
+                    val = (-tmpval)
+                    b:set_val(0)
+                end
+            else
+                -- 说明是存储
+                if attr == nil then
+                    attr = cfgUtl.getBuildingByID(b:get_attrid())
+                end
+                maxStore = cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, b:get_lev() / attr.MaxLev)
+
+                tmpval = b:get_val() - val
+                if tmpval < maxStore then
+                    b:set_val(tmpval)
+                    break
+                else
+                    b:set_val(maxStore)
+                    val = maxStore - tmpval
+                end
+            end
+        end
+    end
+end
+
+---@public 消耗资源
+---@param food 粮
+---@param gold 金
+---@param oil 油
+function cmd4city.consumeRes(food, gold, oil)
+    local list1, total1 = cmd4city.getStoreBuildings(ConstVals.foodBuildingID)
+    if food > total1 then
+        return false, Errcode.resNotEnough
+    end
+
+    local list2, total2 = cmd4city.getStoreBuildings(ConstVals.goldBuildingID)
+    if gold > total2 then
+        return false, Errcode.resNotEnough
+    end
+
+    local list3, total3 = cmd4city.getStoreBuildings(ConstVals.oildBuildingID)
+    if oil > total3 then
+        return false, Errcode.resNotEnough
+    end
+    consumeOneRes(food, list1)
+    consumeOneRes(gold, list2)
+    consumeOneRes(oil, list3)
+    -- todo: 通知客户端资源变化
+    return true
+end
+
 -- 释放数据
 function cmd4city.release()
     ---@type dbbuilding
@@ -678,20 +763,49 @@ cmd4city.CMD = {
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", "moveBuilding", ret, b:value2copy())
     end,
+
     upLevBuilding = function(m, fd)
         -- 建筑升级
         local ret = {}
+        local cmd = "upLevBuilding"
         local b = cmd4city.getSelfBuilding(m.idx)
         if b == nil then
             ret.code = Errcode.error
             ret.msg = "取得建筑为空"
-            return skynet.call(NetProtoIsland, "lua", "send", "upLevBuilding", ret)
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
-        --TODO: check max lev
-        b:set_lev(b:get_lev() + 1)
+        --check max lev
+        local attrid = b:get_attrid()
+        local attr = cfgUtl.getBuildingByID(attrid)
+        local maxLev = attr.maxLev
+        if b:get_lev() >= maxLev then
+            ret.code = Errcode.outOfMaxLev
+            ret.msg = "已经是最高等级"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        -- 扣除资源
+        local persent = b:get_lev() / attr.MaxLev
+        local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
+        local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
+        local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
+        local succ, code = cmd4city.consumeRes(food, gold, oil)
+        if not succ then
+            ret.code = code
+            ret.msg = "资源不足"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        -- 设置冷却时间
+        local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
+        local endTime = dateEx.seconds2Str(dateEx.now() + sec)
+        b:set_endtime(endTime)
+        b:set_state(ConstVals.upgrade_buildingState)
+
         ret.code = Errcode.ok
-        return skynet.call(NetProtoIsland, "lua", "send", "upLevBuilding", ret)
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
     end,
+
     release = function(m, fd)
         cmd4city.release()
     end,

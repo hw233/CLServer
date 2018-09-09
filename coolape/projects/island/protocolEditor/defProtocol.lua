@@ -73,10 +73,14 @@ defProtocol.structs.building = {
         pos = { 0, "位置，即在城的gird中的index int" },
         attrid = { 0, "属性配置id int" },
         lev = { 0, "等级 int" },
+        state = { 0, "状态. 0：正常；1：升级中；9：恢复中" },
+        starttime = { 0, "开始升级、恢复、采集等的时间点 long" },
+        endtime = { 0, "完成升级、恢复、采集等的时间点 long" },
         val = { 0, "值。如:产量，仓库的存储量等 int" },
         val2 = { 0, "值2。如:产量，仓库的存储量等 int" },
         val3 = { 0, "值3。如:产量，仓库的存储量等 int" },
         val4 = { 0, "值4。如:产量，仓库的存储量等 int" },
+        val5 = { 0, "值5。如:产量，仓库的存储量等 int" },
     }
 }
 defProtocol.structs.tile = {

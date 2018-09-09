@@ -195,10 +195,10 @@ function genDB.genIncrementSql(oldPath, t)
         oldCol = columnsMap[colName]
         if oldCol == nil then
             -- 说明是新增字段
-            table.insert(ret, "alter table " .. t.name .. " ADD " .. colName .. " " .. v[2] .. " # " .. v[3])
+            table.insert(ret, "alter table " .. t.name .. " ADD " .. colName .. " " .. v[2] .. "; # " .. v[3])
         elseif v[2] ~= oldCol[2] then
             -- 说明有修改
-            table.insert(ret, "alter table " .. t.name .. " MODIFY " .. colName .. " " .. v[2] .. " # " .. v[3])
+            table.insert(ret, "alter table " .. t.name .. " MODIFY " .. colName .. " " .. v[2] .. "; # " .. v[3])
         end
     end
     if #ret > 0 then
@@ -277,7 +277,7 @@ function genDB.genLuaFile(outPath, tableCfg)
         table.insert(getsetFunc, "function " .. name .. ":set_" .. v[1] .. "(v)")
         table.insert(getsetFunc, "    " .. ( v[3] and "-- " .. v[3] or ""))
         table.insert(getsetFunc, "    if self:isEmpty() then")
-        table.insert(getsetFunc, "        skynet.error(\"[" .. name .. ":set" .. v[1] .. "],please init first!!\")")
+        table.insert(getsetFunc, "        skynet.error(\"[" .. name .. ":set_" .. v[1] .. "],please init first!!\")")
         table.insert(getsetFunc, "        return nil")
         table.insert(getsetFunc, "    end")
 

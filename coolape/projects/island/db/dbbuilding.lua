@@ -142,6 +142,48 @@ function dbbuilding:get_lev()
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lev")
 end
 
+function dbbuilding:set_state(v)
+    -- 状态. 0：正常；1：升级中；9：恢复中
+    if self:isEmpty() then
+        skynet.error("[dbbuilding:setstate],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "state", v)
+end
+function dbbuilding:get_state()
+    -- 状态. 0：正常；1：升级中；9：恢复中
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "state")
+end
+
+function dbbuilding:set_starttime(v)
+    -- 开始升级、恢复、采集等的时间点
+    if self:isEmpty() then
+        skynet.error("[dbbuilding:setstarttime],please init first!!")
+        return nil
+    end
+    v = v or ""
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "starttime", v)
+end
+function dbbuilding:get_starttime()
+    -- 开始升级、恢复、采集等的时间点
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "starttime")
+end
+
+function dbbuilding:set_endtime(v)
+    -- 完成升级、恢复、采集等的时间点
+    if self:isEmpty() then
+        skynet.error("[dbbuilding:setendtime],please init first!!")
+        return nil
+    end
+    v = v or ""
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "endtime", v)
+end
+function dbbuilding:get_endtime()
+    -- 完成升级、恢复、采集等的时间点
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "endtime")
+end
+
 function dbbuilding:set_val(v)
     -- 值。如:产量，仓库的存储量等
     if self:isEmpty() then
@@ -196,6 +238,20 @@ end
 function dbbuilding:get_val4()
     -- 值4。如:产量，仓库的存储量等
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val4")
+end
+
+function dbbuilding:set_val5(v)
+    -- 值5。如:产量，仓库的存储量等
+    if self:isEmpty() then
+        skynet.error("[dbbuilding:setval5],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "val5", v)
+end
+function dbbuilding:get_val5()
+    -- 值5。如:产量，仓库的存储量等
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val5")
 end
 
 -- 把数据flush到mysql里， immd=true 立即生效
