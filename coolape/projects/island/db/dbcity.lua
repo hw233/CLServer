@@ -17,6 +17,7 @@
 require("class")
 local skynet = require "skynet"
 local tonumber = tonumber
+require("dateEx")
 
 -- 主城表
 ---@class dbcity
@@ -75,7 +76,7 @@ end
 function dbcity:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
-        skynet.error("[dbcity:setidx],please init first!!")
+        skynet.error("[dbcity:set_idx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -89,7 +90,7 @@ end
 function dbcity:set_name(v)
     -- 名称
     if self:isEmpty() then
-        skynet.error("[dbcity:setname],please init first!!")
+        skynet.error("[dbcity:set_name],please init first!!")
         return nil
     end
     v = v or ""
@@ -103,7 +104,7 @@ end
 function dbcity:set_pidx(v)
     -- 玩家idx
     if self:isEmpty() then
-        skynet.error("[dbcity:setpidx],please init first!!")
+        skynet.error("[dbcity:set_pidx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -117,7 +118,7 @@ end
 function dbcity:set_pos(v)
     -- 城所在世界grid的index
     if self:isEmpty() then
-        skynet.error("[dbcity:setpos],please init first!!")
+        skynet.error("[dbcity:set_pos],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -131,7 +132,7 @@ end
 function dbcity:set_status(v)
     -- 状态 1:正常;
     if self:isEmpty() then
-        skynet.error("[dbcity:setstatus],please init first!!")
+        skynet.error("[dbcity:set_status],please init first!!")
         return nil
     end
     v = tonumber(v) or 0

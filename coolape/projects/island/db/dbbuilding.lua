@@ -17,6 +17,7 @@
 require("class")
 local skynet = require "skynet"
 local tonumber = tonumber
+require("dateEx")
 
 -- 建筑表
 ---@class dbbuilding
@@ -75,7 +76,7 @@ end
 function dbbuilding:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setidx],please init first!!")
+        skynet.error("[dbbuilding:set_idx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -89,7 +90,7 @@ end
 function dbbuilding:set_cidx(v)
     -- 主城idx
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setcidx],please init first!!")
+        skynet.error("[dbbuilding:set_cidx],please init first!!")
         return nil
     end
     v = v or ""
@@ -103,7 +104,7 @@ end
 function dbbuilding:set_pos(v)
     -- 位置，即在城的gird中的index
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setpos],please init first!!")
+        skynet.error("[dbbuilding:set_pos],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -117,7 +118,7 @@ end
 function dbbuilding:set_attrid(v)
     -- 属性配置id
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setattrid],please init first!!")
+        skynet.error("[dbbuilding:set_attrid],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -131,7 +132,7 @@ end
 function dbbuilding:set_lev(v)
     -- 等级
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setlev],please init first!!")
+        skynet.error("[dbbuilding:set_lev],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -145,7 +146,7 @@ end
 function dbbuilding:set_state(v)
     -- 状态. 0：正常；1：升级中；9：恢复中
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setstate],please init first!!")
+        skynet.error("[dbbuilding:set_state],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -159,35 +160,37 @@ end
 function dbbuilding:set_starttime(v)
     -- 开始升级、恢复、采集等的时间点
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setstarttime],please init first!!")
+        skynet.error("[dbbuilding:set_starttime],please init first!!")
         return nil
     end
-    v = v or ""
+    v = dateEx.seconds2Str(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "starttime", v)
 end
 function dbbuilding:get_starttime()
     -- 开始升级、恢复、采集等的时间点
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "starttime")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "starttime")
+    return dateEx.str2Seconds(val)
 end
 
 function dbbuilding:set_endtime(v)
     -- 完成升级、恢复、采集等的时间点
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setendtime],please init first!!")
+        skynet.error("[dbbuilding:set_endtime],please init first!!")
         return nil
     end
-    v = v or ""
+    v = dateEx.seconds2Str(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "endtime", v)
 end
 function dbbuilding:get_endtime()
     -- 完成升级、恢复、采集等的时间点
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "endtime")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "endtime")
+    return dateEx.str2Seconds(val)
 end
 
 function dbbuilding:set_val(v)
     -- 值。如:产量，仓库的存储量等
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setval],please init first!!")
+        skynet.error("[dbbuilding:set_val],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -201,7 +204,7 @@ end
 function dbbuilding:set_val2(v)
     -- 值2。如:产量，仓库的存储量等
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setval2],please init first!!")
+        skynet.error("[dbbuilding:set_val2],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -215,7 +218,7 @@ end
 function dbbuilding:set_val3(v)
     -- 值3。如:产量，仓库的存储量等
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setval3],please init first!!")
+        skynet.error("[dbbuilding:set_val3],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -229,7 +232,7 @@ end
 function dbbuilding:set_val4(v)
     -- 值4。如:产量，仓库的存储量等
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setval4],please init first!!")
+        skynet.error("[dbbuilding:set_val4],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -243,7 +246,7 @@ end
 function dbbuilding:set_val5(v)
     -- 值5。如:产量，仓库的存储量等
     if self:isEmpty() then
-        skynet.error("[dbbuilding:setval5],please init first!!")
+        skynet.error("[dbbuilding:set_val5],please init first!!")
         return nil
     end
     v = tonumber(v) or 0

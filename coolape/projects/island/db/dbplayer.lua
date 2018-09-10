@@ -17,6 +17,7 @@
 require("class")
 local skynet = require "skynet"
 local tonumber = tonumber
+require("dateEx")
 
 -- 玩家表
 ---@class dbplayer
@@ -75,7 +76,7 @@ end
 function dbplayer:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
-        skynet.error("[dbplayer:setidx],please init first!!")
+        skynet.error("[dbplayer:set_idx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -89,7 +90,7 @@ end
 function dbplayer:set_status(v)
     -- 状态 1:正常;
     if self:isEmpty() then
-        skynet.error("[dbplayer:setstatus],please init first!!")
+        skynet.error("[dbplayer:set_status],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -103,7 +104,7 @@ end
 function dbplayer:set_name(v)
     -- 名称
     if self:isEmpty() then
-        skynet.error("[dbplayer:setname],please init first!!")
+        skynet.error("[dbplayer:set_name],please init first!!")
         return nil
     end
     v = v or ""
@@ -117,7 +118,7 @@ end
 function dbplayer:set_lev(v)
     -- 等级
     if self:isEmpty() then
-        skynet.error("[dbplayer:setlev],please init first!!")
+        skynet.error("[dbplayer:set_lev],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -131,7 +132,7 @@ end
 function dbplayer:set_money(v)
     -- 充值总数
     if self:isEmpty() then
-        skynet.error("[dbplayer:setmoney],please init first!!")
+        skynet.error("[dbplayer:set_money],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -145,7 +146,7 @@ end
 function dbplayer:set_diam(v)
     -- 钻石
     if self:isEmpty() then
-        skynet.error("[dbplayer:setdiam],please init first!!")
+        skynet.error("[dbplayer:set_diam],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -159,7 +160,7 @@ end
 function dbplayer:set_cityidx(v)
     -- 主城idx
     if self:isEmpty() then
-        skynet.error("[dbplayer:setcityidx],please init first!!")
+        skynet.error("[dbplayer:set_cityidx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -173,7 +174,7 @@ end
 function dbplayer:set_unionidx(v)
     -- 联盟idx
     if self:isEmpty() then
-        skynet.error("[dbplayer:setunionidx],please init first!!")
+        skynet.error("[dbplayer:set_unionidx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -187,35 +188,37 @@ end
 function dbplayer:set_crtTime(v)
     -- 创建时间
     if self:isEmpty() then
-        skynet.error("[dbplayer:setcrtTime],please init first!!")
+        skynet.error("[dbplayer:set_crtTime],please init first!!")
         return nil
     end
-    v = v or ""
+    v = dateEx.seconds2Str(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "crtTime", v)
 end
 function dbplayer:get_crtTime()
     -- 创建时间
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "crtTime")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "crtTime")
+    return dateEx.str2Seconds(val)
 end
 
 function dbplayer:set_lastEnTime(v)
     -- 最后登陆时间
     if self:isEmpty() then
-        skynet.error("[dbplayer:setlastEnTime],please init first!!")
+        skynet.error("[dbplayer:set_lastEnTime],please init first!!")
         return nil
     end
-    v = v or ""
+    v = dateEx.seconds2Str(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lastEnTime", v)
 end
 function dbplayer:get_lastEnTime()
     -- 最后登陆时间
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lastEnTime")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lastEnTime")
+    return dateEx.str2Seconds(val)
 end
 
 function dbplayer:set_channel(v)
     -- 渠道
     if self:isEmpty() then
-        skynet.error("[dbplayer:setchannel],please init first!!")
+        skynet.error("[dbplayer:set_channel],please init first!!")
         return nil
     end
     v = v or ""
@@ -229,7 +232,7 @@ end
 function dbplayer:set_deviceid(v)
     -- 机器id
     if self:isEmpty() then
-        skynet.error("[dbplayer:setdeviceid],please init first!!")
+        skynet.error("[dbplayer:set_deviceid],please init first!!")
         return nil
     end
     v = v or ""

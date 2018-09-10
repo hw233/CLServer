@@ -17,6 +17,7 @@
 require("class")
 local skynet = require "skynet"
 local tonumber = tonumber
+require("dateEx")
 
 -- 地块表
 ---@class dbtile
@@ -75,7 +76,7 @@ end
 function dbtile:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
-        skynet.error("[dbtile:setidx],please init first!!")
+        skynet.error("[dbtile:set_idx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -89,7 +90,7 @@ end
 function dbtile:set_cidx(v)
     -- 主城idx
     if self:isEmpty() then
-        skynet.error("[dbtile:setcidx],please init first!!")
+        skynet.error("[dbtile:set_cidx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -103,7 +104,7 @@ end
 function dbtile:set_attrid(v)
     -- 属性id
     if self:isEmpty() then
-        skynet.error("[dbtile:setattrid],please init first!!")
+        skynet.error("[dbtile:set_attrid],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -117,7 +118,7 @@ end
 function dbtile:set_pos(v)
     -- 城所在世界grid的index
     if self:isEmpty() then
-        skynet.error("[dbtile:setpos],please init first!!")
+        skynet.error("[dbtile:set_pos],please init first!!")
         return nil
     end
     v = tonumber(v) or 0

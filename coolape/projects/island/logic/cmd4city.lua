@@ -798,7 +798,7 @@ cmd4city.CMD = {
 
         -- 设置冷却时间
         local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
-        local endTime = dateEx.seconds2Str(dateEx.now() + sec)
+        local endTime = dateEx.now() + sec
         b:set_endtime(endTime)
         b:set_state(ConstVals.upgrade_buildingState)
 
