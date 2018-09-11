@@ -52,8 +52,12 @@ function cmd4city.new (uidx)
 
     --TODO: 初始化建筑
     -- add base buildings
+    ---@type dbbuilding
     local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), idx)
     if building then
+        building:set_val(10000)     -- 粮
+        building:set_val2(10000)    -- 金
+        building:set_val3(10000)    -- 油
         buildings[building:get_idx()] = building
         buildingCountMap[1] = (buildingCountMap[1] or 0) + 1
         headquarters = building
@@ -598,25 +602,93 @@ local consumeOneRes = function(val, list)
     end
 end
 
+function cmd4city.consumeRes4Base(food, gold, oil)
+    if food ~= 0 then
+        if food > 0 then
+            if food <= headquarters:get_val() then
+                headquarters:set_val(headquarters:get_val() - food)
+                food = 0
+            else
+                headquarters:set_val(0)
+                food = food - headquarters:get_val()
+            end
+        else
+            local tmpval = headquarters:get_val() - food
+            if tmpval > ConstVals.baseRes then
+                headquarters:set_val(ConstVals.baseRes)
+                food = ConstVals.baseRes - tmpval
+            else
+                headquarters:set_val(tmpval)
+                food = 0
+            end
+        end
+    end
+
+    if gold ~= 0 then
+        if gold > 0 then
+            if gold <= headquarters:get_val2() then
+                headquarters:set_val2(headquarters:get_val2() - gold)
+                gold = 0
+            else
+                headquarters:set_val2(0)
+                gold = gold - headquarters:get_val2()
+            end
+        else
+            local tmpval = headquarters:get_val2() - gold
+            if tmpval > ConstVals.baseRes then
+                headquarters:set_val2(ConstVals.baseRes)
+                gold = ConstVals.baseRes - tmpval
+            else
+                headquarters:set_val2(tmpval)
+                gold = 0
+            end
+        end
+    end
+
+    if oil ~= 0 then
+        if oil > 0 then
+            if oil <= headquarters:get_val3() then
+                headquarters:set_val3(headquarters:get_val3() - oil)
+                oil = 0
+            else
+                headquarters:set_val3(0)
+                oil = oil - headquarters:get_val3()
+            end
+        else
+            local tmpval = headquarters:get_val3() - oil
+            if tmpval > ConstVals.baseRes then
+                headquarters:set_val3(ConstVals.baseRes)
+                oil = ConstVals.baseRes - tmpval
+            else
+                headquarters:set_val3(tmpval)
+                oil = 0
+            end
+        end
+    end
+    return food, gold, oil
+end
+
 ---@public 消耗资源
 ---@param food 粮
 ---@param gold 金
 ---@param oil 油
 function cmd4city.consumeRes(food, gold, oil)
     local list1, total1 = cmd4city.getStoreBuildings(ConstVals.foodStorageBuildingID)
-    if food > total1 then
+    if food > total1 + headquarters:get_val() then
         return false, Errcode.resNotEnough
     end
 
     local list2, total2 = cmd4city.getStoreBuildings(ConstVals.goldStorageBuildingID)
-    if gold > total2 then
+    if gold > total2 + headquarters:get_val2() then
         return false, Errcode.resNotEnough
     end
 
     local list3, total3 = cmd4city.getStoreBuildings(ConstVals.oildStorageBuildingID)
-    if oil > total3 then
+    if oil > total3 + headquarters:get_val3() then
         return false, Errcode.resNotEnough
     end
+    food, gold, oil = cmd4city.consumeRes4Base(food, gold, oil)
+    headquarters:get_val()
     consumeOneRes(food, list1)
     consumeOneRes(gold, list2)
     consumeOneRes(oil, list3)
