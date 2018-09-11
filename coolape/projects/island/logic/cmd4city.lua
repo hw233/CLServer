@@ -603,17 +603,17 @@ end
 ---@param gold 金
 ---@param oil 油
 function cmd4city.consumeRes(food, gold, oil)
-    local list1, total1 = cmd4city.getStoreBuildings(ConstVals.foodBuildingID)
+    local list1, total1 = cmd4city.getStoreBuildings(ConstVals.foodStorageBuildingID)
     if food > total1 then
         return false, Errcode.resNotEnough
     end
 
-    local list2, total2 = cmd4city.getStoreBuildings(ConstVals.goldBuildingID)
+    local list2, total2 = cmd4city.getStoreBuildings(ConstVals.goldStorageBuildingID)
     if gold > total2 then
         return false, Errcode.resNotEnough
     end
 
-    local list3, total3 = cmd4city.getStoreBuildings(ConstVals.oildBuildingID)
+    local list3, total3 = cmd4city.getStoreBuildings(ConstVals.oildStorageBuildingID)
     if oil > total3 then
         return false, Errcode.resNotEnough
     end
