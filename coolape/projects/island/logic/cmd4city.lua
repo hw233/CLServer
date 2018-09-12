@@ -468,8 +468,8 @@ function cmd4city.newBuilding(attrid, pos, cidx)
     b.val4 = 0 -- 值。如:产量，仓库的存储量等
 
     if building:init(b, true) then
-        buildings[v.idx] = b
-        buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
+        buildings[b.idx] = building
+        buildingCountMap[building:get_attrid()] = (buildingCountMap[building:get_attrid()] or 0) + 1
         cmd4city.placeBuilding(building)
         return building
     else
@@ -624,7 +624,6 @@ function cmd4city.consumeRes4Base(food, gold, oil)
                 val = ConstVals.baseRes - tmpval
             else
                 headquarters:set_val((tmpval))
-                break
             end
         end
     end
@@ -644,7 +643,6 @@ function cmd4city.consumeRes4Base(food, gold, oil)
                 val = ConstVals.baseRes - tmpval
             else
                 headquarters:set_val2((tmpval))
-                break
             end
         end
     end
@@ -664,7 +662,6 @@ function cmd4city.consumeRes4Base(food, gold, oil)
                 val = ConstVals.baseRes - tmpval
             else
                 headquarters:set_val3((tmpval))
-                break
             end
         end
     end
@@ -864,6 +861,15 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
 
+        -- 非主基地时，基它建筑要不能超过主基地
+        if b:get_attrid() ~= ConstVals.headquartersBuildingID then
+            if b:get_lev() >= headquarters:get_lev() then
+                ret.code = Errcode.exceedHeadquarters
+                ret.msg = "不能超过主基地等级"
+                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+            end
+        end
+
         -- 扣除资源
         local persent = b:get_lev() / attr.MaxLev
         local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
@@ -880,7 +886,7 @@ cmd4city.CMD = {
         local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
         local endTime = dateEx.now() + sec
         b:set_endtime(endTime)
-        b:set_state(ConstVals.upgrade_buildingState)
+        b:set_state(ConstVals.BuildingState.upgrade)
 
         -- 通知服务器建筑有变化
         ret.code = Errcode.ok
