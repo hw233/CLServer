@@ -55,9 +55,9 @@ function cmd4city.new (uidx)
     ---@type dbbuilding
     local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), idx)
     if building then
-        building:set_val(10000)     -- 粮
-        building:set_val2(10000)    -- 金
-        building:set_val3(10000)    -- 油
+        building:set_val(ConstVals.baseRes)     -- 粮
+        building:set_val2(ConstVals.baseRes)    -- 金
+        building:set_val3(ConstVals.baseRes)    -- 油
         buildings[building:get_idx()] = building
         buildingCountMap[1] = (buildingCountMap[1] or 0) + 1
         headquarters = building
@@ -572,99 +572,108 @@ local consumeOneRes = function(val, list)
     if val ~= 0 then
         for i, v in ipairs(list) do
             b = v
-            if val > 0 then
+            tmpval = b:get_val() - val
+            if tmpval < 0 then
                 -- 说明是扣除
-                tmpval = b:get_val() - val
-                if tmpval >= 0 then
-                    b:set_val(tmpval)
-                    break
-                else
-                    val = (-tmpval)
-                    b:set_val(0)
-                end
+                b:set_val(0)
+                val = -tmpval
+
+                -- 通知服务器建筑有变化
+                local ret = { code = Errcode.ok }
+                skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
             else
                 -- 说明是存储
                 if attr == nil then
                     attr = cfgUtl.getBuildingByID(b:get_attrid())
                 end
                 maxStore = cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, b:get_lev() / attr.MaxLev)
-
-                tmpval = b:get_val() - val
-                if tmpval < maxStore then
-                    b:set_val(tmpval)
-                    break
-                else
+                if tmpval > maxStore then
                     b:set_val(maxStore)
                     val = maxStore - tmpval
+
+                    -- 通知服务器建筑有变化
+                    local ret = { code = Errcode.ok }
+                    skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
+                else
+                    b:set_val((tmpval))
+
+                    -- 通知服务器建筑有变化
+                    local ret = { code = Errcode.ok }
+                    skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
+                    break
                 end
             end
         end
+
     end
 end
 
+---@public 处理主基地的资源
 function cmd4city.consumeRes4Base(food, gold, oil)
-    if food ~= 0 then
-        if food > 0 then
-            if food <= headquarters:get_val() then
-                headquarters:set_val(headquarters:get_val() - food)
-                food = 0
-            else
-                headquarters:set_val(0)
-                food = food - headquarters:get_val()
-            end
+    local val = food
+    if val ~= 0 then
+        local tmpval = headquarters:get_val() - val
+        if tmpval < 0 then
+            -- 说明是扣除
+            headquarters:set_val(0)
+            val = -tmpval
         else
-            local tmpval = headquarters:get_val() - food
+            -- 说明是存储
             if tmpval > ConstVals.baseRes then
                 headquarters:set_val(ConstVals.baseRes)
-                food = ConstVals.baseRes - tmpval
+                val = ConstVals.baseRes - tmpval
             else
-                headquarters:set_val(tmpval)
-                food = 0
+                headquarters:set_val((tmpval))
+                break
             end
         end
     end
-
-    if gold ~= 0 then
-        if gold > 0 then
-            if gold <= headquarters:get_val2() then
-                headquarters:set_val2(headquarters:get_val2() - gold)
-                gold = 0
-            else
-                headquarters:set_val2(0)
-                gold = gold - headquarters:get_val2()
-            end
+    food = val
+    ------------------------------------------
+    val = gold
+    if val ~= 0 then
+        local tmpval = headquarters:get_val2() - val
+        if tmpval < 0 then
+            -- 说明是扣除
+            headquarters:set_val2(0)
+            val = -tmpval
         else
-            local tmpval = headquarters:get_val2() - gold
+            -- 说明是存储
             if tmpval > ConstVals.baseRes then
                 headquarters:set_val2(ConstVals.baseRes)
-                gold = ConstVals.baseRes - tmpval
+                val = ConstVals.baseRes - tmpval
             else
-                headquarters:set_val2(tmpval)
-                gold = 0
+                headquarters:set_val2((tmpval))
+                break
             end
         end
     end
-
-    if oil ~= 0 then
-        if oil > 0 then
-            if oil <= headquarters:get_val3() then
-                headquarters:set_val3(headquarters:get_val3() - oil)
-                oil = 0
-            else
-                headquarters:set_val3(0)
-                oil = oil - headquarters:get_val3()
-            end
+    gold = val
+    ------------------------------------------
+    val = oil
+    if val ~= 0 then
+        local tmpval = headquarters:get_val3() - val
+        if tmpval < 0 then
+            -- 说明是扣除
+            headquarters:set_val3(0)
+            val = -tmpval
         else
-            local tmpval = headquarters:get_val3() - oil
+            -- 说明是存储
             if tmpval > ConstVals.baseRes then
                 headquarters:set_val3(ConstVals.baseRes)
-                oil = ConstVals.baseRes - tmpval
+                val = ConstVals.baseRes - tmpval
             else
-                headquarters:set_val3(tmpval)
-                oil = 0
+                headquarters:set_val3((tmpval))
+                break
             end
         end
     end
+    oil = val
+
+    -- 通知服务器建筑有变化
+    local ret = { code = Errcode.ok }
+    skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, headquarters:value2copy())
+    ------------------------------------------
     return food, gold, oil
 end
 
@@ -692,7 +701,6 @@ function cmd4city.consumeRes(food, gold, oil)
     consumeOneRes(food, list1)
     consumeOneRes(gold, list2)
     consumeOneRes(oil, list3)
-    -- todo: 通知客户端资源变化
     return true
 end
 
@@ -874,8 +882,11 @@ cmd4city.CMD = {
         b:set_endtime(endTime)
         b:set_state(ConstVals.upgrade_buildingState)
 
+        -- 通知服务器建筑有变化
         ret.code = Errcode.ok
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
+
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy())
     end,
 
     release = function(m, fd)

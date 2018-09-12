@@ -105,6 +105,14 @@ defProtocol.structs.city = {
         tiles = { { tileIdx = defProtocol.structs.tile }, "地块信息 key=idx, map" },
     }
 }
+defProtocol.structs.resInfor = {
+    "资源信息",
+    {
+        food = { 0, "粮" },
+        gold = { 0, "金" },
+        oil = { 0, "油" },
+    }
+}
 
 --===================================================
 --===================================================
@@ -177,7 +185,31 @@ defProtocol.cmds = {
         input = { "idx" }; -- 入参
         inputDesc = { "建筑idx int" }; -- 入参说明
         output = { structs.retInfor, defProtocol.structs.building }; -- 出参
-        outputDesc = { "返回信息" }; -- 出参说明
+        outputDesc = { "返回信息", "建筑信息" }; -- 出参说明
+        logic = "cmd4city";
+    },
+    onResChg = {
+        desc = "资源变化时推送"; -- 接口说明
+        input = { }; -- 入参
+        inputDesc = { }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.resInfor }; -- 出参
+        outputDesc = { "返回信息", "资源信息" }; -- 出参说明
+        logic = "cmd4city";
+    },
+    onBuildingChg = {
+        desc = "建筑变化时推送"; -- 接口说明
+        input = { }; -- 入参
+        inputDesc = { }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.building }; -- 出参
+        outputDesc = { "返回信息", "建筑信息" }; -- 出参说明
+        logic = "cmd4city";
+    },
+    onPlayerChg = {
+        desc = "玩家信息变化时推送"; -- 接口说明
+        input = { }; -- 入参
+        inputDesc = { }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.player }; -- 出参
+        outputDesc = { "返回信息", "玩家信息" }; -- 出参说明
         logic = "cmd4city";
     },
 
