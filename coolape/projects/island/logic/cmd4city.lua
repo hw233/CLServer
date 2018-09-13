@@ -55,6 +55,7 @@ function cmd4city.new (uidx)
     ---@type dbbuilding
     local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), idx)
     if building then
+        building:set_lev(1)     -- 初始成一级
         building:set_val(ConstVals.baseRes)     -- 粮
         building:set_val2(ConstVals.baseRes)    -- 金
         building:set_val3(ConstVals.baseRes)    -- 油
@@ -355,7 +356,7 @@ end
 ---@param pos grid地块的idx
 ---@param cidx 城idx
 function cmd4city.newTile(pos, attrid, cidx)
-    local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters.get_lev())
+    local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters:get_lev())
     local maxNum = headquartersOpen.Tiles
     if hadTileCount >= maxNum then
         printe("地块数量已经达上限！")
@@ -434,7 +435,10 @@ end
 
 ---@public 取得当前等级建筑的最大数量
 function cmd4city.getBuildingCountAtCurrLev(buildingAttrId)
-    local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters.get_lev())
+    if headquarters == nil then
+        return 1
+    end
+    local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters:get_lev())
     return headquartersOpen[buildingAttrId] or 1
 end
 
@@ -445,10 +449,12 @@ end
 function cmd4city.newBuilding(attrid, pos, cidx)
     -- 数量判断
     local hadNum = (buildingCountMap[attrid] or 0)
-    local maxNum = cmd4city.getBuildingCountAtCurrLev(attrid)
-    if hadNum >= maxNum then
-        printe("已经达到建筑最大数量！")
-        return nil
+    if attrid ~= ConstVals.headquartersBuildingID then
+        local maxNum = cmd4city.getBuildingCountAtCurrLev(attrid)
+        if hadNum >= maxNum then
+            printe("已经达到建筑最大数量！")
+            return nil
+        end
     end
 
     if not cmd4city.canPlace(pos, true, attrid) then
@@ -512,7 +518,7 @@ function cmd4city.setSelfBuildings()
         buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
         if v.attrid == 1 then
             -- 说明是主基地
-            headquarters = v
+            headquarters = b
         end
         cmd4city.placeBuilding(b)
     end
@@ -854,7 +860,7 @@ cmd4city.CMD = {
         --check max lev
         local attrid = b:get_attrid()
         local attr = cfgUtl.getBuildingByID(attrid)
-        local maxLev = attr.maxLev
+        local maxLev = attr.MaxLev
         if b:get_lev() >= maxLev then
             ret.code = Errcode.outOfMaxLev
             ret.msg = "已经是最高等级"
