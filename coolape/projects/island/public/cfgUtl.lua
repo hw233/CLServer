@@ -79,7 +79,7 @@ function cfgUtl.getGrowingVal(min, max, curveID, persent, precision)
     local val = min + (max - min) * persent
 
     if precision == nil or precision == 0 then
-        return math.ceil(val)
+        return numEx.getIntPart(val)
     else
         return numEx.getPreciseDecimal(val, precision)
     end

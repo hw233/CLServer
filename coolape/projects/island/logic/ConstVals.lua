@@ -4,7 +4,7 @@ ConstVals = {
     foodStorageBuildingID = 7,
     goldStorageBuildingID = 11,
     oildStorageBuildingID = 9,
-    baseRes = 10000,    -- 基础资源量
+    baseRes = 50000,    -- 基础资源量
 }
 
 ConstVals.BuildingState = {

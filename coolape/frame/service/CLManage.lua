@@ -84,7 +84,7 @@ function CMD.setTableData(map)
         if data:isEmpty() then
             return "get db error"
         end
-        local func = db["set" .. key]
+        local func = db["set_" .. key]
         if func then
             func(data, val)
         else
