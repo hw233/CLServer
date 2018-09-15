@@ -34,6 +34,9 @@ local buildings = {}    -- 建筑信息 key=idx, val=dbbuilding
 local headquarters -- 主基地
 local buildingCountMap = {}  -- key=buildingAttrid;value=count
 local hadTileCount = 0  -- 地块总量
+
+--======================================================
+--======================================================
 -- 队列情况
 local queueInfor = {
     build = {}, -- 建筑队列
@@ -42,16 +45,32 @@ local queueInfor = {
 }
 ---@param b dbbuilding
 queueInfor.removeBuildQueue = function(b)
-
+    ---@type dbbuilding
+    local building
+    for i, v in ipairs(queueInfor.build) do
+        building = v.param
+        if building:get_idx() == b:get_idx() then
+            table.remove(queueInfor.build, i)
+            break
+        end
+    end
 end
 
 -- 加入建筑队列
 ---@param b dbbuilding
 queueInfor.addBuildQueue = function(b)
     local endtime = b:get_endtime()
-    local cor = timerEx.new(endtime / 1000, queueInfor.removeBuildQueue)
+    local cor = timerEx.new(endtime / 1000, queueInfor.removeBuildQueue, b)
+    table.insert(queueInfor.build, cor)
 end
 
+queueInfor.release = function()
+    queueInfor.build = {}
+    queueInfor.ship = {}
+    queueInfor.tech = {}
+end
+--======================================================
+--======================================================
 function cmd4city.new (uidx)
     tiles = {}        -- 地块信息 key=idx
     buildings = {}    -- 建筑信息 key=idx
@@ -78,9 +97,7 @@ function cmd4city.new (uidx)
         building:set_val2(ConstVals.baseRes)    -- 金
         building:set_val3(ConstVals.baseRes)    -- 油
         buildings[building:get_idx()] = building
-        buildingCountMap[1] = (buildingCountMap[1] or 0) + 1
         headquarters = building
-        cmd4city.placeBuilding(building)
     end
 
     --初始化地块
@@ -222,11 +239,6 @@ function cmd4city.initTree(city, rangeV4)
             -- attrid 32到36都是树的配制
             local treeAttrid = math.random(30, 34)
             local tree = cmd4city.newBuilding(treeAttrid, pos, city:get_idx())
-            if tree then
-                buildings[tree:get_idx()] = tree
-                buildingCountMap[treeAttrid] = (buildingCountMap[treeAttrid] or 0) + 1
-                --gridState4Building[tree:getpos()] = true
-            end
         end
     end
 end
@@ -274,8 +286,6 @@ function cmd4city.initTiles(city)
                             local tree = cmd4city.newBuilding(treeAttrid, index2, city:get_idx())
                             if tree then
                                 treeCounter = treeCounter + 1
-                                buildings[tree:get_idx()] = tree
-                                buildingCountMap[treeAttrid] = (buildingCountMap[treeAttrid] or 0) + 1
                             end
                         end
                     end
@@ -485,7 +495,7 @@ function cmd4city.newBuilding(attrid, pos, cidx)
     b.cidx = cidx -- 主城idx
     b.pos = pos -- 位置，即在城的gird中的index
     b.attrid = attrid -- 属性配置id
-    b.lev = 1 -- 等级
+    b.lev = 0 -- 等级
     b.val = 0 -- 值。如:产量，仓库的存储量等
     b.val2 = 0 -- 值。如:产量，仓库的存储量等
     b.val3 = 0 -- 值。如:产量，仓库的存储量等
@@ -534,6 +544,12 @@ function cmd4city.setSelfBuildings()
         b = dbbuilding.new(v)
         buildings[v.idx] = b
         buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
+
+        -- todo:处理建筑升级
+        if b:get_state() == ConstVals.BuildingState.upgrade then
+            
+        end
+
         if v.attrid == 1 then
             -- 说明是主基地
             headquarters = b
@@ -725,6 +741,15 @@ function cmd4city.consumeRes(food, gold, oil)
     return true
 end
 
+---@public 最大的工人数
+function cmd4city.maxBuildQueue()
+    if headquarters == nil then
+        return 1
+    end
+    local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters:get_lev())
+    return headquartersOpen.Workers
+end
+
 -- 释放数据
 function cmd4city.release()
     ---@type dbbuilding
@@ -749,6 +774,7 @@ function cmd4city.release()
     end
     gridState4Tile = {}
     gridState4Building = {}
+    queueInfor.release()
 end
 
 --＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
@@ -793,30 +819,65 @@ cmd4city.CMD = {
     end,
     newBuilding = function(m, fd)
         -- 新建筑
+        local cmd = "newBuilding"
         local ret = {}
         if myself == nil then
             printe("主城数据为空！")
             ret.code = Errcode.error
             ret.msg = "主城数据为空"
-            return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, nil)
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil)
         end
+
+        -- 是否有空闲队列
+        if #(queueInfor.build) >= cmd4city.maxBuildQueue() then
+            ret.code = Errcode.noIdelQueue
+            ret.msg = "没有空闲队列"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
         if not cmd4city.canPlace(m.pos, true) then
             printe("该位置不能放置建筑！pos==" .. m.pos)
             ret.code = Errcode.error
             ret.msg = "该位置不能放置建筑"
-            return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, nil)
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil)
         end
+
+        -- 扣除资源
+        local attrid = m.attrid
+        local attr = cfgUtl.getBuildingByID(attrid)
+        local persent = 0 / attr.MaxLev
+        local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
+        local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
+        local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
+        local succ, code = cmd4city.consumeRes(food, gold, oil)
+        if not succ then
+            ret.code = code
+            ret.msg = "资源不足"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+
         local building = cmd4city.newBuilding(m.attrid, m.pos, myself:get_idx())
         if building == nil then
             printe("新建建筑失败")
             ret.code = Errcode.error
             ret.msg = "新建建筑失败"
-            return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, nil)
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil)
         end
+
+        -- 设置冷却时间
+        local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
+        if sec > 0 then
+            local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
+            building:set_endtime(endTime)
+            building:set_state(ConstVals.BuildingState.upgrade)
+            queueInfor.addBuildQueue(building)
+        end
+
         buildings[building:get_idx()] = building
 
         ret.code = Errcode.ok
-        return skynet.call(NetProtoIsland, "lua", "send", "newBuilding", ret, building:value2copy())
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, building:value2copy())
     end,
     getBuilding = function(m, fd)
         -- 取得建筑
@@ -875,6 +936,14 @@ cmd4city.CMD = {
             ret.msg = "取得建筑为空"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
+
+        -- 是否有空闲队列
+        if #(queueInfor.build) >= cmd4city.maxBuildQueue() then
+            ret.code = Errcode.noIdelQueue
+            ret.msg = "没有空闲队列"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
         --check max lev
         local attrid = b:get_attrid()
         local attr = cfgUtl.getBuildingByID(attrid)
@@ -908,10 +977,12 @@ cmd4city.CMD = {
 
         -- 设置冷却时间
         local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
-        local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
-        b:set_endtime(endTime)
-        b:set_state(ConstVals.BuildingState.upgrade)
-        queueInfor.addBuildQueue(b)
+        if sec > 0 then
+            local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
+            b:set_endtime(endTime)
+            b:set_state(ConstVals.BuildingState.upgrade)
+            queueInfor.addBuildQueue(b)
+        end
 
         -- 通知服务器建筑有变化
         ret.code = Errcode.ok
