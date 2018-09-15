@@ -163,13 +163,13 @@ function dbbuilding:set_starttime(v)
         skynet.error("[dbbuilding:set_starttime],please init first!!")
         return nil
     end
-    v = dateEx.seconds2Str(v)
+    v = dateEx.seconds2Str(v/1000)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "starttime", v)
 end
 function dbbuilding:get_starttime()
     -- 开始升级、恢复、采集等的时间点
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "starttime")
-    return dateEx.str2Seconds(val)
+    return dateEx.str2Seconds(val)*1000 -- 转成毫秒
 end
 
 function dbbuilding:set_endtime(v)
@@ -178,13 +178,13 @@ function dbbuilding:set_endtime(v)
         skynet.error("[dbbuilding:set_endtime],please init first!!")
         return nil
     end
-    v = dateEx.seconds2Str(v)
+    v = dateEx.seconds2Str(v/1000)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "endtime", v)
 end
 function dbbuilding:get_endtime()
     -- 完成升级、恢复、采集等的时间点
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "endtime")
-    return dateEx.str2Seconds(val)
+    return dateEx.str2Seconds(val)*1000 -- 转成毫秒
 end
 
 function dbbuilding:set_val(v)

@@ -103,7 +103,7 @@ cmd4player.CMD = {
         local ret = {}
         ret.msg = nil;
         ret.code = Errcode.ok
-        return skynet.call(NetProtoIsland, "lua", "send", "login", ret, myself:value2copy(), cityVal, dateEx.now(), fd)
+        return skynet.call(NetProtoIsland, "lua", "send", "login", ret, myself:value2copy(), cityVal, dateEx.nowMS(), fd)
     end,
     release = function(m, fd)
         print("player release")

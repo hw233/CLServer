@@ -191,13 +191,13 @@ function dbplayer:set_crtTime(v)
         skynet.error("[dbplayer:set_crtTime],please init first!!")
         return nil
     end
-    v = dateEx.seconds2Str(v)
+    v = dateEx.seconds2Str(v/1000)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "crtTime", v)
 end
 function dbplayer:get_crtTime()
     -- 创建时间
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "crtTime")
-    return dateEx.str2Seconds(val)
+    return dateEx.str2Seconds(val)*1000 -- 转成毫秒
 end
 
 function dbplayer:set_lastEnTime(v)
@@ -206,13 +206,13 @@ function dbplayer:set_lastEnTime(v)
         skynet.error("[dbplayer:set_lastEnTime],please init first!!")
         return nil
     end
-    v = dateEx.seconds2Str(v)
+    v = dateEx.seconds2Str(v/1000)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lastEnTime", v)
 end
 function dbplayer:get_lastEnTime()
     -- 最后登陆时间
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lastEnTime")
-    return dateEx.str2Seconds(val)
+    return dateEx.str2Seconds(val)*1000 -- 转成毫秒
 end
 
 function dbplayer:set_channel(v)

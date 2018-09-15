@@ -7,6 +7,7 @@ require("dbcity")
 require("dbtile")
 require("dbbuilding")
 require("Errcode")
+local timerEx = require("timerEx")
 local ConstVals = require("ConstVals")
 
 local math = math
@@ -32,7 +33,24 @@ local buildings = {}    -- 建筑信息 key=idx, val=dbbuilding
 ---@type dbbuilding
 local headquarters -- 主基地
 local buildingCountMap = {}  -- key=buildingAttrid;value=count
-local hadTileCount = 0
+local hadTileCount = 0  -- 地块总量
+-- 队列情况
+local queueInfor = {
+    build = {}, -- 建筑队列
+    ship = {}, -- 兵队列
+    tech = {}, -- 科技队列
+}
+---@param b dbbuilding
+queueInfor.removeBuildQueue = function(b)
+
+end
+
+-- 加入建筑队列
+---@param b dbbuilding
+queueInfor.addBuildQueue = function(b)
+    local endtime = b:get_endtime()
+    local cor = timerEx.new(endtime / 1000, queueInfor.removeBuildQueue)
+end
 
 function cmd4city.new (uidx)
     tiles = {}        -- 地块信息 key=idx
@@ -890,9 +908,10 @@ cmd4city.CMD = {
 
         -- 设置冷却时间
         local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
-        local endTime = numEx.getIntPart(dateEx.now() + sec)
+        local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
         b:set_endtime(endTime)
         b:set_state(ConstVals.BuildingState.upgrade)
+        queueInfor.addBuildQueue(b)
 
         -- 通知服务器建筑有变化
         ret.code = Errcode.ok

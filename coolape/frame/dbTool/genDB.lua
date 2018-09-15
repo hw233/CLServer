@@ -302,7 +302,7 @@ function genDB.genLuaFile(outPath, tableCfg)
             table.insert(getsetFunc, "        val = 1")
             table.insert(getsetFunc, "    end")
         elseif types:find("DATETIME") then
-            table.insert(getsetFunc, "    v = dateEx.seconds2Str(v)")
+            table.insert(getsetFunc, "    v = dateEx.seconds2Str(v/1000)")
         else
             table.insert(getsetFunc, "    v = v or \"\"")
         end
@@ -319,7 +319,7 @@ function genDB.genLuaFile(outPath, tableCfg)
             table.insert(getsetFunc, "    end")
         elseif v[2]:upper():find("DATETIME") then
             table.insert(getsetFunc, "    local val = skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__, \"" .. v[1] .. "\")")
-            table.insert(getsetFunc, "    return dateEx.str2Seconds(val)")
+            table.insert(getsetFunc, "    return dateEx.str2Seconds(val)*1000 -- 转成毫秒")
         else
             table.insert(getsetFunc, "    return skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__, \"" .. v[1] .. "\")")
         end
