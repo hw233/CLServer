@@ -60,7 +60,8 @@ end
 ---@param b dbbuilding
 queueInfor.addBuildQueue = function(b)
     local endtime = b:get_endtime()
-    local cor = timerEx.new(endtime / 1000, queueInfor.removeBuildQueue, b)
+    local diff = endtime - dateEx.nowMS()
+    local cor = timerEx.new(diff / 1000, cmd4city.onFinishBuildingUpgrade, b)
     table.insert(queueInfor.build, cor)
 end
 
@@ -69,6 +70,7 @@ queueInfor.release = function()
     queueInfor.ship = {}
     queueInfor.tech = {}
 end
+
 --======================================================
 --======================================================
 function cmd4city.new (uidx)
@@ -547,7 +549,11 @@ function cmd4city.setSelfBuildings()
 
         -- todo:处理建筑升级
         if b:get_state() == ConstVals.BuildingState.upgrade then
-            
+            if b:get_endtime() <= dateEx.nowMS() then
+                cmd4city.onFinishBuildingUpgrade(b)
+            else
+                queueInfor.addBuildQueue(b)
+            end
         end
 
         if v.attrid == 1 then
@@ -748,6 +754,20 @@ function cmd4city.maxBuildQueue()
     end
     local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters:get_lev())
     return headquartersOpen.Workers
+end
+
+---@public 当建筑升级完成时
+---@param b dbbuilding
+function cmd4city.onFinishBuildingUpgrade(b)
+    -- 移除队列
+    queueInfor.removeBuildQueue(b)
+    b:set_state(ConstVals.BuildingState.normal)
+    b:set_lev(b:get_lev() + 1)
+    b:set_endtime(0)
+    b:set_starttime(0)
+    -- 通知客户端
+    local ret = { code = Errcode.ok }
+    skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
 end
 
 -- 释放数据

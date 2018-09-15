@@ -11,6 +11,9 @@ timerEx = {}
 ---@param sec 秒为单位，可以是小数
 ---@param func 定时器执行的函数
 timerEx.new = function(sec, func, param)
+    if sec < 0 then
+        sec = 0
+    end
     local function cb()
         if func then
             func(param)
