@@ -17,6 +17,7 @@
 require("class")
 local skynet = require "skynet"
 local tonumber = tonumber
+require("dateEx")
 
 -- 服务器列表
 ---@class dbservers
@@ -69,13 +70,15 @@ function dbservers:tablename() -- 取得表名
 end
 
 function dbservers:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
+    local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
+    ret.isnew = self:get_isnew()
+    return ret
 end
 
 function dbservers:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
-        skynet.error("[dbservers:setidx],please init first!!")
+        skynet.error("[dbservers:set_idx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -89,7 +92,7 @@ end
 function dbservers:set_appid(v)
     -- 应用id
     if self:isEmpty() then
-        skynet.error("[dbservers:setappid],please init first!!")
+        skynet.error("[dbservers:set_appid],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -103,7 +106,7 @@ end
 function dbservers:set_channel(v)
     -- 渠道id
     if self:isEmpty() then
-        skynet.error("[dbservers:setchannel],please init first!!")
+        skynet.error("[dbservers:set_channel],please init first!!")
         return nil
     end
     v = v or ""
@@ -117,7 +120,7 @@ end
 function dbservers:set_name(v)
     -- 服务器名
     if self:isEmpty() then
-        skynet.error("[dbservers:setname],please init first!!")
+        skynet.error("[dbservers:set_name],please init first!!")
         return nil
     end
     v = v or ""
@@ -131,7 +134,7 @@ end
 function dbservers:set_status(v)
     -- 状态 1:正常; 2:爆满; 3:维护
     if self:isEmpty() then
-        skynet.error("[dbservers:setstatus],please init first!!")
+        skynet.error("[dbservers:set_status],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -145,7 +148,7 @@ end
 function dbservers:set_isnew(v)
     -- 新服
     if self:isEmpty() then
-        skynet.error("[dbservers:setisnew],please init first!!")
+        skynet.error("[dbservers:set_isnew],please init first!!")
         return nil
     end
     local val = 0
@@ -179,7 +182,7 @@ end
 function dbservers:set_host(v)
     -- ip
     if self:isEmpty() then
-        skynet.error("[dbservers:sethost],please init first!!")
+        skynet.error("[dbservers:set_host],please init first!!")
         return nil
     end
     v = v or ""
@@ -193,7 +196,7 @@ end
 function dbservers:set_port(v)
     -- port
     if self:isEmpty() then
-        skynet.error("[dbservers:setport],please init first!!")
+        skynet.error("[dbservers:set_port],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -207,7 +210,7 @@ end
 function dbservers:set_androidVer(v)
     -- 客户端android版本
     if self:isEmpty() then
-        skynet.error("[dbservers:setandroidVer],please init first!!")
+        skynet.error("[dbservers:set_androidVer],please init first!!")
         return nil
     end
     v = v or ""
@@ -221,7 +224,7 @@ end
 function dbservers:set_iosVer(v)
     -- 客户端ios版本
     if self:isEmpty() then
-        skynet.error("[dbservers:setiosVer],please init first!!")
+        skynet.error("[dbservers:set_iosVer],please init first!!")
         return nil
     end
     v = v or ""

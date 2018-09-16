@@ -70,7 +70,8 @@ function dbtile:tablename() -- 取得表名
 end
 
 function dbtile:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
+    local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
+    return ret
 end
 
 function dbtile:set_idx(v)

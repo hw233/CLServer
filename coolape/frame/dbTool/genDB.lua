@@ -453,7 +453,14 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "end")
     table.insert(str, "")
     table.insert(str, "function " .. name .. ":value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set")
-    table.insert(str, "    return skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__)")
+    table.insert(str, "    local ret = skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__)")
+    for i, v in ipairs(tableCfg.columns) do
+        local types = v[2]:upper()
+        if types:find("BOOL") or types:find("DATETIME") then
+            table.insert(str, "    ret.".. v[1] .. " = self:get_" .. v[1] .. "()")
+        end
+    end
+    table.insert(str, "    return ret")
     table.insert(str, "end")
     table.insert(str, "")
 

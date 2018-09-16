@@ -5,6 +5,7 @@
 
 ---
 local skynet = require "skynet"
+local numEx = require("numEx")
 timerEx = {}
 
 ---@public 新建定时器
@@ -28,7 +29,7 @@ timerEx.new = function(sec, func, param)
 
     --将当前 coroutine 挂起 ti 个单位时间。一个单位是 1/100 秒
     local ti = sec / 100
-    skynet.timeout(ti, cb)
+    skynet.timeout(numEx.getIntPart(ti), cb)
     return coroutine
 end
 

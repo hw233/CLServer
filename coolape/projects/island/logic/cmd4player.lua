@@ -51,7 +51,7 @@ cmd4player.CMD = {
             player.deviceid = m.deviceID
             if myself:init(player, true) then
                 local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
-                city = skynet.call(cityServer, "lua", "new", m.uidx)
+                city = skynet.call(cityServer, "lua", "new", m.uidx, agent)
                 myself:set_cityidx(city.idx)
             else
                 printe("create player err==" .. m.uidx)
@@ -64,7 +64,7 @@ cmd4player.CMD = {
             -- 取得主城信息
             --city = cmd4city.getSelf(myself:getcityidx())
             local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
-            city = skynet.call(cityServer, "lua", "getSelf", myself:get_cityidx())
+            city = skynet.call(cityServer, "lua", "getSelf", myself:get_cityidx(), agent)
             if city == nil then
                 printe("get city is nil or empty==" .. m.uidx)
                 local ret = {}

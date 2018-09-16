@@ -142,6 +142,11 @@ function CMD.getLogic(logicName)
     return logic
 end
 
+-- 发送一个数据包给客户端
+function CMD.sendPackage(map)
+    send_package(map)
+end
+
 skynet.start(function()
     skynet.dispatch("lua", function(_, _, command, ...)
         local f = CMD[command]

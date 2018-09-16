@@ -17,6 +17,7 @@
 require("class")
 local skynet = require "skynet"
 local tonumber = tonumber
+require("dateEx")
 
 -- 用户表
 ---@class dbuser
@@ -69,13 +70,16 @@ function dbuser:tablename() -- 取得表名
 end
 
 function dbuser:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
+    local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
+    ret.crtTime = self:get_crtTime()
+    ret.lastEnTime = self:get_lastEnTime()
+    return ret
 end
 
 function dbuser:set_idx(v)
     -- 唯一标识
     if self:isEmpty() then
-        skynet.error("[dbuser:setidx],please init first!!")
+        skynet.error("[dbuser:set_idx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -89,7 +93,7 @@ end
 function dbuser:set_uidChl(v)
     -- 用户id(第三方渠道用户)
     if self:isEmpty() then
-        skynet.error("[dbuser:setuidChl],please init first!!")
+        skynet.error("[dbuser:set_uidChl],please init first!!")
         return nil
     end
     v = v or ""
@@ -103,7 +107,7 @@ end
 function dbuser:set_uid(v)
     -- 用户id
     if self:isEmpty() then
-        skynet.error("[dbuser:setuid],please init first!!")
+        skynet.error("[dbuser:set_uid],please init first!!")
         return nil
     end
     v = v or ""
@@ -117,7 +121,7 @@ end
 function dbuser:set_password(v)
     -- 用户密码
     if self:isEmpty() then
-        skynet.error("[dbuser:setpassword],please init first!!")
+        skynet.error("[dbuser:set_password],please init first!!")
         return nil
     end
     v = v or ""
@@ -131,35 +135,37 @@ end
 function dbuser:set_crtTime(v)
     -- 创建时间
     if self:isEmpty() then
-        skynet.error("[dbuser:setcrtTime],please init first!!")
+        skynet.error("[dbuser:set_crtTime],please init first!!")
         return nil
     end
-    v = v or ""
+    v = dateEx.seconds2Str(v/1000)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "crtTime", v)
 end
 function dbuser:get_crtTime()
     -- 创建时间
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "crtTime")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "crtTime")
+    return dateEx.str2Seconds(val)*1000 -- 转成毫秒
 end
 
 function dbuser:set_lastEnTime(v)
     -- 最后登陆时间
     if self:isEmpty() then
-        skynet.error("[dbuser:setlastEnTime],please init first!!")
+        skynet.error("[dbuser:set_lastEnTime],please init first!!")
         return nil
     end
-    v = v or ""
+    v = dateEx.seconds2Str(v/1000)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lastEnTime", v)
 end
 function dbuser:get_lastEnTime()
     -- 最后登陆时间
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lastEnTime")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lastEnTime")
+    return dateEx.str2Seconds(val)*1000 -- 转成毫秒
 end
 
 function dbuser:set_status(v)
     -- 状态 0:正常;
     if self:isEmpty() then
-        skynet.error("[dbuser:setstatus],please init first!!")
+        skynet.error("[dbuser:set_status],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -173,7 +179,7 @@ end
 function dbuser:set_appid(v)
     -- 应用id
     if self:isEmpty() then
-        skynet.error("[dbuser:setappid],please init first!!")
+        skynet.error("[dbuser:set_appid],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -187,7 +193,7 @@ end
 function dbuser:set_channel(v)
     -- 渠道
     if self:isEmpty() then
-        skynet.error("[dbuser:setchannel],please init first!!")
+        skynet.error("[dbuser:set_channel],please init first!!")
         return nil
     end
     v = v or ""
@@ -201,7 +207,7 @@ end
 function dbuser:set_deviceid(v)
     -- 机器id
     if self:isEmpty() then
-        skynet.error("[dbuser:setdeviceid],please init first!!")
+        skynet.error("[dbuser:set_deviceid],please init first!!")
         return nil
     end
     v = v or ""
@@ -215,7 +221,7 @@ end
 function dbuser:set_deviceinfor(v)
     -- 机器信息
     if self:isEmpty() then
-        skynet.error("[dbuser:setdeviceinfor],please init first!!")
+        skynet.error("[dbuser:set_deviceinfor],please init first!!")
         return nil
     end
     v = v or ""
@@ -229,7 +235,7 @@ end
 function dbuser:set_groupid(v)
     -- 组id
     if self:isEmpty() then
-        skynet.error("[dbuser:setgroupid],please init first!!")
+        skynet.error("[dbuser:set_groupid],please init first!!")
         return nil
     end
     v = tonumber(v) or 0

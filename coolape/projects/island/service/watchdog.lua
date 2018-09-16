@@ -7,7 +7,7 @@ local gate = nil
 local agent = {}
 local fdLastMsgTime = {}
 local mysql;
-local timeOutSec = 30;     -- socket超时时间(秒)
+local timeOutSec = 40;     -- socket超时时间(秒)
 
 local function close_agent(fd)
     local a = agent[fd]

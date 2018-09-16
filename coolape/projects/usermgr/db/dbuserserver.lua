@@ -17,6 +17,7 @@
 require("class")
 local skynet = require "skynet"
 local tonumber = tonumber
+require("dateEx")
 
 -- 用户与服务器关系
 ---@class dbuserserver
@@ -69,13 +70,14 @@ function dbuserserver:tablename() -- 取得表名
 end
 
 function dbuserserver:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
+    local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
+    return ret
 end
 
 function dbuserserver:set_sidx(v)
     -- 服务器id
     if self:isEmpty() then
-        skynet.error("[dbuserserver:setsidx],please init first!!")
+        skynet.error("[dbuserserver:set_sidx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -89,7 +91,7 @@ end
 function dbuserserver:set_uidx(v)
     -- 用户id
     if self:isEmpty() then
-        skynet.error("[dbuserserver:setuidx],please init first!!")
+        skynet.error("[dbuserserver:set_uidx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
@@ -103,7 +105,7 @@ end
 function dbuserserver:set_appid(v)
     -- 应用id
     if self:isEmpty() then
-        skynet.error("[dbuserserver:setappid],please init first!!")
+        skynet.error("[dbuserserver:set_appid],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
