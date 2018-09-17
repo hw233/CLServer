@@ -11,6 +11,7 @@ timerEx = {}
 ---@public 新建定时器
 ---@param sec 秒为单位，可以是小数
 ---@param func 定时器执行的函数
+---@param param 回调参数
 timerEx.new = function(sec, func, param)
     if sec < 0 then
         sec = 0
@@ -28,7 +29,7 @@ timerEx.new = function(sec, func, param)
     end
 
     --将当前 coroutine 挂起 ti 个单位时间。一个单位是 1/100 秒
-    local ti = sec / 100
+    local ti = sec * 100
     skynet.timeout(numEx.getIntPart(ti), cb)
     return coroutine
 end

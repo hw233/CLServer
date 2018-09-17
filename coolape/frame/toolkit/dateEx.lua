@@ -26,6 +26,9 @@ end
 
 ---@public 时间格式字符转成秒数
 function dateEx.str2Seconds(srcDateTime)
+    if srcDateTime == nil then
+        return 0
+    end
     --从日期字符串中截取出年月日时分秒
     local Y = tonumber(string.sub(srcDateTime,1,4))
     local M = tonumber(string.sub(srcDateTime,6,7))

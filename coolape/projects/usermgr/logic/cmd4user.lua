@@ -129,7 +129,7 @@ cmd4user.CMD = {
             ret.code = Errcode.ok
             local user = {}
             user.idx = myself:get_idx()
-            myself:set_lastEnTime(dateEx.nowStr())
+            myself:set_lastEnTime(dateEx.nowMS())
             --user.name = "user" --  string
 
             local serveridx = 0
@@ -183,7 +183,7 @@ cmd4user.CMD = {
         ret.code = Errcode.ok
         local user = {}
         user.idx = myself:get_idx()
-        myself:set_lastEnTime(dateEx.nowStr())
+        myself:set_lastEnTime(dateEx.nowMS())
         --user.name = "user" --  string
 
         local serveridx = 0
