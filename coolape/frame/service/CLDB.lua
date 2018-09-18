@@ -4,6 +4,8 @@ local sharedata = require "skynet.sharedata"
 require "skynet.manager"    -- import skynet.register
 local tablesdesign = "tablesdesign"
 require("CLGlobal")
+require("CLLQueue")
+
 ---@type CLUtl
 local CLUtl = require("CLUtl")
 local db = {}
@@ -11,17 +13,41 @@ local db4Group = {}
 local dbTimeout = {}
 local dbUsedTimes = {}
 local command = {}
+local needUpdateData = CLLQueue.new(100)  -- 需要更新的数据
 local timeoutsec = 30 * 60;   -- 数据超时时间（秒）
-local refreshsec = 1 * 60 *100;   -- 数据更新时间（秒*100）
+local refreshsec = 1 * 60 * 100;   -- 数据更新时间（秒*100）
 local insert = table.insert
 local concat = table.concat
 local tostring = tostring
+
 
 -- 处理超时的数据，把数据写入mysql
 local function checktimeout(db, dbTimeout)
     while true do
         local now = skynet.time();
         local hasTimeout = false;
+        local d, data
+        local sql
+        local hadUpdated = {}
+        local key2
+        -- 把有变化的数据更新
+        for i = 1, needUpdateData:size() do
+            d = needUpdateData:deQueue()
+            key2 = d.tableName .. "_" .. d.key
+            if not hadUpdated[key2] then
+                -- 为了不要频繁更新表
+                data = command.GET(d.tableName, d.key)
+                -- 说明是设置某个字段的值，这个时候才需要考虑更新到表
+                if data then
+                    sql = command.GETUPDATESQL(d.tableName, data)
+                    skynet.call("CLMySQL", "lua", "save", sql)
+                end
+                hadUpdated[key2] = true
+            end
+        end
+        hadUpdated = {}
+
+        -- 把超时的数据去掉
         for tName, timoutList in pairs(dbTimeout) do
             for key, time in pairs(timoutList) do
                 if now > time then
@@ -134,15 +160,11 @@ function command.SET(tableName, key, ...)
 
     --..........................................
     if last ~= val then
-        local d = command.GET(tableName, key)
-
         if count > 1 then
-            -- 更新到mysql表里
-            -- 说明是设置某个字段的值，这个时候才需要考虑更新到表
-            local sql = command.GETUPDATESQL(tableName, d)
-            skynet.call("CLMySQL", "lua", "save", sql)
+            -- 记录下需要更新
+            needUpdateData:enQueue({ tableName = tableName, key = key })
         end
-
+        local d = command.GET(tableName, key)
         -- 如果有组，则更新
         local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
         if tableCfg == nil then
@@ -151,7 +173,6 @@ function command.SET(tableName, key, ...)
         if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
             setGroup(tableName, d[tableCfg.groupKey], key)
         end
-
     end
 
     return last
@@ -213,7 +234,7 @@ end
 
 -- 移除数据超时
 function command.SETUNUSE(tableName, key)
-    if  key == nil then
+    if key == nil then
         printe("command.SETUNUSE err, key is nil. tableName == " .. tableName)
         return
     end
@@ -302,12 +323,12 @@ function command.GETINSERTSQL(tableName, data)
     local dataInsert = {}
     local columns = {}
     for i, v in ipairs(tableCfg.columns) do
-        insert(columns, "`" .. v[1] .. "`" )
+        insert(columns, "`" .. v[1] .. "`")
         local types = v[2]:upper()
         if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
             insert(dataInsert, (data[v[1]] and data[v[1]] or 0));
         else
-            insert(dataInsert, (data[v[1]] and "'" .. data[v[1]] .. "'" or "NULL") );
+            insert(dataInsert, (data[v[1]] and "'" .. data[v[1]] .. "'" or "NULL"));
         end
     end
 
@@ -417,6 +438,6 @@ skynet.start(function()
         end
     end)
 
-    skynet.fork( checktimeout, db, dbTimeout);
+    skynet.fork(checktimeout, db, dbTimeout);
     skynet.register "CLDB"
 end)

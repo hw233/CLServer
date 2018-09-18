@@ -13,6 +13,7 @@ timerEx = {}
 ---@param func 定时器执行的函数
 ---@param param 回调参数
 timerEx.new = function(sec, func, param)
+    printe("=================" .. sec)
     if sec < 0 then
         sec = 0
     end

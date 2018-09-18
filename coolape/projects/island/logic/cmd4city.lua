@@ -768,8 +768,7 @@ function cmd4city.onFinishBuildingUpgrade(b)
     queueInfor.removeBuildQueue(b)
     b:set_state(ConstVals.BuildingState.normal)
     b:set_lev(b:get_lev() + 1)
-    b:set_endtime(0)
-    b:set_starttime(0)
+    b:set_starttime(b:get_endtime())
     -- 通知客户端
     local ret = { code = Errcode.ok }
     local package = skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
@@ -873,7 +872,7 @@ cmd4city.CMD = {
         -- 扣除资源
         local attrid = m.attrid
         local attr = cfgUtl.getBuildingByID(attrid)
-        local persent = 0 / attr.MaxLev
+        local persent = 1 / attr.MaxLev
         local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
         local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
         local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
@@ -883,7 +882,6 @@ cmd4city.CMD = {
             ret.msg = "资源不足"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
-
 
         local building = cmd4city.newBuilding(m.attrid, m.pos, myself:get_idx())
         if building == nil then
@@ -993,7 +991,7 @@ cmd4city.CMD = {
         end
 
         -- 扣除资源
-        local persent = b:get_lev() / attr.MaxLev
+        local persent = (b:get_lev() + 1) / attr.MaxLev
         local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
         local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
         local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
