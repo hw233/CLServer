@@ -892,7 +892,7 @@ cmd4city.CMD = {
         end
 
         -- 设置冷却时间
-        local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
+        local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin*60, attr.BuildTimeMax*60, attr.BuildTimeCurve, persent)
         if sec > 0 then
             local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
             building:set_starttime(dateEx.nowMS())
@@ -1003,7 +1003,7 @@ cmd4city.CMD = {
         end
 
         -- 设置冷却时间
-        local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
+        local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin*60, attr.BuildTimeMax*60, attr.BuildTimeCurve, persent)
         if sec > 0 then
             local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
             b:set_starttime(dateEx.nowMS())
