@@ -129,7 +129,7 @@ end
 ---@param server 触发回调服务地址,注意只能是地址
 ---@param funcName 触发回调服务方法
 function command.ADDTRIGGER(tableName, key, server, funcName)
-    local _key = tableName .."_" .. key
+    local _key = tableName .. "_" .. key
     local list = triggerData[_key] or {}
     local _key2 = server .. "_" .. funcName
     list[_key2] = { tableName = tableName, key = key, server = server, funcName = funcName }
@@ -138,7 +138,7 @@ end
 
 ---@public 去掉触发器（单条记录）
 function command.REMOVETRIGGER(tableName, key, server, funcName)
-    local _key = tableName .."_" .. key
+    local _key = tableName .. "_" .. key
     local list = triggerData[_key]
     if list then
         local _key2 = server .. "_" .. funcName
@@ -149,10 +149,10 @@ end
 
 ---@public 处理触发函数
 local onTrigger = function(tableName, key)
-    local _key = tableName .."_" .. key
+    local _key = tableName .. "_" .. key
     local list = triggerData[_key]
     if list then
-        for k ,infor in pairs(list) do
+        for k, infor in pairs(list) do
             if infor then
                 if skynet.address(infor.server) ~= nil then
                     local d = command.GET(tableName, key)
@@ -204,18 +204,20 @@ function command.SET(tableName, key, ...)
     --..........................................
     if last ~= val then
         if count > 1 then
+            local d = command.GET(tableName, key)
+            -- 如果有组，则更新
+            local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
+            if tableCfg == nil then
+                printe("[cldb.remove],get tabel config is nil==" .. tableName)
+            end
+            if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
+                setGroup(tableName, d[tableCfg.groupKey], key)
+            end
+
             -- 记录下需要更新
             needUpdateData:enQueue({ tableName = tableName, key = key })
+            -- 触发回调
             onTrigger(tableName, key)
-        end
-        local d = command.GET(tableName, key)
-        -- 如果有组，则更新
-        local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
-        if tableCfg == nil then
-            printe("[cldb.remove],get tabel config is nil==" .. tableName)
-        end
-        if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
-            setGroup(tableName, d[tableCfg.groupKey], key)
         end
     end
 
