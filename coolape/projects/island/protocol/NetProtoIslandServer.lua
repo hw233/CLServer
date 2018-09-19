@@ -54,7 +54,7 @@ do
             local r = {}
             if m == nil then return r end
             r[10] = m.msg  -- 返回消息 string
-            r[11] =  BioUtl.int2bio(m.code)  -- 返回值 int
+            r[11] =  BioUtl.number2bio(m.code)  -- 返回值 int
             return r;
         end,
         parse = function(m)
@@ -70,13 +70,13 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.int2bio(m.idx)  -- 唯一标识 int int
-            r[29] =  BioUtl.int2bio(m.diam)  -- 钻石 long int
+            r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
+            r[29] =  BioUtl.number2bio(m.diam)  -- 钻石 long int
             r[13] = m.name  -- 名字 string
-            r[27] =  BioUtl.int2bio(m.unionidx)  -- 联盟id int int
-            r[28] =  BioUtl.int2bio(m.cityidx)  -- 城池id int int
-            r[30] =  BioUtl.int2bio(m.lev)  -- 等级 long int
-            r[26] =  BioUtl.int2bio(m.status)  -- 状态 1：正常 int int
+            r[27] =  BioUtl.number2bio(m.unionidx)  -- 联盟id int int
+            r[28] =  BioUtl.number2bio(m.cityidx)  -- 城池id int int
+            r[30] =  BioUtl.number2bio(m.lev)  -- 等级 long int
+            r[26] =  BioUtl.number2bio(m.status)  -- 状态 1：正常 int int
             return r;
         end,
         parse = function(m)
@@ -97,14 +97,14 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.int2bio(m.idx)  -- 唯一标识 int int
+            r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
             r[45] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
             r[13] = m.name  -- 名称 string
             r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
-            r[30] =  BioUtl.int2bio(m.lev)  -- 等级 int int
-            r[26] =  BioUtl.int2bio(m.status)  -- 状态 1:正常; int int
-            r[33] =  BioUtl.int2bio(m.pos)  -- 城所在世界grid的index int int
-            r[35] =  BioUtl.int2bio(m.pidx)  -- 玩家idx int int
+            r[30] =  BioUtl.number2bio(m.lev)  -- 等级 int int
+            r[26] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; int int
+            r[33] =  BioUtl.number2bio(m.pos)  -- 城所在世界grid的index int int
+            r[35] =  BioUtl.number2bio(m.pidx)  -- 玩家idx int int
             return r;
         end,
         parse = function(m)
@@ -126,10 +126,10 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.int2bio(m.idx)  -- 唯一标识 int int
-            r[46] =  BioUtl.int2bio(m.attrid)  -- 属性配置id int int
-            r[47] =  BioUtl.int2bio(m.cidx)  -- 主城idx int int
-            r[33] =  BioUtl.int2bio(m.pos)  -- 位置，即在城的gird中的index int int
+            r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
+            r[46] =  BioUtl.number2bio(m.attrid)  -- 属性配置id int int
+            r[47] =  BioUtl.number2bio(m.cidx)  -- 主城idx int int
+            r[33] =  BioUtl.number2bio(m.pos)  -- 位置，即在城的gird中的index int int
             return r;
         end,
         parse = function(m)
@@ -147,19 +147,19 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.int2bio(m.idx)  -- 唯一标识 int int
-            r[48] =  BioUtl.int2bio(m.val4)  -- 值4。如:产量，仓库的存储量等 int int
-            r[49] =  BioUtl.int2bio(m.val3)  -- 值3。如:产量，仓库的存储量等 int int
-            r[50] =  BioUtl.int2bio(m.val2)  -- 值2。如:产量，仓库的存储量等 int int
-            r[64] =  BioUtl.int2bio(m.endtime)  -- 完成升级、恢复、采集等的时间点 long int
-            r[30] =  BioUtl.int2bio(m.lev)  -- 等级 int int
-            r[51] =  BioUtl.int2bio(m.val)  -- 值。如:产量，仓库的存储量等 int int
-            r[47] =  BioUtl.int2bio(m.cidx)  -- 主城idx int int
-            r[61] =  BioUtl.int2bio(m.val5)  -- 值5。如:产量，仓库的存储量等 int int
-            r[46] =  BioUtl.int2bio(m.attrid)  -- 属性配置id int int
-            r[65] =  BioUtl.int2bio(m.starttime)  -- 开始升级、恢复、采集等的时间点 long int
-            r[63] =  BioUtl.int2bio(m.state)  -- 状态. 0：正常；1：升级中；9：恢复中 int
-            r[33] =  BioUtl.int2bio(m.pos)  -- 位置，即在城的gird中的index int int
+            r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
+            r[48] =  BioUtl.number2bio(m.val4)  -- 值4。如:产量，仓库的存储量等 int int
+            r[49] =  BioUtl.number2bio(m.val3)  -- 值3。如:产量，仓库的存储量等 int int
+            r[50] =  BioUtl.number2bio(m.val2)  -- 值2。如:产量，仓库的存储量等 int int
+            r[64] =  BioUtl.number2bio(m.endtime)  -- 完成升级、恢复、采集等的时间点 long int
+            r[30] =  BioUtl.number2bio(m.lev)  -- 等级 int int
+            r[51] =  BioUtl.number2bio(m.val)  -- 值。如:产量，仓库的存储量等 int int
+            r[47] =  BioUtl.number2bio(m.cidx)  -- 主城idx int int
+            r[61] =  BioUtl.number2bio(m.val5)  -- 值5。如:产量，仓库的存储量等 int int
+            r[46] =  BioUtl.number2bio(m.attrid)  -- 属性配置id int int
+            r[65] =  BioUtl.number2bio(m.starttime)  -- 开始升级、恢复、采集等的时间点 long int
+            r[63] =  BioUtl.number2bio(m.state)  -- 状态. 0：正常；1：升级中；9：恢复中 int
+            r[33] =  BioUtl.number2bio(m.pos)  -- 位置，即在城的gird中的index int int
             return r;
         end,
         parse = function(m)
@@ -186,9 +186,9 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[66] =  BioUtl.int2bio(m.oil)  -- 油 int
-            r[67] =  BioUtl.int2bio(m.gold)  -- 金 int
-            r[68] =  BioUtl.int2bio(m.food)  -- 粮 int
+            r[66] =  BioUtl.number2bio(m.oil)  -- 油 int
+            r[67] =  BioUtl.number2bio(m.gold)  -- 金 int
+            r[68] =  BioUtl.number2bio(m.food)  -- 粮 int
             return r;
         end,
         parse = function(m)

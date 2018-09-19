@@ -23,21 +23,20 @@ function dateEx.seconds2Str(sec, format)
     return os.date(format, numEx.getIntPart(sec))
 end
 
-
 ---@public 时间格式字符转成秒数
 function dateEx.str2Seconds(srcDateTime)
     if srcDateTime == nil then
         return 0
     end
     --从日期字符串中截取出年月日时分秒
-    local Y = tonumber(string.sub(srcDateTime,1,4))
-    local M = tonumber(string.sub(srcDateTime,6,7))
-    local D = tonumber(string.sub(srcDateTime,9,10))
-    local H = tonumber(string.sub(srcDateTime,12,13))
-    local MM = tonumber(string.sub(srcDateTime,15,16))
-    local SS = tonumber(string.sub(srcDateTime,18,19))
+    local Y = tonumber(string.sub(srcDateTime, 1, 4))
+    local M = tonumber(string.sub(srcDateTime, 6, 7))
+    local D = tonumber(string.sub(srcDateTime, 9, 10))
+    local H = tonumber(string.sub(srcDateTime, 12, 13))
+    local MM = tonumber(string.sub(srcDateTime, 15, 16))
+    local SS = tonumber(string.sub(srcDateTime, 18, 19))
     --把日期时间字符串转换成对应的日期时间
-    local dt1 = os.time{year=Y, month=M, day=D, hour=H,min=MM,sec=SS}
+    local dt1 = os.time { year = Y, month = M, day = D, hour = H, min = MM, sec = SS }
     return dt1
 end
 
@@ -47,7 +46,7 @@ end
 
 ---@public 当前时间（毫秒）
 function dateEx.nowMS()
-    return skynet.time()*1000
+    return numEx.getIntPart(skynet.time() * 1000)
 end
 
 return dateEx

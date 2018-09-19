@@ -67,8 +67,18 @@ queueInfor.addBuildQueue = function(b)
 end
 
 queueInfor.release = function()
+    for i,v in ipairs(queueInfor.build) do
+        timerEx.cancel(v)
+    end
     queueInfor.build = {}
+
+    for i,v in ipairs(queueInfor.ship) do
+        timerEx.cancel(v)
+    end
     queueInfor.ship = {}
+    for i,v in ipairs(queueInfor.tech) do
+        timerEx.cancel(v)
+    end
     queueInfor.tech = {}
 end
 
@@ -777,6 +787,9 @@ end
 
 -- 释放数据
 function cmd4city.release()
+    -- 队列释放
+    queueInfor.release()
+
     ---@type dbbuilding
     local b
     for k, v in pairs(buildings) do
@@ -799,7 +812,6 @@ function cmd4city.release()
     end
     gridState4Tile = {}
     gridState4Building = {}
-    queueInfor.release()
 end
 
 --＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝

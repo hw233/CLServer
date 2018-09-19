@@ -196,7 +196,7 @@ do
                         -- 说明是整数
                         if isInt2bio then
                             -- 需要保存成bio形式
-                            add(ret, "            r[" .. getKeyCode(k) .. "] =  BioUtl.int2bio(m." .. k .. ")  -- " .. (v[2] or "") .. " int")
+                            add(ret, "            r[" .. getKeyCode(k) .. "] =  BioUtl.number2bio(m." .. k .. ")  -- " .. (v[2] or "") .. " int")
                         else
                             add(ret, "            r[" .. getKeyCode(k) .. "] = m." .. k .. "  -- " .. (v[2] or "") .. " int")
                         end
