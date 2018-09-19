@@ -518,6 +518,7 @@ function cmd4city.newBuilding(attrid, pos, cidx)
         buildings[b.idx] = building
         buildingCountMap[building:get_attrid()] = (buildingCountMap[building:get_attrid()] or 0) + 1
         cmd4city.placeBuilding(building)
+        building:setTrigger(skynet.self(), "onBuildingChg")
         return building
     else
         printe("[cmd4city.newBuilding] new building error. attrid=" .. attrid .. "  pos==" .. pos .. "  cidx==" .. cidx)
@@ -556,6 +557,7 @@ function cmd4city.setSelfBuildings()
     for i, v in ipairs(list) do
         b = dbbuilding.new(v)
         buildings[v.idx] = b
+        b:setTrigger(skynet.self(), "onBuildingChg")
         buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
 
         -- todo:处理建筑升级
@@ -636,9 +638,7 @@ local consumeOneRes = function(val, list)
                 val = -tmpval
 
                 -- 通知服务器建筑有变化
-                local ret = { code = Errcode.ok }
-                local package = skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
-                skynet.call(agent, "lua", "sendPackage", package)
+                cmd4city.CMD.onBuildingChg(b:value2copy())
             else
                 -- 说明是存储
                 if attr == nil then
@@ -650,16 +650,12 @@ local consumeOneRes = function(val, list)
                     val = maxStore - tmpval
 
                     -- 通知服务器建筑有变化
-                    local ret = { code = Errcode.ok }
-                    local package = skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
-                    skynet.call(agent, "lua", "sendPackage", package)
+                    cmd4city.CMD.onBuildingChg(b:value2copy())
                 else
                     b:set_val((tmpval))
 
                     -- 通知服务器建筑有变化
-                    local ret = { code = Errcode.ok }
-                    local package = skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
-                    skynet.call(agent, "lua", "sendPackage", package)
+                    cmd4city.CMD.onBuildingChg(b:value2copy())
                     break
                 end
             end
@@ -728,9 +724,7 @@ function cmd4city.consumeRes4Base(food, gold, oil)
     oil = val
 
     -- 通知服务器建筑有变化
-    local ret = { code = Errcode.ok }
-    local package = skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, headquarters:value2copy())
-    skynet.call(agent, "lua", "sendPackage", package)
+    cmd4city.CMD.onBuildingChg(headquarters:value2copy())
     ------------------------------------------
     return food, gold, oil
 end
@@ -780,9 +774,7 @@ function cmd4city.onFinishBuildingUpgrade(b)
     b:set_lev(b:get_lev() + 1)
     b:set_starttime(b:get_endtime())
     -- 通知客户端
-    local ret = { code = Errcode.ok }
-    local package = skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
-    skynet.call(agent, "lua", "sendPackage", package)
+    cmd4city.CMD.onBuildingChg(b:value2copy())
 end
 
 -- 释放数据
@@ -1027,15 +1019,27 @@ cmd4city.CMD = {
         end
 
         -- 通知服务器建筑有变化
+        cmd4city.CMD.onBuildingChg(b:value2copy())
         ret.code = Errcode.ok
-        local package = skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, b:value2copy())
-        skynet.call(agent, "lua", "sendPackage", package)
 
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy())
     end,
 
     release = function(m, fd)
         cmd4city.release()
+    end,
+
+    onBuildingChg = function(data)
+        -- 当建筑数据有变化
+        if data then
+            local b = dbbuilding.new(data)
+            if b then
+                local ret = {}
+                ret.code = Errcode.ok
+                local package = skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, data)
+                skynet.call(agent, "lua", "sendPackage", package)
+            end
+        end
     end,
 }
 

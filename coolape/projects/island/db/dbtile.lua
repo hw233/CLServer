@@ -158,6 +158,17 @@ function dbtile:delete()
     return skynet.call("CLMySql", "lua", "EXESQL", sql)
 end
 
+---@public 设置触发器（当有数据改变时回调）
+---@param server 触发回调服务地址
+---@param cmd 触发回调服务方法
+function dbtile:setTrigger(server, cmd)
+    skynet.call("CLDB", "lua", "ADDTRIGGER", self.__name__, self.__key__, server, cmd)
+end
+
+function dbtile:unsetTrigger(server, cmd)
+    skynet.call("CLDB", "lua", "REMOVETRIGGER", self.__name__, self.__key__, server, cmd)
+end
+
 function dbtile.querySql(idx, cidx)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}

@@ -14,12 +14,12 @@ local dbTimeout = {}
 local dbUsedTimes = {}
 local command = {}
 local needUpdateData = CLLQueue.new(100)  -- 需要更新的数据
+local triggerData = {}  -- 数据触发器， key:tableName + dataKey
 local timeoutsec = 30 * 60;   -- 数据超时时间（秒）
 local refreshsec = 1 * 60 * 100;   -- 数据更新时间（秒*100）
 local insert = table.insert
 local concat = table.concat
 local tostring = tostring
-
 
 -- 处理超时的数据，把数据写入mysql
 local function checktimeout(db, dbTimeout)
@@ -123,6 +123,49 @@ function command.GET(tableName, key, ...)
     return t;
 end
 
+---@public 设置当数据变化时的触发回调（单条记录）
+---@param tableName string 表名
+---@param key string 数据key
+---@param server 触发回调服务地址,注意只能是地址
+---@param funcName 触发回调服务方法
+function command.ADDTRIGGER(tableName, key, server, funcName)
+    local _key = tableName .."_" .. key
+    local list = triggerData[_key] or {}
+    local _key2 = server .. "_" .. funcName
+    list[_key2] = { tableName = tableName, key = key, server = server, funcName = funcName }
+    triggerData[_key] = list
+end
+
+---@public 去掉触发器（单条记录）
+function command.REMOVETRIGGER(tableName, key, server, funcName)
+    local _key = tableName .."_" .. key
+    local list = triggerData[_key]
+    if list then
+        local _key2 = server .. "_" .. funcName
+        list[_key2] = nil
+        triggerData[_key] = list
+    end
+end
+
+---@public 处理触发函数
+local onTrigger = function(tableName, key)
+    local _key = tableName .."_" .. key
+    local list = triggerData[_key]
+    if list then
+        for k ,infor in pairs(list) do
+            if infor then
+                if skynet.address(infor.server) ~= nil then
+                    local d = command.GET(tableName, key)
+                    skynet.call(infor.server, "lua", infor.funcName, d)
+                else
+                    -- 说明服务不存在了
+                    list[k] = nil
+                end
+            end
+        end
+    end
+end
+
 --[[
     设置数据.支持多个key，最后一个参数是要设置的value,例如：
     command.SET("user", "u001", "name", "小张")
@@ -163,6 +206,7 @@ function command.SET(tableName, key, ...)
         if count > 1 then
             -- 记录下需要更新
             needUpdateData:enQueue({ tableName = tableName, key = key })
+            onTrigger(tableName, key)
         end
         local d = command.GET(tableName, key)
         -- 如果有组，则更新
