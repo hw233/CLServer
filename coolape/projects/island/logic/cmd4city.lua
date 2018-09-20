@@ -298,6 +298,7 @@ function cmd4city.initTiles(city)
                             local treeAttrid = math.random(32, 36)
                             local tree = cmd4city.newBuilding(treeAttrid, index2, city:get_idx())
                             if tree then
+                                tree:set_lev(1)
                                 treeCounter = treeCounter + 1
                             end
                         end
@@ -1037,7 +1038,9 @@ cmd4city.CMD = {
                 local ret = {}
                 ret.code = Errcode.ok
                 local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, data)
-                skynet.call(agent, "lua", "sendPackage", package)
+                if skynet.address(agent) ~= nil then
+                    skynet.call(agent, "lua", "sendPackage", package)
+                end
             end
         end
     end,

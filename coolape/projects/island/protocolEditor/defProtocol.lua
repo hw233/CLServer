@@ -210,7 +210,7 @@ defProtocol.cmds = {
         inputDesc = { }; -- 入参说明
         output = { structs.retInfor, defProtocol.structs.player }; -- 出参
         outputDesc = { "返回信息", "玩家信息" }; -- 出参说明
-        logic = "cmd4city";
+        logic = "cmd4player";
     },
     onFinishBuildingUpgrade = {
         desc = "建筑升级完成"; -- 接口说明

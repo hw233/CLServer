@@ -76,7 +76,7 @@ cmd4player.CMD = {
             end
         end
         -- 增加触发器
-        myself:setTrigger(skynet.self(), "onPlayerChg", "diam")
+        myself:setTrigger(skynet.self(), "onPlayerChg")
 
         local cityVal = city
         cityVal.buildings = {}
@@ -113,7 +113,7 @@ cmd4player.CMD = {
         print("player release")
         --TODO:把相关处理入库
         if myself then
-            myself:unsetTrigger(skynet.self(), "onPlayerChg", "diam")
+            myself:unsetTrigger(skynet.self(), "onPlayerChg")
             myself:release();
             myself = nil;
         end
