@@ -636,9 +636,8 @@ local consumeOneRes = function(val, list)
                 -- 说明是扣除
                 b:set_val(0)
                 val = -tmpval
-
-                -- 通知服务器建筑有变化
-                cmd4city.CMD.onBuildingChg(b:value2copy())
+                -- 通知服务器建筑有变化，已经增加了触发器
+                --cmd4city.CMD.onBuildingChg(b:value2copy())
             else
                 -- 说明是存储
                 if attr == nil then
@@ -648,14 +647,12 @@ local consumeOneRes = function(val, list)
                 if tmpval > maxStore then
                     b:set_val(maxStore)
                     val = maxStore - tmpval
-
-                    -- 通知服务器建筑有变化
-                    cmd4city.CMD.onBuildingChg(b:value2copy())
+                    -- 通知服务器建筑有变化，已经增加了触发器
+                    --cmd4city.CMD.onBuildingChg(b:value2copy())
                 else
                     b:set_val((tmpval))
-
-                    -- 通知服务器建筑有变化
-                    cmd4city.CMD.onBuildingChg(b:value2copy())
+                    -- 通知服务器建筑有变化，已经增加了触发器
+                    --cmd4city.CMD.onBuildingChg(b:value2copy())
                     break
                 end
             end
@@ -723,8 +720,8 @@ function cmd4city.consumeRes4Base(food, gold, oil)
     end
     oil = val
 
-    -- 通知服务器建筑有变化
-    cmd4city.CMD.onBuildingChg(headquarters:value2copy())
+    -- 通知服务器建筑有变化，已经增加了触发器
+    -- cmd4city.CMD.onBuildingChg(headquarters:value2copy())
     ------------------------------------------
     return food, gold, oil
 end
@@ -774,7 +771,7 @@ function cmd4city.onFinishBuildingUpgrade(b)
     b:set_lev(b:get_lev() + 1)
     b:set_starttime(b:get_endtime())
     -- 通知客户端
-    cmd4city.CMD.onBuildingChg(b:value2copy())
+    cmd4city.CMD.onBuildingChg(b:value2copy(), "onFinishBuildingUpgrade")
 end
 
 -- 释放数据
@@ -786,6 +783,7 @@ function cmd4city.release()
     local b
     for k, v in pairs(buildings) do
         b = v
+        b:unsetTrigger(skynet.self(), "onBuildingChg")
         b:release()
     end
     buildings = {}
@@ -1018,8 +1016,8 @@ cmd4city.CMD = {
             b:set_lev(b:get_lev() + 1)
         end
 
-        -- 通知服务器建筑有变化
-        cmd4city.CMD.onBuildingChg(b:value2copy())
+        -- 通知服务器建筑有变化,已经加了触发器不需要主动再通知
+        --cmd4city.CMD.onBuildingChg(b:value2copy())
         ret.code = Errcode.ok
 
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy())
@@ -1029,14 +1027,16 @@ cmd4city.CMD = {
         cmd4city.release()
     end,
 
-    onBuildingChg = function(data)
+    onBuildingChg = function(data, cmd)
         -- 当建筑数据有变化
+        cmd = cmd or "onBuildingChg"
         if data then
-            local b = dbbuilding.new(data)
+            local idx = data.idx
+            local b = buildings[idx] -- 不要使用new(), 或者instance()
             if b then
                 local ret = {}
                 ret.code = Errcode.ok
-                local package = skynet.call(NetProtoIsland, "lua", "send", "onBuildingChg", ret, data)
+                local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, data)
                 skynet.call(agent, "lua", "sendPackage", package)
             end
         end

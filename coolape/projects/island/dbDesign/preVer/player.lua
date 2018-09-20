@@ -8,7 +8,7 @@ local tab = {
         { "lev", "int(4)", "等级" },
         { "money", "int(11)", "充值总数" },
         { "diam", "int(11)", "钻石" },
-        {"cityidx", "int(11)", "主城idx" },
+        { "cityidx", "int(11)", "主城idx" },
         { "unionidx", "int(11)", "联盟idx" },
         { "crtTime", "datetime", "创建时间" },
         { "lastEnTime", "datetime", "最后登陆时间" },

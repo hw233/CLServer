@@ -21,9 +21,11 @@ local table = table
 ---@type dbplayer
 local myself;
 local city
+local agent
 
 cmd4player.CMD = {
-    login = function(m, fd, agent)
+    login = function(m, fd, _agent)
+        agent = _agent
         -- 登陆
         if m.uidx == nil then
             local ret = {}
@@ -73,6 +75,8 @@ cmd4player.CMD = {
                 return skynet.call(NetProtoIsland, "lua", "send", "login", ret, nil, nil, dateEx.nowMS(), fd)
             end
         end
+        -- 增加触发器
+        myself:setTrigger(skynet.self(), "onPlayerChg", "diam")
 
         local cityVal = city
         cityVal.buildings = {}
@@ -109,6 +113,7 @@ cmd4player.CMD = {
         print("player release")
         --TODO:把相关处理入库
         if myself then
+            myself:unsetTrigger(skynet.self(), "onPlayerChg", "diam")
             myself:release();
             myself = nil;
         end
@@ -116,6 +121,14 @@ cmd4player.CMD = {
 
     logout = function(m, fd)
         skynet.call("watchdog", "lua", "close", fd)
+    end,
+
+    onPlayerChg = function(data, cmd)
+        cmd = cmd or "onPlayerChg"
+        local ret = {}
+        ret.code = Errcode.ok
+        local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy())
+        skynet.call(agent, "lua", "sendPackage", package)
     end,
 }
 

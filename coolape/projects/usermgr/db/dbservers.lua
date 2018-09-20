@@ -266,12 +266,16 @@ end
 ---@public 设置触发器（当有数据改变时回调）
 ---@param server 触发回调服务地址
 ---@param cmd 触发回调服务方法
-function dbservers:setTrigger(server, cmd)
-    skynet.call("CLDB", "lua", "ADDTRIGGER", self.__name__, self.__key__, server, cmd)
+---@param fieldKey 字段key(可为nil)
+function dbservers:setTrigger(server, cmd, fieldKey)
+    skynet.call("CLDB", "lua", "ADDTRIGGER", self.__name__, self.__key__, server, cmd, fieldKey)
 end
 
-function dbservers:unsetTrigger(server, cmd)
-    skynet.call("CLDB", "lua", "REMOVETRIGGER", self.__name__, self.__key__, server, cmd)
+---@param server 触发回调服务地址
+---@param cmd 触发回调服务方法
+---@param fieldKey 字段key(可为nil)
+function dbservers:unsetTrigger(server, cmd, fieldKey)
+    skynet.call("CLDB", "lua", "REMOVETRIGGER", self.__name__, self.__key__, server, cmd, fieldKey)
 end
 
 function dbservers.querySql(idx, appid, channel)

@@ -212,6 +212,14 @@ defProtocol.cmds = {
         outputDesc = { "返回信息", "玩家信息" }; -- 出参说明
         logic = "cmd4city";
     },
+    onFinishBuildingUpgrade = {
+        desc = "建筑升级完成"; -- 接口说明
+        input = { }; -- 入参
+        inputDesc = { }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.building }; -- 出参
+        outputDesc = { "返回信息", "建筑信息" }; -- 出参说明
+        logic = "cmd4city";
+    },
 
 }
 

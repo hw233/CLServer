@@ -194,13 +194,19 @@ function dbplayer:set_crtTime(v)
         skynet.error("[dbplayer:set_crtTime],please init first!!")
         return nil
     end
-    v = dateEx.seconds2Str(v/1000)
+    if type(v) == "number" then
+        v = dateEx.seconds2Str(v/1000)
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "crtTime", v)
 end
 function dbplayer:get_crtTime()
     -- 创建时间
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "crtTime")
-    return dateEx.str2Seconds(val)*1000 -- 转成毫秒
+    if type(val) == "string" then
+        return dateEx.str2Seconds(val)*1000 -- 转成毫秒
+    else
+        return val
+    end
 end
 
 function dbplayer:set_lastEnTime(v)
@@ -209,13 +215,19 @@ function dbplayer:set_lastEnTime(v)
         skynet.error("[dbplayer:set_lastEnTime],please init first!!")
         return nil
     end
-    v = dateEx.seconds2Str(v/1000)
+    if type(v) == "number" then
+        v = dateEx.seconds2Str(v/1000)
+    end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lastEnTime", v)
 end
 function dbplayer:get_lastEnTime()
     -- 最后登陆时间
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lastEnTime")
-    return dateEx.str2Seconds(val)*1000 -- 转成毫秒
+    if type(val) == "string" then
+        return dateEx.str2Seconds(val)*1000 -- 转成毫秒
+    else
+        return val
+    end
 end
 
 function dbplayer:set_channel(v)
@@ -277,12 +289,16 @@ end
 ---@public 设置触发器（当有数据改变时回调）
 ---@param server 触发回调服务地址
 ---@param cmd 触发回调服务方法
-function dbplayer:setTrigger(server, cmd)
-    skynet.call("CLDB", "lua", "ADDTRIGGER", self.__name__, self.__key__, server, cmd)
+---@param fieldKey 字段key(可为nil)
+function dbplayer:setTrigger(server, cmd, fieldKey)
+    skynet.call("CLDB", "lua", "ADDTRIGGER", self.__name__, self.__key__, server, cmd, fieldKey)
 end
 
-function dbplayer:unsetTrigger(server, cmd)
-    skynet.call("CLDB", "lua", "REMOVETRIGGER", self.__name__, self.__key__, server, cmd)
+---@param server 触发回调服务地址
+---@param cmd 触发回调服务方法
+---@param fieldKey 字段key(可为nil)
+function dbplayer:unsetTrigger(server, cmd, fieldKey)
+    skynet.call("CLDB", "lua", "REMOVETRIGGER", self.__name__, self.__key__, server, cmd, fieldKey)
 end
 
 function dbplayer.querySql(idx)

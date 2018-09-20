@@ -222,6 +222,13 @@ do
         ret[1] = NetProtoIsland.__sessionID
         return ret
     end,
+    -- 建筑升级完成
+    onFinishBuildingUpgrade = function()
+        local ret = {}
+        ret[0] = 73
+        ret[1] = NetProtoIsland.__sessionID
+        return ret
+    end,
     -- 新建建筑
     newBuilding = function(attrid, pos)
         local ret = {}
@@ -310,6 +317,13 @@ do
         ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
         return ret
     end,
+    onFinishBuildingUpgrade = function(map)
+        local ret = {}
+        ret.cmd = "onFinishBuildingUpgrade"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
+        return ret
+    end,
     newBuilding = function(map)
         local ret = {}
         ret.cmd = "newBuilding"
@@ -372,6 +386,7 @@ do
     NetProtoIsland.dispatch[69]={onReceive = NetProtoIsland.recive.onResChg, send = NetProtoIsland.send.onResChg}
     NetProtoIsland.dispatch[56]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding}
     NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout}
+    NetProtoIsland.dispatch[73]={onReceive = NetProtoIsland.recive.onFinishBuildingUpgrade, send = NetProtoIsland.send.onFinishBuildingUpgrade}
     NetProtoIsland.dispatch[52]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding}
     NetProtoIsland.dispatch[71]={onReceive = NetProtoIsland.recive.onBuildingChg, send = NetProtoIsland.send.onBuildingChg}
     NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login}
@@ -385,6 +400,7 @@ do
         onResChg = "onResChg",
         moveBuilding = "moveBuilding",
         logout = "logout",
+        onFinishBuildingUpgrade = "onFinishBuildingUpgrade",
         newBuilding = "newBuilding",
         onBuildingChg = "onBuildingChg",
         login = "login",

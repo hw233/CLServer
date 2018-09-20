@@ -128,49 +128,69 @@ end
 ---@param key string 数据key
 ---@param server 触发回调服务地址,注意只能是地址
 ---@param funcName 触发回调服务方法
-function command.ADDTRIGGER(tableName, key, server, funcName)
+---@param fieldKey string 字雄key
+function command.ADDTRIGGER(tableName, key, server, funcName, fieldKey)
     local _key = tableName .. "_" .. key
     local list = triggerData[_key] or {}
-    local _key2 = server .. "_" .. funcName
-    list[_key2] = { tableName = tableName, key = key, server = server, funcName = funcName }
+    local _key2
+    if fieldKey then
+        _key2 = server .. "_" .. funcName .. "_" .. fieldKey
+    else
+        _key2 = server .. "_" .. funcName
+    end
+    list[_key2] = { tableName = tableName, key = key, server = server, funcName = funcName, fieldKey = fieldKey}
     triggerData[_key] = list
 end
 
 ---@public 去掉触发器（单条记录）
-function command.REMOVETRIGGER(tableName, key, server, funcName)
+function command.REMOVETRIGGER(tableName, key, server, funcName, fieldKey)
     local _key = tableName .. "_" .. key
     local list = triggerData[_key]
     if list then
-        local _key2 = server .. "_" .. funcName
+        local _key2
+        if fieldKey then
+            _key2 = server .. "_" .. funcName .. "_" .. fieldKey
+        else
+            _key2 = server .. "_" .. funcName
+        end
         list[_key2] = nil
         triggerData[_key] = list
     end
 end
 
 ---@public 处理触发函数
-local onTrigger = function(tableName, key)
+local onTrigger = function(tableName, key, fieldKey)
     local _key = tableName .. "_" .. key
     local list = triggerData[_key]
     if list then
         for k, infor in pairs(list) do
             if infor then
-                if skynet.address(infor.server) ~= nil then
-                    local d = command.GET(tableName, key)
-                    skynet.call(infor.server, "lua", infor.funcName, d)
+                if infor.fieldKey then
+                    -- 特定字段改变时触发
+                    if infor.fieldKey == fieldKey then
+                        if skynet.address(infor.server) ~= nil then
+                            local d = command.GET(tableName, key)
+                            skynet.call(infor.server, "lua", infor.funcName, d)
+                        else
+                            -- 说明服务不存在了
+                            list[k] = nil
+                        end
+                    end
                 else
-                    -- 说明服务不存在了
-                    list[k] = nil
+                    if skynet.address(infor.server) ~= nil then
+                        local d = command.GET(tableName, key)
+                        skynet.call(infor.server, "lua", infor.funcName, d)
+                    else
+                        -- 说明服务不存在了
+                        list[k] = nil
+                    end
                 end
             end
         end
     end
 end
 
---[[
-    设置数据.支持多个key，最后一个参数是要设置的value,例如：
-    command.SET("user", "u001", "name", "小张")
-    更新user表的key＝"u001"记录的，字段为name的值为"小张"
-]]
+---@public 设置数据.支持多个key，最后一个参数是要设置的value,例如：command.SET("user", "u001", "name", "小张"), 更新user表的key＝"u001"记录的，字段为name的值为"小张"
 function command.SET(tableName, key, ...)
     local params = { ... }
     if #params < 1 then
@@ -203,21 +223,22 @@ function command.SET(tableName, key, ...)
 
     --..........................................
     if last ~= val then
-        if count > 1 then
-            local d = command.GET(tableName, key)
-            -- 如果有组，则更新
-            local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
-            if tableCfg == nil then
-                printe("[cldb.remove],get tabel config is nil==" .. tableName)
-            end
-            if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
-                setGroup(tableName, d[tableCfg.groupKey], key)
-            end
+        local d = command.GET(tableName, key)
+        -- 如果有组，则更新
+        local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
+        if tableCfg == nil then
+            printe("[cldb.remove],get tabel config is nil==" .. tableName)
+        end
+        if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
+            setGroup(tableName, d[tableCfg.groupKey], key)
+        end
 
-            -- 记录下需要更新
+        if count > 1 then
+            -- 说明是更新某个字段， 记录下需要更新
             needUpdateData:enQueue({ tableName = tableName, key = key })
             -- 触发回调
-            onTrigger(tableName, key)
+            local fieldKey = params[1]
+            onTrigger(tableName, key, fieldKey)
         end
     end
 
