@@ -286,8 +286,6 @@ function cmd4city.initTiles(city)
             local tile = cmd4city.newTile(index, 0, city:get_idx())
             if tile then
                 counter = counter + 1
-                tiles[tile:get_idx()] = tile
-                hadTileCount = hadTileCount + 1
 
                 -- 初始化树
                 if treeCounter < maxTree then
@@ -1043,6 +1041,47 @@ cmd4city.CMD = {
                 end
             end
         end
+    end,
+    newTile = function(m, fd, agent)
+        -- 新建筑
+        local cmd = "newTile"
+        local ret = {}
+        if myself == nil then
+            printe("主城数据为空！")
+            ret.code = Errcode.error
+            ret.msg = "主城数据为空"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil)
+        end
+
+        if not cmd4city.canPlace(m.pos, false) then
+            printe("该位置不能放置地块！pos==" .. m.pos)
+            ret.code = Errcode.error
+            ret.msg = "该位置不能放置地块"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil)
+        end
+
+        -- 扣除资源
+        local attrid = m.attrid
+        local attr = cfgUtl.getBuildingByID(attrid)
+        local persent = 1 / attr.MaxLev
+        local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
+        local succ, code = cmd4city.consumeRes(food, 0, 0)
+        if not succ then
+            ret.code = code
+            ret.msg = "资源不足"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        local tile = cmd4city.newTile(m.pos, 0, myself:get_idx())
+        if tile == nil then
+            printe("新建地块失败")
+            ret.code = Errcode.error
+            ret.msg = "新建地块失败"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil)
+        end
+
+        ret.code = Errcode.ok
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, tile:value2copy())
     end,
 }
 
