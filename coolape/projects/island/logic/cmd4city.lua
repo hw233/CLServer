@@ -400,12 +400,12 @@ function cmd4city.newTile(pos, attrid, cidx)
     local maxNum = headquartersOpen.Tiles
     if hadTileCount >= maxNum then
         printe("地块数量已经达上限！")
-        return nil
+        return nil, Errcode.maxNumber
     end
 
     if not cmd4city.canPlace(pos, false) then
         printe("【cmd4city.newTile】该位置不能放置地块, pos ==" .. pos)
-        return nil
+        return nil, Errcode.cannotPlace
     end
     local tile = dbtile.new()
     local t = {}
@@ -421,7 +421,7 @@ function cmd4city.newTile(pos, attrid, cidx)
         return tile
     else
         printe("[cmd4city.newTile]==" .. CLUtl.dump(t))
-        return nil
+        return nil, Errcode.error
     end
 end
 
@@ -493,13 +493,13 @@ function cmd4city.newBuilding(attrid, pos, cidx)
         local maxNum = cmd4city.getBuildingCountAtCurrLev(attrid)
         if hadNum >= maxNum then
             printe("已经达到建筑最大数量！")
-            return nil
+            return nil, Errcode.maxNumber
         end
     end
 
     if not cmd4city.canPlace(pos, true, attrid) then
         printe("该位置不能放置建筑, pos ==" .. pos)
-        return nil
+        return nil,Errcode.cannotPlace
     end
     local building = dbbuilding.new()
     local b = {}
@@ -521,7 +521,7 @@ function cmd4city.newBuilding(attrid, pos, cidx)
         return building
     else
         printe("[cmd4city.newBuilding] new building error. attrid=" .. attrid .. "  pos==" .. pos .. "  cidx==" .. cidx)
-        return nil
+        return nil, Errcode.error
     end
 end
 
@@ -1043,7 +1043,7 @@ cmd4city.CMD = {
         end
     end,
     newTile = function(m, fd, agent)
-        -- 新建筑
+        -- 扩建地块
         local cmd = "newTile"
         local ret = {}
         if myself == nil then
@@ -1060,11 +1060,18 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil)
         end
 
+        local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters:get_lev())
+        local maxNum = headquartersOpen.Tiles
+        if hadTileCount >= maxNum then
+            ret.code = Errcode.maxNumber
+            ret.msg = "地块数量已经达上限"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil)
+        end
+
+        local constcfg = cfgUtl.getConstCfg()
         -- 扣除资源
-        local attrid = m.attrid
-        local attr = cfgUtl.getBuildingByID(attrid)
-        local persent = 1 / attr.MaxLev
-        local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
+        local persent = hadTileCount / constcfg.TilesTotal
+        local food = cfgUtl.getGrowingVal(constcfg.ExtenTileCostMin, constcfg.ExtenTileCostMax, constcfg.ExtenTileCostCurve, persent)
         local succ, code = cmd4city.consumeRes(food, 0, 0)
         if not succ then
             ret.code = code
@@ -1072,10 +1079,9 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
 
-        local tile = cmd4city.newTile(m.pos, 0, myself:get_idx())
+        local tile, code = cmd4city.newTile(m.pos, 0, myself:get_idx())
         if tile == nil then
-            printe("新建地块失败")
-            ret.code = Errcode.error
+            ret.code = code
             ret.msg = "新建地块失败"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil)
         end
