@@ -172,6 +172,14 @@ defProtocol.cmds = {
         outputDesc = { "返回信息", "地块信息对象" }; -- 出参说明
         logic = "cmd4city";
     },
+    rmTile = {
+        desc = "移除地块"; -- 接口说明
+        input = { "idx" }; -- 入参
+        inputDesc = { "地块idx int" }; -- 入参说明
+        output = { structs.retInfor, "idx" }; -- 出参
+        outputDesc = { "返回信息", "被移除地块的idx int" }; -- 出参说明
+        logic = "cmd4city";
+    },
     moveTile = {
         desc = "移动地块"; -- 接口说明
         input = { "idx", "pos" }; -- 入参

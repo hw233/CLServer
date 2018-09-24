@@ -67,16 +67,16 @@ queueInfor.addBuildQueue = function(b)
 end
 
 queueInfor.release = function()
-    for i,v in ipairs(queueInfor.build) do
+    for i, v in ipairs(queueInfor.build) do
         timerEx.cancel(v)
     end
     queueInfor.build = {}
 
-    for i,v in ipairs(queueInfor.ship) do
+    for i, v in ipairs(queueInfor.ship) do
         timerEx.cancel(v)
     end
     queueInfor.ship = {}
-    for i,v in ipairs(queueInfor.tech) do
+    for i, v in ipairs(queueInfor.tech) do
         timerEx.cancel(v)
     end
     queueInfor.tech = {}
@@ -448,6 +448,27 @@ function cmd4city.getSelfTile(idx)
     return t
 end
 
+function cmd4city.delSelfTile(idx)
+    -- 取得建筑
+    if myself == nil then
+        printe("主城为空")
+        return Errcode.cityIsNil
+    end
+    if tiles == nil then
+        printe("地块信息列表为空")
+        return Errcode.tileListIsNil
+    end
+    ---@type dbtile
+    local t = tiles[idx]
+    if t == nil then
+        printe("取得地块为空")
+        return Errcode.tileIsNil
+    end
+    t:delete()
+    tiles[idx] = nil
+    return Errcode.ok
+end
+
 function cmd4city.setSelfTiles()
     local list = cmd4city.queryTiles(myself:get_idx())
     if list == nil then
@@ -499,7 +520,7 @@ function cmd4city.newBuilding(attrid, pos, cidx)
 
     if not cmd4city.canPlace(pos, true, attrid) then
         printe("该位置不能放置建筑, pos ==" .. pos)
-        return nil,Errcode.cannotPlace
+        return nil, Errcode.cannotPlace
     end
     local building = dbbuilding.new()
     local b = {}
@@ -893,7 +914,7 @@ cmd4city.CMD = {
         end
 
         -- 设置冷却时间
-        local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin*60, attr.BuildTimeMax*60, attr.BuildTimeCurve, persent)
+        local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin * 60, attr.BuildTimeMax * 60, attr.BuildTimeCurve, persent)
         if sec > 0 then
             local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
             building:set_starttime(dateEx.nowMS())
@@ -1004,7 +1025,7 @@ cmd4city.CMD = {
         end
 
         -- 设置冷却时间
-        local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin*60, attr.BuildTimeMax*60, attr.BuildTimeCurve, persent)
+        local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin * 60, attr.BuildTimeMax * 60, attr.BuildTimeCurve, persent)
         if sec > 0 then
             local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
             b:set_starttime(dateEx.nowMS())
@@ -1088,6 +1109,11 @@ cmd4city.CMD = {
 
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, tile:value2copy())
+    end,
+    rmTile = function(m, fd, agent)
+        local ret = {}
+        ret.code = cmd4city.delSelfTile(m.idx)
+        return skynet.call(NetProtoIsland, "lua", "send", "rmTile", ret)
     end,
 }
 

@@ -294,9 +294,10 @@ function dbbuilding:release()
 end
 
 function dbbuilding:delete()
+    local d = self:value2copy()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     skynet.call("CLDB", "lua", "REMOVE", self.__name__, self.__key__)
-    local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, self:value2copy())
+    local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, d)
     return skynet.call("CLMySql", "lua", "EXESQL", sql)
 end
 
