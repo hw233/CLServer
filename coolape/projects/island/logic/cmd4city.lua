@@ -464,6 +464,7 @@ function cmd4city.delSelfTile(idx)
         printe("取得地块为空")
         return Errcode.tileIsNil
     end
+
     t:delete()
     tiles[idx] = nil
     return Errcode.ok
@@ -1113,7 +1114,7 @@ cmd4city.CMD = {
     rmTile = function(m, fd, agent)
         local ret = {}
         ret.code = cmd4city.delSelfTile(m.idx)
-        return skynet.call(NetProtoIsland, "lua", "send", "rmTile", ret)
+        return skynet.call(NetProtoIsland, "lua", "send", "rmTile", ret, m.idx)
     end,
 }
 

@@ -243,7 +243,7 @@ function dbservers:flush(immd)
     else
         sql = skynet.call("CLDB", "lua", "GETUPDATESQL", self.__name__, self:value2copy())
     end
-    return skynet.call("CLMySql", "lua", "save", sql, immd)
+    return skynet.call("CLMySQL", "lua", "save", sql, immd)
 end
 
 function dbservers:isEmpty()
@@ -257,10 +257,11 @@ function dbservers:release()
 end
 
 function dbservers:delete()
+    local d = self:value2copy()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     skynet.call("CLDB", "lua", "REMOVE", self.__name__, self.__key__)
-    local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, self:value2copy())
-    return skynet.call("CLMySql", "lua", "EXESQL", sql)
+    local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, d)
+    return skynet.call("CLMySQL", "lua", "EXESQL", sql)
 end
 
 ---@public 设置触发器（当有数据改变时回调）

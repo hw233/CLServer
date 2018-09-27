@@ -143,11 +143,12 @@ function CMD.STOP(exit)
 end
 ---------------------------------------------
 skynet.start(function()
-    skynet.dispatch("lua", function(session, source, cmd, ...)
-        cmd = cmd:upper()
-        local f = assert(CMD[cmd])
-        skynet.ret(skynet.pack(f(...)))
-    end)
+    skynet.dispatch("lua",
+            function(session, source, cmd, ...)
+                cmd = cmd:upper()
+                local f = assert(CMD[cmd])
+                skynet.ret(skynet.pack(f(...)))
+            end)
 
     skynet.register "CLMySQL"
 end)
