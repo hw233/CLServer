@@ -442,10 +442,32 @@ function cmd4city.getSelfTile(idx)
     ---@type dbbuilding
     local t = tiles[idx]
     if t == nil then
-        printe("取得地块为空")
+        printe("取得地块为空" .. idx)
         return nil
     end
     return t
+end
+
+function cmd4city.delSelfBuilding(idx)
+    -- 取得建筑
+    if myself == nil then
+        printe("主城为空")
+        return Errcode.cityIsNil
+    end
+    if buildings == nil then
+        printe("地块信息列表为空")
+        return Errcode.buildingListIsNil
+    end
+    ---@type dbtile
+    local b = buildings[idx]
+    if b == nil then
+        printe("取得建筑为空==" .. idx)
+        return Errcode.buildingIsNil
+    end
+
+    b:delete()
+    buildings[idx] = nil
+    return Errcode.ok
 end
 
 function cmd4city.delSelfTile(idx)
@@ -1115,6 +1137,11 @@ cmd4city.CMD = {
         local ret = {}
         ret.code = cmd4city.delSelfTile(m.idx)
         return skynet.call(NetProtoIsland, "lua", "send", "rmTile", ret, m.idx)
+    end,
+    rmBuilding = function(m, fd, agent)
+        local ret = {}
+        ret.code = cmd4city.delSelfBuilding(m.idx)
+        return skynet.call(NetProtoIsland, "lua", "send", "rmBuilding", ret, m.idx)
     end,
 }
 

@@ -14,6 +14,9 @@ Errcode.noIdelQueue = 9    -- 没有空闲队列
 Errcode.maxNumber = 10    -- 数量已达上限
 Errcode.cannotPlace = 11       -- 不可放下
 Errcode.tileIsNil = 12 -- 取得地块为空
-Errcode.tileListIsNil = 13 -- 地块信息列表为空
-Errcode.cityIsNil = 14 -- 主城为空
+Errcode.buildingIsNil = 13 -- 取得地块为空
+Errcode.tileListIsNil = 14 -- 地块信息列表为空
+Errcode.cityIsNil = 15 -- 主城为空
+Errcode.buildingListIsNil = 16 -- 建筑信息列表为空
+
 return Errcode
