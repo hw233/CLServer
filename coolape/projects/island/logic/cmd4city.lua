@@ -465,7 +465,11 @@ function cmd4city.delSelfBuilding(idx)
         return Errcode.buildingIsNil
     end
 
+    buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
+    cmd4city.unPlaceBuilding(b)
+    b:unsetTrigger(skynet.self(), "onBuildingChg")
     b:delete()
+
     buildings[idx] = nil
     return Errcode.ok
 end
@@ -487,6 +491,8 @@ function cmd4city.delSelfTile(idx)
         return Errcode.tileIsNil
     end
 
+    cmd4city.unPlaceTile(t)
+    hadTileCount = hadTileCount - 1
     t:delete()
     tiles[idx] = nil
     return Errcode.ok
@@ -1075,17 +1081,19 @@ cmd4city.CMD = {
         cmd = cmd or "onBuildingChg"
         if data then
             local idx = data.idx
+            ---@type dbbuilding
             local b = buildings[idx] -- 不要使用new(), 或者instance()
             if b then
                 local ret = {}
                 ret.code = Errcode.ok
-                local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, data)
+                local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy())
                 if skynet.address(agent) ~= nil then
                     skynet.call(agent, "lua", "sendPackage", package)
                 end
             end
         end
     end,
+
     newTile = function(m, fd, agent)
         -- 扩建地块
         local cmd = "newTile"
