@@ -14,9 +14,13 @@ Errcode.noIdelQueue = 9    -- 没有空闲队列
 Errcode.maxNumber = 10    -- 数量已达上限
 Errcode.cannotPlace = 11       -- 不可放下
 Errcode.tileIsNil = 12 -- 取得地块为空
-Errcode.buildingIsNil = 13 -- 取得地块为空
+Errcode.buildingIsNil = 13 -- 取得建筑为空
 Errcode.tileListIsNil = 14 -- 地块信息列表为空
 Errcode.cityIsNil = 15 -- 主城为空
 Errcode.buildingListIsNil = 16 -- 建筑信息列表为空
+Errcode.buildingNotIdel = 17 -- 建筑的状态不是空闲状态
+Errcode.playerIsNil = 18 -- 玩家数据取得为空
+Errcode.diamNotEnough = 19  -- 钻石不足
+Errcode.buildingIsBusy = 20 -- 建筑正忙，不可操作
 
 return Errcode

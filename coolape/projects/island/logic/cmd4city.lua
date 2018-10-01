@@ -6,6 +6,7 @@ require("public.cfgUtl")
 require("dbcity")
 require("dbtile")
 require("dbbuilding")
+require("dbplayer")
 require("Errcode")
 local timerEx = require("timerEx")
 local ConstVals = require("ConstVals")
@@ -1010,8 +1011,14 @@ cmd4city.CMD = {
         local cmd = "upLevBuilding"
         local b = cmd4city.getSelfBuilding(m.idx)
         if b == nil then
-            ret.code = Errcode.error
+            ret.code = Errcode.buildingIsNil
             ret.msg = "取得建筑为空"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        if b:get_state() ~= ConstVals.BuildingState.normal then
+            ret.code = Errcode.buildingNotIdel
+            ret.msg = "取得建筑不是空闲"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
 
@@ -1072,17 +1079,91 @@ cmd4city.CMD = {
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy())
     end,
 
+    upLevBuildingImm = function(m, fd, agent)
+        -- 立即完成升级
+        local cmd = m.cmd
+
+        local ret = {}
+        ---@type dbbuilding
+        local b = cmd4city.getSelfBuilding(m.idx)
+        if b == nil then
+            ret.code = Errcode.error
+            ret.msg = "取得建筑为空"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        --check max lev
+        local attrid = b:get_attrid()
+        local attr = cfgUtl.getBuildingByID(attrid)
+        local maxLev = attr.MaxLev
+        if b:get_lev() >= maxLev then
+            ret.code = Errcode.outOfMaxLev
+            ret.msg = "已经是最高等级"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        -- 非主基地时，基它建筑要不能超过主基地
+        if b:get_attrid() ~= ConstVals.headquartersBuildingID then
+            if b:get_lev() >= headquarters:get_lev() then
+                ret.code = Errcode.exceedHeadquarters
+                ret.msg = "不能超过主基地等级"
+                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+            end
+        end
+
+        -- 看建筑状态
+        local leftMinutes = 0
+        if b:get_state() == ConstVals.BuildingState.upgrade then
+            -- 正在升级
+            leftMinutes = (b:get_endtime() - dateEx.nowMS()) / 60000
+        elseif b:get_state() == ConstVals.BuildingState.normal then
+            -- 空闲状态
+            local persent = (b:get_lev() + 1) / attr.MaxLev
+            leftMinutes = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
+        else
+            ret.code = Errcode.buildingIsBusy
+            ret.msg = "建筑正忙，不可操作"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        if leftMinutes > 0 then
+            leftMinutes = math.ceil(leftMinutes)
+            local needDiam = cfgUtl.minutes2Diam(leftMinutes)
+            local pidx = myself:get_pidx()
+            ---@type dbplayer
+            local player = dbplayer.instanse(pidx)
+            if player == nil then
+                ret.code = Errcode.playerIsNil
+                ret.msg = "玩家数据取得为空"
+                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+            end
+            if player:get_diam() < needDiam then
+                ret.code = Errcode.diamNotEnough
+                ret.msg = "钻石不足"
+                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+            end
+            -- 扣除钻石
+            player:set_diam(player:get_diam() - needDiam)
+            player:release()
+            player = nil
+        end
+        b:set_endtime(dateEx.nowMS())
+        cmd4city.onFinishBuildingUpgrade(b)
+        ret.code = Errcode.ok
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+    end,
+
     release = function(m, fd)
         cmd4city.release()
     end,
 
     onBuildingChg = function(data, cmd)
-        -- 当建筑数据有变化
+        -- 当建筑数据有变化，这个接口是内部触发的
         cmd = cmd or "onBuildingChg"
         if data then
             local idx = data.idx
             ---@type dbbuilding
-            local b = buildings[idx] -- 不要使用new(), 或者instance()
+            local b = buildings[idx] -- 不要使用new(), 或者instance()，也不能直接传data
             if b then
                 local ret = {}
                 ret.code = Errcode.ok

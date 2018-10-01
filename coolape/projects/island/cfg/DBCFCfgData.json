@@ -1,1 +1,1 @@
-[["ID","LimitPhone","GridCity","GridWorld","TilesTotal","ExtenTileCostMin","ExtenTileCostMax","ExtenTileCostCurve"],[1,-1,60,1000,400,10,1000,6]]
+[["ID","LimitPhone","GridCity","GridWorld","Minute2DiamRate"],[1,-1,60,1000,100]]

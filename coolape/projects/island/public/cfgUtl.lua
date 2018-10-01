@@ -79,10 +79,17 @@ function cfgUtl.getGrowingVal(min, max, curveID, persent, precision)
     local val = min + (max - min) * persent
 
     if precision == nil or precision == 0 then
-        return numEx.getIntPart(val)
+        return math.ceil(val)
     else
         return numEx.getPreciseDecimal(val, precision)
     end
+end
+
+---@public 分钟转宝石
+function cfgUtl.minutes2Diam(val)
+    local cfg = cfgUtl.getConstCfg()
+    local ret = numEx.getIntPart(val * cfg.Minute2DiamRate / 100)
+    return ret > 0 and ret or 1
 end
 
 return cfgUtl
