@@ -1113,22 +1113,30 @@ cmd4city.CMD = {
 
         -- 看建筑状态
         local leftMinutes = 0
+        local needDiam = 0
         if b:get_state() == ConstVals.BuildingState.upgrade then
             -- 正在升级
             leftMinutes = (b:get_endtime() - dateEx.nowMS()) / 60000
+            leftMinutes = math.ceil(leftMinutes)
+            needDiam = cfgUtl.minutes2Diam(leftMinutes)
         elseif b:get_state() == ConstVals.BuildingState.normal then
             -- 空闲状态
             local persent = (b:get_lev() + 1) / attr.MaxLev
             leftMinutes = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
+            leftMinutes = math.ceil(leftMinutes)
+            needDiam = cfgUtl.minutes2Diam(leftMinutes)
+
+            local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
+            local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
+            local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
+            needDiam = needDiam + cfgUtl.res2Diam(food + gold + oil)
         else
             ret.code = Errcode.buildingIsBusy
             ret.msg = "建筑正忙，不可操作"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
 
-        if leftMinutes > 0 then
-            leftMinutes = math.ceil(leftMinutes)
-            local needDiam = cfgUtl.minutes2Diam(leftMinutes)
+        if needDiam > 0 then
             local pidx = myself:get_pidx()
             ---@type dbplayer
             local player = dbplayer.instanse(pidx)

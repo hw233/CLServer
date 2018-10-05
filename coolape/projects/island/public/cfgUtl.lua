@@ -92,4 +92,10 @@ function cfgUtl.minutes2Diam(val)
     return ret > 0 and ret or 1
 end
 
+
+---@public 资源转钻石
+function cfgUtl.res2Diam(val)
+    return math.ceil(val/100)
+end
+
 return cfgUtl
