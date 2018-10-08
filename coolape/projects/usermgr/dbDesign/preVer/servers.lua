@@ -21,7 +21,7 @@ local tab = {
     cacheKey = { -- 缓存key
         "idx",
     },
-    groupKey = "appid", -- 组key
+    groupKey = {{"appid"}}, -- 组key
     defaultData = {}, -- 初始数据
 }
 return tab

@@ -18,7 +18,7 @@
 <div class="container-fluid">
     <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot">
         <!--<div class="nav nav-pills nav-fill d-flex justify-content-start">-->
-        <h3 ><span id="title2">表信息</span>&nbsp;&nbsp;
+        <h3><span id="title2">表信息</span>&nbsp;&nbsp;
             &nbsp;&nbsp;<button id="btnrefresh" class="btn btn-success" onclick="getTableInfor()"><span
                     data-feather="refresh-cw"></span></button>
             &nbsp;&nbsp;
@@ -32,7 +32,7 @@
         </div>
 
         <!--</div>-->
-        <div class="table-responsive pt-3 pb-2 mb-3 border-bottom">
+        <div class="table-responsive pt-3 pb-2 mb-3 border-bottom" id="tablecontent">
             <table class="table table-striped table-sm">
                 <thead>
                 <tr>
@@ -41,11 +41,16 @@
                     <th>字段类型</th>
                     <th>主键</th>
                     <th>缓存键</th>
-                    <th>组主键</th>
                     <th>字段说明</th>
                 </tr>
                 </thead>
                 <tbody id="tabledesigninfor">
+                </tbody>
+
+            </table>
+            <h6>数据组key</h6>
+            <table class="table table-striped table-sm">
+                <tbody id="tablegroupinfor">
                 </tbody>
             </table>
         </div>
@@ -94,8 +99,12 @@
     }
 
     function isgroupkey(key) {
-        if (key == tabledesign.groupKey) {
-            return true;
+        for (var i in tabledesign.groupKey) {
+            for (var j in tabledesign.groupKey[i]) {
+                if (key == tabledesign.groupKey[i][j]) {
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -110,11 +119,11 @@
             alert("表名不能为空！");
             return;
         }
-        if(tabledesign.columns.length == 0) {
+        if (tabledesign.columns.length == 0) {
             alert("至少有一个表字段！")
             return;
         }
-        if(tabledesign.cacheKey.length == 0) {
+        if (tabledesign.cacheKey.length == 0) {
             alert("没有设置缓存key！");
             return;
         }
@@ -137,9 +146,9 @@
         var type = $("#new-row-type").val();
         var primarykey = $("#new-row-primarykey").is(":checked");
         var cachekey = $("#new-row-cachekey").is(":checked");
-        var groupkey = $("#new-row-groupkey").is(":checked");
+//        var groupkey = $("#new-row-groupkey").is(":checked");
         var desc = $("#new-row-desc").val();
-        if(key == "" || type == "") {
+        if (key == "" || type == "") {
             alert("字段及类型不能为空！")
             return;
         }
@@ -164,17 +173,39 @@
         if (cachekey == true) {
             tabledesign.cacheKey.push(key);
         }
-        if (groupkey == true) {
-            tabledesign.groupKey = key;
-        }
+//        if (groupkey == true) {
+//            tabledesign.groupKey = key;
+//        }
         appendonerow(d);
 
         $("#new-row-key").val("");
         $("#new-row-type").val("");
         $("#new-row-primarykey").prop("checked", false);
         $("#new-row-cachekey").prop("checked", false);
-        $("#new-row-groupkey").prop("checked", false);
+//        $("#new-row-groupkey").prop("checked", false);
         $("#new-row-desc").val("");
+    }
+
+
+    function addGroup() {
+        var key1 = $("#new-group-key1").val();
+        var key2 = $("#new-group-key2").val();
+        var key3 = $("#new-group-key3").val();
+        var group = [];
+        if (key1 != "") {
+            group.push(key1);
+        }
+        if (key2 != "") {
+            group.push(key2);
+        }
+        if (key3 != "") {
+            group.push(key3);
+        }
+        tabledesign.groupKey.push(group);
+        refreshGroupInfor();
+        $("#new-group-key1").val("");
+        $("#new-group-key2").val("");
+        $("#new-group-key3").val("");
     }
 
     //删除字段
@@ -201,9 +232,9 @@
                 break;
             }
         }
-        if (tabledesign.groupKey == key) {
-            tabledesign.groupKey = "";
-        }
+//        if (tabledesign.groupKey == key) {
+//            tabledesign.groupKey = "";
+//        }
         delete tabledesign.columnsmap[key];
     }
 
@@ -219,7 +250,7 @@
 
         tr = tr + "<td id='row-primarykey'><input type='checkbox' " + (isprimarykey(d[0]) ? "checked" : "") + "></td>";
         tr = tr + "<td id='row-cachekey'><input type='checkbox' " + (iscachekey(d[0]) ? "checked" : "") + "></td>";
-        tr = tr + "<td ><input id='row-groupkey' name='options-groupkey' " + (isgroupkey(d[0]) ? "checked" : "") + " autocomplete=\"off\" type='radio'></td>";
+//        tr = tr + "<td ><input id='row-groupkey' name='options-groupkey' " + (isgroupkey(d[0]) ? "checked" : "") + " autocomplete=\"off\" type='radio'></td>";
         tr = tr + "<td ><input class='form-control' id='row-desc' value='" + d[2] + "'></td>";
         tr = tr + "</tr>";
         $("#tabledesigninfor").append(tr).ready(function () {
@@ -230,6 +261,37 @@
                     var rowid = $(this).parent().parent().attr("id");
                     $(this).confirmation('hide');
                     delrow(rowid);
+                },
+                onCancel: function () {
+                    //null
+                }
+
+            });
+            feather.replace();
+        });
+        feather.replace();
+    }
+
+    function appendonegroup(i, d) {
+        var tr = "";
+        tr = tr + "<tr id='group" + i + "' index='"+ i + "'>"
+        tr = tr + "<td ><a class='row-del text-danger' data-feather=\"minus-circle\" data-toggle=\"confirmation\" data-singleton=\"true\" data-title=\"确认要删除?\"></a></td>";
+        for (var j in d) {
+            tr = tr + "<td><input class='form-control' id='group-key' class='col-sm' type='text' value='" + d[j] + "'></td>";
+        }
+        tr = tr + "</tr>"
+        $("#tablegroupinfor").append(tr).ready(function () {
+            $('[data-toggle=confirmation]').confirmation({
+                rootSelector: '[data-toggle=confirmation]',
+                container: 'body',
+                onConfirm: function (val) {
+                    var rowid = $(this).parent().parent().attr("id");
+                    var index = $(this).parent().parent().attr("index");
+                    $(this).confirmation('hide');
+                    var row = $("#" + rowid);
+                    row.remove();
+                    tabledesign.groupKey.splice(new Number(index), 1);
+                    refreshGroupInfor();
                 },
                 onCancel: function () {
                     //null
@@ -290,21 +352,41 @@
         ///////////////////////////////////////
         var tr = "<tr>";
         tr = tr + "<td ><a class='text-success' data-feather=\"plus-circle\" onclick='addrow()'></a></td>";
-        tr = tr + "<td ><input class='form-control' id='new-row-key' class='col-sm' type='text'></div></td>";
+        tr = tr + "<td ><input class='form-control' id='new-row-key' class='col-sm' type='text'></td>";
         tr = tr + createselectinput("new-row-type", fieldTypes, "");
         tr = tr + "<td ><input id='new-row-primarykey' type='checkbox' ></td>";
         tr = tr + "<td ><input id='new-row-cachekey' type='checkbox' ></td>";
-        tr = tr + "<td ><input id='new-row-groupkey' name='options-groupkey' autocomplete=\"off\" type='radio' ></td>";
+//        tr = tr + "<td ><input id='new-row-groupkey' name='options-groupkey' autocomplete=\"off\" type='radio' ></td>";
         tr = tr + "<td ><input class='form-control' id='new-row-desc' type='text' ></td>";
         tr = tr + "</tr>";
         $("#tabledesigninfor").append(tr);
+
         ///////////////////////////////////////
         tabledesign.columnsmap = {};
         for (var k in tabledesign.columns) {
             var d = tabledesign.columns[k];
             appendonerow(d);
         }
+
+        ///////////////////////////////////////
+        // 显示组key
+        refreshGroupInfor();
         feather.replace();
+    }
+
+    function refreshGroupInfor() {
+        $("#tablegroupinfor").empty();
+        var groupStr = ""
+        groupStr = groupStr + "<tr>"
+        groupStr = groupStr + "<td ><a class='text-success' data-feather=\"plus-circle\" onclick='addGroup()'></a></td>";
+        groupStr = groupStr + "<td><input class='form-control' id='new-group-key1' class='col-sm' type='text'></td>";
+        groupStr = groupStr + "<td><input class='form-control' id='new-group-key2' class='col-sm' type='text'></td>";
+        groupStr = groupStr + "<td><input class='form-control' id='new-group-key3' class='col-sm' type='text'></td>";
+        groupStr = groupStr + "</tr>"
+        $("#tablegroupinfor").append(groupStr);
+        for (var i in tabledesign.groupKey) {
+            appendonegroup(i, tabledesign.groupKey[i])
+        }
     }
 
     function getTableInfor() {
@@ -327,7 +409,7 @@
             tabledesign.primaryKey = [];
             tabledesign.cacheKey = [];
             tabledesign.columns = [];
-            tabledesign.groupKey = "";
+            tabledesign.groupKey = [];
             tabledesign.defaultData = [];
             tabledesign.columnsmap = {};
             setcontent();

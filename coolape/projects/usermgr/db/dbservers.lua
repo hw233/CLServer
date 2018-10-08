@@ -299,7 +299,7 @@ function dbservers.querySql(idx, appid, channel)
 end
 
 -- 取得一个组
-function dbservers.getList(appid, orderby, limitOffset, limitNum)
+function dbservers.getListByappid(appid, orderby, limitOffset, limitNum)
     local sql = "SELECT * FROM servers WHERE appid=" .. appid ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
     local list = skynet.call("CLMySQL", "lua", "exesql", sql)
     if list and list.errno then

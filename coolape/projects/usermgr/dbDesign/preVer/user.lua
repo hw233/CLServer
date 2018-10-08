@@ -9,6 +9,7 @@ local tab = {
         { "crtTime", "datetime", "创建时间" },
         { "lastEnTime", "datetime", "最后登陆时间" },
         { "status", "int(11)", "状态 0:正常;" },
+        { "email", "varchar(45)", "邮箱" },
         { "appid", "int(11) ", "应用id" },
         { "channel", "varchar(45)", "渠道" },
         { "deviceid", "varchar(45)", "机器id" },
@@ -24,7 +25,7 @@ local tab = {
         "uid",
         "uidChl",
     },
-    groupKey = "", -- 组key
+    groupKey = {{"deviceid"}, {"channel", "groupid"}}, -- 组key
     defaultData = {}, -- 初始数据
 }
 return tab

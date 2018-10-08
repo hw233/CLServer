@@ -72,9 +72,9 @@ do
             r[14] = m.name  -- 名称 string
             r[42] = m.host  -- ip地址 string
             r[38] = m.iosVer  -- 客户端ios版本 string
+            r[15] = m.status  -- 状态 1:正常; 2:爆满; 3:维护 int
             r[39] = m.androidVer  -- 客户端android版本 string
             r[34] = m.isnew  -- 新服 boolean
-            r[15] = m.status  -- 状态 1:正常; 2:爆满; 3:维护 int
             return r;
         end,
         parse = function(m)
@@ -85,9 +85,9 @@ do
             r.name = m[14] --  string
             r.host = m[42] --  string
             r.iosVer = m[38] --  string
+            r.status = m[15] --  int
             r.androidVer = m[39] --  string
             r.isnew = m[34] --  boolean
-            r.status = m[15] --  int
             return r;
         end,
     }
@@ -109,12 +109,13 @@ do
     --==============================
     NetProtoUsermgr.send = {
     -- 注册
-    registAccount = function(userId, password, appid, channel, deviceID, deviceInfor)
+    registAccount = function(userId, password, email, appid, channel, deviceID, deviceInfor)
         local ret = {}
         ret[0] = 36
         ret[1] = NetProtoUsermgr.__sessionID
         ret[21] = userId; -- 用户名
         ret[22] = password; -- 密码
+        ret[43] = email; -- 邮箱
         ret[17] = appid; -- 应用id
         ret[25] = channel; -- 渠道号
         ret[26] = deviceID; -- 机器码

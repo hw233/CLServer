@@ -20,10 +20,10 @@ local tab = {
         "idx",
         "cidx",
     },
-    cacheKey = { -- 缓存key
+    cacheKey = { -- 缓存key,如果是多个字段的话，key最每是以"a_b"这种形式保存
         "idx",
     },
-    groupKey = "cidx", -- 组key
+    groupKey = {{"cidx"}}, -- 组key，注意是二维数组，支持多个组
     defaultData = {}, -- 初始数据
 }
 return tab

@@ -191,7 +191,7 @@ function dbtile.querySql(idx, cidx)
 end
 
 -- 取得一个组
-function dbtile.getList(cidx, orderby, limitOffset, limitNum)
+function dbtile.getListBycidx(cidx, orderby, limitOffset, limitNum)
     local sql = "SELECT * FROM tile WHERE cidx=" .. cidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
     local list = skynet.call("CLMySQL", "lua", "exesql", sql)
     if list and list.errno then

@@ -37,43 +37,45 @@ do
     map[40] = "loginAccountChannel"
     map[41] = "port"
     map[42] = "host"
+    map[43] = "email"
     map[0] = "cmd"
+    map["servers"] = 19
     map["msg"] = 10
-    map["getServerInfor"] = 32
+    map["userId"] = 21
     map["deviceInfor"] = 27
     map["host"] = 42
-    map["sidx"] = 30
+    map["iosVer"] = 38
     map["list"] = 12
-    map["channceid"] = 18
     map["server"] = 33
     map["isnew"] = 34
+    map["channceid"] = 18
     map["regist"] = 24
     map["appid"] = 17
     map["name"] = 14
-    map["servers"] = 19
     map["loginAccount"] = 37
-    map["__session__"] = 1
-    map["__currIndex__"] = 43
+    map["androidVer"] = 39
     map["code"] = 11
     map["port"] = 41
-    map["serverid"] = 28
-    map["login"] = 20
-    map["retInfor"] = 2
-    map["idx"] = 13
     map["registAccount"] = 36
-    map["iosVer"] = 38
-    map["userId"] = 21
-    map["userInfor"] = 23
-    map["setEnterServer"] = 29
-    map["getServers"] = 16
-    map["androidVer"] = 39
-    map["status"] = 15
-    map["password"] = 22
-    map["systime"] = 35
-    map["channel"] = 25
-    map["uidx"] = 31
-    map["cmd"] = 0
+    map["retInfor"] = 2
+    map["serverid"] = 28
     map["deviceID"] = 26
+    map["cmd"] = 0
+    map["idx"] = 13
+    map["uidx"] = 31
+    map["channel"] = 25
+    map["systime"] = 35
+    map["__session__"] = 1
+    map["setEnterServer"] = 29
+    map["login"] = 20
+    map["email"] = 43
+    map["password"] = 22
+    map["__currIndex__"] = 44
+    map["getServerInfor"] = 32
+    map["userInfor"] = 23
+    map["sidx"] = 30
+    map["status"] = 15
+    map["getServers"] = 16
     map["loginAccountChannel"] = 40
     
 
@@ -85,7 +87,7 @@ do
             map.__currIndex__ = map.__currIndex__ + 1
         end
         val = map[key]
-        return val;
+        return val
     end
     return KeyCodeProtocol
 end

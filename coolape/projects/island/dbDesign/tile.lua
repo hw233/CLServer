@@ -9,7 +9,7 @@ local tab = {
     },
     primaryKey = { "idx", "cidx" },
     cacheKey = { "idx" }, -- 缓存key
-    groupKey = "cidx", -- 组key
+    groupKey = {{"cidx"}}, -- 组key
     defaultData = {}, -- 初始数据
 }
 

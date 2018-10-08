@@ -8,7 +8,7 @@ local tab = {
     },
     primaryKey = {"uidx", "appid" },
     cacheKey = { "uidx", "appid" }, -- 缓存key
-    groupKey = "", -- 组key
+    groupKey = {}, -- 组key
     defaultData = {}, -- 初始数据
 }
 

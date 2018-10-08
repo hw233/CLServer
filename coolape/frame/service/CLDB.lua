@@ -229,8 +229,18 @@ function command.SET(tableName, key, ...)
         if tableCfg == nil then
             printe("[cldb.remove],get tabel config is nil==" .. tableName)
         end
-        if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
-            setGroup(tableName, d[tableCfg.groupKey], key)
+        if tableCfg.groupKey and #tableCfg.groupKey > 0 then
+            for i, group  in ipairs(tableCfg.groupKey) do
+                local groupkey = ""
+                for j,gkey in ipairs(group) do
+                    if j == 1 then
+                        groupkey = tostring(d[gkey])
+                    else
+                        groupkey = groupkey .. "_" .. tostring(d[gkey])
+                    end
+                end
+                setGroup(tableName, groupkey, key)
+            end
         end
 
         if count > 1 then
@@ -269,8 +279,19 @@ function command.REMOVE(tableName, key)
         if tableCfg == nil then
             printe("[cldb.remove],get tabel config is nil==" .. tableName)
         end
-        if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
-            removeGroup(tableName, last[tableCfg.groupKey], key)
+
+        if tableCfg.groupKey and #tableCfg.groupKey > 0 then
+            for i, group  in ipairs(tableCfg.groupKey) do
+                local groupkey = ""
+                for j,gkey in ipairs(group) do
+                    if j == 1 then
+                        groupkey = tostring(last[gkey])
+                    else
+                        groupkey = groupkey .. "_" .. tostring(last[gkey])
+                    end
+                end
+                removeGroup(tableName, groupkey, key)
+            end
         end
     end
     return last

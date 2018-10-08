@@ -54,7 +54,7 @@ do
             local r = {}
             if m == nil then return r end
             r[10] = m.msg  -- 返回消息 string
-            r[11] =  BioUtl.int2bio(m.code)  -- 返回值 int
+            r[11] =  BioUtl.number2bio(m.code)  -- 返回值 int
             return r;
         end,
         parse = function(m)
@@ -70,14 +70,14 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[13] =  BioUtl.int2bio(m.idx)  -- id int
-            r[41] =  BioUtl.int2bio(m.port)  -- 端口 int
+            r[13] =  BioUtl.number2bio(m.idx)  -- id int
+            r[41] =  BioUtl.number2bio(m.port)  -- 端口 int
             r[14] = m.name  -- 名称 string
             r[42] = m.host  -- ip地址 string
             r[38] = m.iosVer  -- 客户端ios版本 string
+            r[15] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; 2:爆满; 3:维护 int
             r[39] = m.androidVer  -- 客户端android版本 string
             r[34] = m.isnew  -- 新服 boolean
-            r[15] =  BioUtl.int2bio(m.status)  -- 状态 1:正常; 2:爆满; 3:维护 int
             return r;
         end,
         parse = function(m)
@@ -88,9 +88,9 @@ do
             r.name = m[14] --  string
             r.host = m[42] --  string
             r.iosVer = m[38] --  string
+            r.status = m[15] --  int
             r.androidVer = m[39] --  string
             r.isnew = m[34] --  boolean
-            r.status = m[15] --  int
             return r;
         end,
     }
@@ -99,7 +99,7 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[13] =  BioUtl.int2bio(m.idx)  -- 唯一标识 int
+            r[13] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int
             return r;
         end,
         parse = function(m)
@@ -118,6 +118,7 @@ do
         ret.__session__ = map[1]
         ret.userId = map[21]-- 用户名
         ret.password = map[22]-- 密码
+        ret.email = map[43]-- 邮箱
         ret.appid = map[17]-- 应用id
         ret.channel = map[25]-- 渠道号
         ret.deviceID = map[26]-- 机器码

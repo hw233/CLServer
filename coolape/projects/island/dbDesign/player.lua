@@ -17,7 +17,7 @@ local tab = {
     },
     primaryKey = { "idx"},
     cacheKey = { "idx" }, -- 缓存key
-    groupKey = "", -- 组key
+    groupKey = {}, -- 组key
     defaultData = {}, -- 初始数据
 }
 

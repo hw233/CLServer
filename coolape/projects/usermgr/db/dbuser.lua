@@ -188,6 +188,20 @@ function dbuser:get_status()
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
 end
 
+function dbuser:set_email(v)
+    -- 邮箱
+    if self:isEmpty() then
+        skynet.error("[dbuser:set_email],please init first!!")
+        return nil
+    end
+    v = v or ""
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "email", v)
+end
+function dbuser:get_email()
+    -- 邮箱
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "email")
+end
+
 function dbuser:set_appid(v)
     -- 应用id
     if self:isEmpty() then
@@ -319,6 +333,54 @@ function dbuser.querySql(idx, uid, uidChl)
     else
        return "SELECT * FROM user;"
     end
+end
+
+-- 取得一个组
+function dbuser.getListBydeviceid(deviceid, orderby, limitOffset, limitNum)
+    local sql = "SELECT * FROM user WHERE deviceid=" .. "'" .. deviceid .. "'" ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
+    local list = skynet.call("CLMySQL", "lua", "exesql", sql)
+    if list and list.errno then
+        skynet.error("[dbuser.getGroup] sql error==" .. sql)
+        return nil
+     end
+     local cachlist = skynet.call("CLDB", "lua", "GETGROUP", dbuser.name, deviceid) or {}
+     for i, v in ipairs(list) do
+         local key = tostring(v.uid .. "_" .. v.uidChl)
+         local d = cachlist[key]
+         if d ~= nil then
+             -- 用缓存的数据才是最新的
+             list[i] = d
+             cachlist[key] = nil
+         end
+     end
+     for k ,v in pairs(cachlist) do
+         table.insert(list, v)
+     end
+     return list
+end
+
+-- 取得一个组
+function dbuser.getListBychannel_groupid(channel, groupid, orderby, limitOffset, limitNum)
+    local sql = "SELECT * FROM user WHERE channel=" .. "'" .. channel .. "'" .. " AND groupid=" .. groupid ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
+    local list = skynet.call("CLMySQL", "lua", "exesql", sql)
+    if list and list.errno then
+        skynet.error("[dbuser.getGroup] sql error==" .. sql)
+        return nil
+     end
+     local cachlist = skynet.call("CLDB", "lua", "GETGROUP", dbuser.name, channel .. "_" .. groupid) or {}
+     for i, v in ipairs(list) do
+         local key = tostring(v.uid .. "_" .. v.uidChl)
+         local d = cachlist[key]
+         if d ~= nil then
+             -- 用缓存的数据才是最新的
+             list[i] = d
+             cachlist[key] = nil
+         end
+     end
+     for k ,v in pairs(cachlist) do
+         table.insert(list, v)
+     end
+     return list
 end
 
 function dbuser.instanse(uid, uidChl)

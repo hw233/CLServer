@@ -427,7 +427,7 @@ function cmd4city.newTile(pos, attrid, cidx)
 end
 
 function cmd4city.queryTiles(cidx)
-    return dbtile.getList(cidx)
+    return dbtile.getListBycidx(cidx)
 end
 
 function cmd4city.getSelfTile(idx)
@@ -588,7 +588,7 @@ function cmd4city.query(idx)
 end
 
 function cmd4city.queryBuildings(cidx)
-    return dbbuilding.getList(cidx)
+    return dbbuilding.getListBycidx(cidx)
 end
 
 function cmd4city.setSelfBuildings()

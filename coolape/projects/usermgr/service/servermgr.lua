@@ -12,7 +12,7 @@ function CMD.getServers(appid, channel)
         return list;
     end
 
-    list = dbservers.getList(appid, " idx desc ")
+    list = dbservers.getListByappid(appid, " idx desc ")
     local result = {}
     if list and #list > 0 then
         if channel then

@@ -102,6 +102,7 @@ CREATE TABLE `user` (
   `crtTime` datetime,
   `lastEnTime` datetime,
   `status` int(11),
+  `email` varchar(45),
   `appid` int(11) ,
   `channel` varchar(45),
   `deviceid` varchar(45),

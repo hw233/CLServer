@@ -25,7 +25,7 @@ local function getServerid(uidx, appid, channel)
     local us = dbuserserver.instanse(uidx, appid)
     if us:isEmpty() then
         -- 说明该用户是第一次进来
-        local list = dbservers.getList(appid)
+        local list = dbservers.getListByappid(appid)
         if list and #list > 0 then
             for i, v in ipairs(list) do
                 if v.isnew and (channel == nil or channel == "" or v.channel == channel) then
@@ -67,6 +67,15 @@ cmd4user.CMD = {
             myself:release()
             return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS())
         end
+        --处理一个设备最大注册数量
+        local list = dbuser.getListBydeviceid(m.deviceID)
+        if #list > 10 then
+            ret.msg = "同一设备注册账号超上限";
+            ret.code = Errcode.toomanydevice
+            myself:release()
+            return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS())
+        end
+
         local newuser = {}
         newuser.idx = DBUtl.nextVal(DBUtl.Keys.user)
         newuser.uidChl = ""

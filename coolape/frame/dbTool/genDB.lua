@@ -590,45 +590,54 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "end")
     table.insert(str, "")
 
-    if not CLUtl.isNilOrEmpty(tableCfg.groupKey) then
-        local types = ""
-        for j, col in ipairs(tableCfg.columns) do
-            if tableCfg.groupKey == col[1] then
-                types = col[2]:upper()
-                break
+    if tableCfg.groupKey and #tableCfg.groupKey > 0 then
+        for i, group in ipairs(tableCfg.groupKey) do
+            local where = ""
+            local funcName = table.concat(group, "_")
+            local funcParm = table.concat(group, ", ")
+            local funcParm2 = table.concat(group, " .. \"_\" .. ")
+            for j, gkey in ipairs(group) do
+                local types = ""
+                for j, col in ipairs(tableCfg.columns) do
+                    if gkey == col[1] then
+                        types = col[2]:upper()
+                        break
+                    end
+                end
+                if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
+                    local  _where = gkey .. "=\"" .. " .. " .. gkey .. " .. "
+                    where = where:len() > 0 and where .. "\" AND " .. _where or _where
+                else
+                    local  _where = gkey .. "=\"" .. " .. \"'\" .. " .. gkey .. " .. \"'\" .. "
+                    where = where:len() > 0 and where .. "\" AND " .. _where or _where
+                end
             end
-        end
-        local where = ""
-        if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
-            where = " .. " .. tableCfg.groupKey .. " .. "
-        else
-            where = " .. \"'\" .. " .. tableCfg.groupKey .. " .. \"'\" .. "
-        end
-        table.insert(str, "-- 取得一个组")
-        table.insert(str, "function " .. name .. ".getList(" .. tableCfg.groupKey .. ", orderby, limitOffset, limitNum)")
-        table.insert(str, "    local sql = \"SELECT * FROM " .. tableCfg.name .. " WHERE " .. tableCfg.groupKey .. "=\"" .. where .. " (orderby and \" ORDER BY\" ..  orderby or \"\") .. ((limitOffset and limitNum) and (\" LIMIT \" ..  limitOffset .. \",\" .. limitNum) or \"\") .. \";\"")
-        table.insert(str, "    local list = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", sql)")
-        table.insert(str, "    if list and list.errno then")
-        table.insert(str, "        skynet.error(\"[" .. name .. ".getGroup] sql error==\" .. sql)")
-        table.insert(str, "        return nil")
-        table.insert(str, "     end")
+            table.insert(str, "-- 取得一个组")
+            table.insert(str, "function " .. name .. ".getListBy".. funcName .. "(" .. funcParm .. ", orderby, limitOffset, limitNum)")
+            table.insert(str, "    local sql = \"SELECT * FROM " .. tableCfg.name .. " WHERE " .. where .. " (orderby and \" ORDER BY\" ..  orderby or \"\") .. ((limitOffset and limitNum) and (\" LIMIT \" ..  limitOffset .. \",\" .. limitNum) or \"\") .. \";\"")
+            table.insert(str, "    local list = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", sql)")
+            table.insert(str, "    if list and list.errno then")
+            table.insert(str, "        skynet.error(\"[" .. name .. ".getGroup] sql error==\" .. sql)")
+            table.insert(str, "        return nil")
+            table.insert(str, "     end")
 
-        table.insert(str, "     local cachlist = skynet.call(\"CLDB\", \"lua\", \"GETGROUP\", " .. name .. ".name, " .. tableCfg.groupKey .. ") or {}")
-        table.insert(str, "     for i, v in ipairs(list) do")
-        table.insert(str, "         local key = tostring(" .. table.concat(shardataKey2, " .. \"_\" .. ") .. ")")
-        table.insert(str, "         local d = cachlist[key]")
-        table.insert(str, "         if d ~= nil then")
-        table.insert(str, "             -- 用缓存的数据才是最新的")
-        table.insert(str, "             list[i] = d")
-        table.insert(str, "             cachlist[key] = nil")
-        table.insert(str, "         end")
-        table.insert(str, "     end")
-        table.insert(str, "     for k ,v in pairs(cachlist) do")
-        table.insert(str, "         table.insert(list, v)")
-        table.insert(str, "     end")
-        table.insert(str, "     return list")
-        table.insert(str, "end")
-        table.insert(str, "")
+            table.insert(str, "     local cachlist = skynet.call(\"CLDB\", \"lua\", \"GETGROUP\", " .. name .. ".name, " .. funcParm2 .. ") or {}")
+            table.insert(str, "     for i, v in ipairs(list) do")
+            table.insert(str, "         local key = tostring(" .. table.concat(shardataKey2, " .. \"_\" .. ") .. ")")
+            table.insert(str, "         local d = cachlist[key]")
+            table.insert(str, "         if d ~= nil then")
+            table.insert(str, "             -- 用缓存的数据才是最新的")
+            table.insert(str, "             list[i] = d")
+            table.insert(str, "             cachlist[key] = nil")
+            table.insert(str, "         end")
+            table.insert(str, "     end")
+            table.insert(str, "     for k ,v in pairs(cachlist) do")
+            table.insert(str, "         table.insert(list, v)")
+            table.insert(str, "     end")
+            table.insert(str, "     return list")
+            table.insert(str, "end")
+            table.insert(str, "")
+        end
     end
 
     if tableCfg.primaryKey then
