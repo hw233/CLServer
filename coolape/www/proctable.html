@@ -58,8 +58,9 @@
 <!-- Icons -->
 <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 <script>
-    var tableName = $.url.param("id")
-    var baseUrl = $.url.param("url")
+    var tableName = $.url.param("id");
+    var baseUrl = $.url.param("url");
+    var defConditions = $.url.param("conditions");
     var tabledesign;
     var mData = null;
     var currpageIndex = 0;
@@ -158,6 +159,13 @@
         );
     }
 
+    function initConditions(conds) {
+        var conditions = $("#conditions");
+        for (var key in conditions) {
+            conditions.find("#" + key).val(conds[key]);
+        }
+    }
+
     function getData() {
         var conds = {};
         var conditions = $("#conditions");
@@ -169,12 +177,16 @@
                 isAllKeyNull = false;
             }
         }
-        if(isAllKeyNull) {
+        if (isAllKeyNull) {
             alert("all key is null!");
             return;
         }
+        doGetData(JSON.stringify(conds));
+    }
 
-        var params = {cmd: "getTableData", tableName: tableName, conditions: JSON.stringify(conds), uid: "000"};
+
+    function doGetData(conds) {
+        var params = {cmd: "getTableData", tableName: tableName, conditions:conds , uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
                 currpageIndex = 1;
@@ -229,6 +241,10 @@
                         "</div>"
                     $("#conditions").append(cond);
                 }
+
+                if(defConditions != null && defConditions != "") {
+                    initConditions(JSON.parse(defConditions));
+                }
             },
             function (jqXHR, textStatus, errorThrown) {
                 alert("同步失败！");
@@ -237,6 +253,10 @@
 
     function init() {
         getTableInfor();
+        if(defConditions != null && defConditions != "") {
+            initConditions(JSON.parse(defConditions));
+            doGetData(defConditions);
+        }
         feather.replace();
     }
 

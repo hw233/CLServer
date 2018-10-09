@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>database</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../../../bootstrap-4.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <!--<link href="dashboard.css" rel="stylesheet">-->
+</head>
+
+<body>
+<div class="container-fluid">
+    <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot">
+        <!--<div class="nav nav-pills nav-fill d-flex justify-content-start align-items-center pt-1 pb-2 mb-2 border-bottom ">-->
+        <!--<h6 class="nav-item" id="sqlqueue">SQL队列：0 </h6>-->
+        <!--<h6 class="nav-item" id="syntime">同步时间：0 </h6>-->
+        <!--<button type="button" class="nav-item btn btn-info" onclick="synMySQL()">同步数据库</button>-->
+        <!--</div>-->
+
+        <!--<div class="pt-3 pb-2 mb-3 border-bottom">-->
+        <!--<textarea id="inputsql" class="span6 col-md-12 ml-sm-12 col-lg-12"-->
+        <!--rows="5" placeholder="Please input SQL (select only)?" required></textarea>-->
+        <!--<button type="button" class="btn btn-info btn-lg btn-block" onclick="doSQL()">执行SQL</button>-->
+        <!--</div>-->
+        <div id="contentRoot2">
+            <h5>服务器列表</h5>
+
+            <nav>
+                <ul class="pagination d-flex justify-content-between">
+                    <li class="page-item" id="pageprev"><a class="page-prev page-link" href="#"
+                                                           onclick="prePage()">上一页</a></li>
+                    <li class="page-item" id="pagenum"></li>
+                    <li class="page-item" id="pagenext"><a class="page-next page-link" href="#"
+                                                           onclick="nextPage()">下一页</a></li>
+                </ul>
+            </nav>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead id="datalisthead">
+                    </thead>
+                    <tbody id="datalist">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>window.jQuery || document.write('<script src="../../../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+<script src="../../../../bootstrap-4.1.1/assets/js/vendor/popper.min.js"></script>
+<script src="../../../../bootstrap-4.1.1/dist/js/bootstrap.min.js"></script>
+
+<script src="js/glcfg.js"></script>
+<script src="../../js/jquery.url.js"></script>
+<script src="../../js/myutl.js"></script>
+<script src="../../js/tabEx.js"></script>
+
+<!-- Icons -->
+<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+<script>
+    var projectName = $.url.param("name")
+    var baseUrl = $.url.param("url")
+    var dataList = null;
+    var currsql = "";
+    var pagesize = 10;
+    var currpageIndex = 0;
+
+    $("#contentRoot2").hide();
+
+    function editServer(idx) {
+        var tableName = "servers";
+        var url = "../../proctable.html";
+        var conditions = {};
+        conditions["idx"] = idx;
+        if (url.indexOf("?") >= 0) {
+            url = url + "&url=" + glcfg.baseUrl + "&id=" + tableName + "&conditions=" + JSON.stringify(conditions);
+        } else {
+            url = url + "?url=" + glcfg.baseUrl + "&id=" + tableName + "&conditions=" + JSON.stringify(conditions);
+        }
+
+//        var item = {'id': tableName, 'name': tableName, 'url': url, 'closable': true, 'forceRefresh': true};
+//        tabEx.addTab(item);
+        window.open(url)
+    }
+
+    function refreshContent() {
+        if (dataList == null || dataList.errno != null) {
+            alert("查询失败！")
+            return;
+        }
+
+        $("#contentRoot2").show();
+        $("#pagenum").text(currpageIndex);
+
+        var datalisthead = $("#datalisthead");
+        datalisthead.empty();
+
+        //设置dataList
+        var count = dataList.length;
+        var datalist = $("#datalist");
+        datalist.empty();
+        var keys = [];
+        for (var i = 0; i < count; i++) {
+            var d = dataList[i];
+            if (i == 0) {
+                var tr = "<tr>";
+                tr = tr + "<th>操作</th>"
+                for (var k in d) {
+                    keys.push(k)
+                    tr = tr + "<th data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + k + "\">" + k + "</th>";
+                }
+                tr = tr + "</tr>";
+                datalisthead.append(tr);
+            }
+            var tr = "<tr>";
+            tr = tr + "<td><button type=\"button\" class=\"nav-item btn btn-info\" onclick='editServer(\"" + d["idx"] + "\")'>编辑</button></td>"
+            for (var k in keys) {
+                tr = tr + "<td>" + d[keys[k]] + "</td>";
+            }
+            tr = tr + "</tr>";
+            datalist.append(tr);
+        }
+
+        feather.replace();
+    }
+
+    function prePage() {
+        if (currpageIndex - 1 < 0) {
+            $("#pageprev").addClass("disabled");
+            return;
+        }
+        var sql = currsql + " LIMIT " + (currpageIndex - 1) * pagesize + ", " + pagesize;
+
+        var params = {cmd: "doSQL", sql: sql, uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {  //成功的回调函数
+                currpageIndex = currpageIndex - 1;
+                dataList = result;
+                refreshContent();
+                feather.replace();
+                if (currpageIndex == 1) {
+                    $("#pageprev").addClass("disabled");
+                }
+                $("#pagenext").removeClass("disabled");
+            },
+            function (jqXHR, textStatus, errorThrown) {
+                alert("error:" + textStatus);
+            }
+        );
+    }
+
+    function nextPage() {
+        var sql = currsql + " LIMIT " + currpageIndex * pagesize + ", " + pagesize;
+
+        var params = {cmd: "doSQL", sql: sql, uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {  //成功的回调函数
+                if (result == null || result.length < pagesize) {
+                    alert("已经没有更多数据！");
+                    $("#pagenext").addClass("disabled");
+                } else {
+                    currpageIndex = currpageIndex + 1;
+                    dataList = result;
+                    refreshContent();
+                    $("#pageprev").removeClass("disabled");
+                    feather.replace();
+                }
+            },
+            function (jqXHR, textStatus, errorThrown) {
+                alert("error:" + textStatus);
+            }
+        );
+    }
+
+    function getServerList() {
+        var params = {cmd: "getServerList", appid: 1002, uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {
+                if (result == null || result.length < pagesize) {
+                    $("#pagenext").addClass("disabled");
+                } else {
+                    $("#pagenext").removeClass("disabled");
+                }
+                currpageIndex = 1;
+                dataList = result;
+                refreshContent();
+                feather.replace();
+            },
+            function (jqXHR, textStatus, errorThrown) {
+                alert("同步失败！");
+            });
+    }
+
+    function init() {
+        $("#inputsql").focus();
+        getServerList();
+        feather.replace();
+    }
+
+    $(document).ready(init)
+</script>
+
+</body>
+</html>

@@ -7,6 +7,7 @@ require("fileEx")
 ---@type dateEx
 local dateEx = require("dateEx")
 local table = table
+require("dbservers")
 
 local clmanager = nil
 
@@ -47,6 +48,7 @@ function CMD.getLeftSubMenu(map)
         end
     elseif key == "interface" then
     elseif key == "backconsole" then
+        table.insert(ret, { name = "服务器管理", key = "proServers", url = "serversMgr.html", feather = "edit" })
     end
     return ret
 end
@@ -72,6 +74,12 @@ function CMD.getTableInfor(map)
         ret.count = result[1].count
     end
     return ret
+end
+
+---@public 取得服务器列表
+function CMD.getServerList(map)
+    local list = dbservers.getListByappid(map.appid)
+    return list
 end
 
 skynet.start(function()
