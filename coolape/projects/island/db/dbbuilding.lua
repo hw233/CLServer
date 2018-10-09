@@ -353,7 +353,16 @@ function dbbuilding.getListBycidx(cidx, orderby, limitOffset, limitNum)
      for k ,v in pairs(cachlist) do
          table.insert(list, v)
      end
-     return list
+     cachlist = nil
+     local data
+     local ret = {}
+     for k, v in ipairs(list) do
+         data = dbbuilding.new(v, false)
+         ret[k] = data:value2copy()
+         data:release()
+     end
+     list = nil
+     return ret
 end
 
 function dbbuilding.instanse(idx)

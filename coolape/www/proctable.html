@@ -161,7 +161,7 @@
 
     function initConditions(conds) {
         var conditions = $("#conditions");
-        for (var key in conditions) {
+        for (var key in conds) {
             conditions.find("#" + key).val(conds[key]);
         }
     }
@@ -220,7 +220,7 @@
                 var columnsmap = {};
                 for (var k in tabledesign.columns) {
                     var d = tabledesign.columns[k]
-                    columnsmap[d[0]] = d
+                    columnsmap[d[0]] = d;
                     tr = "<tr>";
                     tr = tr + "<td >" + d[0] + "</td>";
                     tr = tr + "<td >" + d[1] + "</td>";
@@ -244,6 +244,7 @@
 
                 if(defConditions != null && defConditions != "") {
                     initConditions(JSON.parse(defConditions));
+                    doGetData(defConditions);
                 }
             },
             function (jqXHR, textStatus, errorThrown) {
@@ -253,10 +254,6 @@
 
     function init() {
         getTableInfor();
-        if(defConditions != null && defConditions != "") {
-            initConditions(JSON.parse(defConditions));
-            doGetData(defConditions);
-        }
         feather.replace();
     }
 

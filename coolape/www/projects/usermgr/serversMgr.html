@@ -20,7 +20,7 @@
         <!--<div class="nav nav-pills nav-fill d-flex justify-content-start align-items-center pt-1 pb-2 mb-2 border-bottom ">-->
         <!--<h6 class="nav-item" id="sqlqueue">SQL队列：0 </h6>-->
         <!--<h6 class="nav-item" id="syntime">同步时间：0 </h6>-->
-        <!--<button type="button" class="nav-item btn btn-info" onclick="synMySQL()">同步数据库</button>-->
+
         <!--</div>-->
 
         <!--<div class="pt-3 pb-2 mb-3 border-bottom">-->
@@ -28,8 +28,20 @@
         <!--rows="5" placeholder="Please input SQL (select only)?" required></textarea>-->
         <!--<button type="button" class="btn btn-info btn-lg btn-block" onclick="doSQL()">执行SQL</button>-->
         <!--</div>-->
+        <div>
+            <h5>新增服务器
+                <button type="button" class="nav-item btn btn-info" onclick="addServer()">添加</button>
+            </h5>
+            <div class="table-responsive pt-3 pb-2 mb-3 border-bottom">
+                <table id="tabledesigninfor" class="table table-striped table-sm" isshowing="true">
+                </table>
+            </div>
+        </div>
         <div id="contentRoot2">
-            <h5>服务器列表</h5>
+            <h5>服务器列表
+                <button type="button" class="nav-item btn btn-info" onclick="getServerList()">刷新</button>
+            </h5>
+
 
             <nav>
                 <ul class="pagination d-flex justify-content-between">
@@ -75,11 +87,43 @@
     var currsql = "";
     var pagesize = 10;
     var currpageIndex = 0;
+    var tableName = "servers";
+    var tabledesign;
 
     $("#contentRoot2").hide();
 
+    function iscachkey(key) {
+        for (var k in tabledesign.cacheKey) {
+            if (key == tabledesign.cacheKey[k]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function addServer() {
+        var tabledesigninfor = $("#tabledesigninfor");
+        var data = {};
+        for (var k in tabledesign.columns) {
+            var cfg = tabledesign.columns[k];
+            var key = cfg[0];
+            var cell = tabledesigninfor.find("#" + key)
+            data[key] = cell.val();
+        }
+        var dataJson = JSON.stringify(data);
+        var params = {cmd: "newServer", data: dataJson, uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {  //成功的回调函数
+                alert("添加成功")
+                getServerList();
+            },
+            function (jqXHR, textStatus, errorThrown) {
+                alert("error:" + textStatus);
+            }
+        );
+    }
+
     function editServer(idx) {
-        var tableName = "servers";
         var url = "../../proctable.html";
         var conditions = {};
         conditions["idx"] = idx;
@@ -202,8 +246,35 @@
             });
     }
 
+    function getTableInfor() {
+        var params = {cmd: "getTableInfor", tableName: tableName, uid: "000"};
+        myutl.ajaxJSONP(baseUrl, params,
+            function (result, status, xhr) {
+                tabledesign = result.design;
+                var tabledesigninfor = $("#tabledesigninfor");
+                tabledesigninfor.empty();
+
+                var rows = "";
+                for (var k in tabledesign.columns) {
+                    var d = tabledesign.columns[k];
+                    var cfg = tabledesign.columns[k];
+                    if (iscachkey(cfg[0])) {
+                        continue;
+                    }
+                    rows = rows +
+                        "<div class=\"row input-group mb-1\">" +
+                        "   <div class=\"col-4\">" +
+                        "       <span class=\"input-group-text\" data-toggle=\"tooltip\" data-placement=\"top\" title=\"" + d[2] + "|" + d[1] + "\">" + d[0] + "</span>" +
+                        "   </div>" +
+                        "   <input id='" + cfg[0] + "' class=\"col\" type=\"text\"/>" +
+                        "</div>";
+                }
+                $("#tabledesigninfor").append(rows);
+            });
+    }
+
     function init() {
-        $("#inputsql").focus();
+        getTableInfor();
         getServerList();
         feather.replace();
     }

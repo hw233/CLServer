@@ -225,7 +225,16 @@ function dbcity.getListBypidx(pidx, orderby, limitOffset, limitNum)
      for k ,v in pairs(cachlist) do
          table.insert(list, v)
      end
-     return list
+     cachlist = nil
+     local data
+     local ret = {}
+     for k, v in ipairs(list) do
+         data = dbcity.new(v, false)
+         ret[k] = data:value2copy()
+         data:release()
+     end
+     list = nil
+     return ret
 end
 
 function dbcity.instanse(idx)

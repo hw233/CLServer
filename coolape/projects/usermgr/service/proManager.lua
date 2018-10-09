@@ -4,6 +4,7 @@ local skynet = require("skynet")
 local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"
 require("fileEx")
+local json = require("json.json")
 ---@type dateEx
 local dateEx = require("dateEx")
 local table = table
@@ -80,6 +81,16 @@ end
 function CMD.getServerList(map)
     local list = dbservers.getListByappid(map.appid)
     return list
+end
+
+---@public 新增服务
+function CMD.newServer(map)
+    local data = json.decode(map.data)
+    data.idx = DBUtl.nextVal(DBUtl.Keys.server)
+    local server = dbservers.new(data, true)
+    server:release()
+    server = nil
+    return { success = true }
 end
 
 skynet.start(function()

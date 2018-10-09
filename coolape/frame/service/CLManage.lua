@@ -66,7 +66,10 @@ function CMD.getTableData(map)
         if data:isEmpty() then
             return nil
         end
-        return data:value2copy()
+        local ret = data:value2copy()
+        data:release()
+        data = nil
+        return ret
     else
         return nil
     end
@@ -90,6 +93,8 @@ function CMD.setTableData(map)
         else
             return "get set func is nil"
         end
+        data:release()
+        data = nil
     end
     return { success = true }
 end
