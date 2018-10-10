@@ -35,9 +35,6 @@ skynet.start(
             skynet.uniqueservice("CLDB")
             skynet.call("CLDB", "lua", "SETTIMEOUT", 20 * dataSynSec)     -- 设置数据缓存时间 秒
 
-            -- 服务器管理
-            skynet.uniqueservice("servermgr")
-
             -- 监听socket
             --local watchdog = skynet.uniqueservice("watchdog")
             --skynet.call(watchdog, "lua", "start", {

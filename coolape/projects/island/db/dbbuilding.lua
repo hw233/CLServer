@@ -34,6 +34,7 @@ function dbbuilding:ctor(v)
 end
 
 function dbbuilding:init(data, isNew)
+    data = dbbuilding.validData(data)
     self.__key__ = data.idx
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbbuilding.name, self.__key__)
@@ -87,7 +88,8 @@ function dbbuilding:set_idx(v)
 end
 function dbbuilding:get_idx()
     -- 唯一标识
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    return (tonumber(val) or 0)
 end
 
 function dbbuilding:set_cidx(v)
@@ -96,12 +98,13 @@ function dbbuilding:set_cidx(v)
         skynet.error("[dbbuilding:set_cidx],please init first!!")
         return nil
     end
-    v = v or ""
+    v = tonumber(v) or 0
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "cidx", v)
 end
 function dbbuilding:get_cidx()
     -- 主城idx
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cidx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cidx")
+    return (tonumber(val) or 0)
 end
 
 function dbbuilding:set_pos(v)
@@ -115,7 +118,8 @@ function dbbuilding:set_pos(v)
 end
 function dbbuilding:get_pos()
     -- 位置，即在城的gird中的index
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pos")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pos")
+    return (tonumber(val) or 0)
 end
 
 function dbbuilding:set_attrid(v)
@@ -129,7 +133,8 @@ function dbbuilding:set_attrid(v)
 end
 function dbbuilding:get_attrid()
     -- 属性配置id
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "attrid")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "attrid")
+    return (tonumber(val) or 0)
 end
 
 function dbbuilding:set_lev(v)
@@ -143,7 +148,8 @@ function dbbuilding:set_lev(v)
 end
 function dbbuilding:get_lev()
     -- 等级
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lev")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lev")
+    return (tonumber(val) or 0)
 end
 
 function dbbuilding:set_state(v)
@@ -157,7 +163,8 @@ function dbbuilding:set_state(v)
 end
 function dbbuilding:get_state()
     -- 状态. 0：正常；1：升级中；9：恢复中
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "state")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "state")
+    return (tonumber(val) or 0)
 end
 
 function dbbuilding:set_starttime(v)
@@ -213,7 +220,8 @@ function dbbuilding:set_val(v)
 end
 function dbbuilding:get_val()
     -- 值。如:产量，仓库的存储量等
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val")
+    return (tonumber(val) or 0)
 end
 
 function dbbuilding:set_val2(v)
@@ -227,7 +235,8 @@ function dbbuilding:set_val2(v)
 end
 function dbbuilding:get_val2()
     -- 值2。如:产量，仓库的存储量等
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val2")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val2")
+    return (tonumber(val) or 0)
 end
 
 function dbbuilding:set_val3(v)
@@ -241,7 +250,8 @@ function dbbuilding:set_val3(v)
 end
 function dbbuilding:get_val3()
     -- 值3。如:产量，仓库的存储量等
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val3")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val3")
+    return (tonumber(val) or 0)
 end
 
 function dbbuilding:set_val4(v)
@@ -255,7 +265,8 @@ function dbbuilding:set_val4(v)
 end
 function dbbuilding:get_val4()
     -- 值4。如:产量，仓库的存储量等
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val4")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val4")
+    return (tonumber(val) or 0)
 end
 
 function dbbuilding:set_val5(v)
@@ -269,7 +280,8 @@ function dbbuilding:set_val5(v)
 end
 function dbbuilding:get_val5()
     -- 值5。如:产量，仓库的存储量等
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val5")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "val5")
+    return (tonumber(val) or 0)
 end
 
 -- 把数据flush到mysql里， immd=true 立即生效
@@ -323,7 +335,7 @@ function dbbuilding.querySql(idx, cidx)
         table.insert(where, "`idx`=" .. idx)
     end
     if cidx then
-        table.insert(where, "`cidx`=" .. "'" .. cidx  .. "'")
+        table.insert(where, "`cidx`=" .. cidx)
     end
     if #where > 0 then
         return "SELECT * FROM building WHERE " .. table.concat(where, " and ") .. ";"
@@ -334,7 +346,7 @@ end
 
 -- 取得一个组
 function dbbuilding.getListBycidx(cidx, orderby, limitOffset, limitNum)
-    local sql = "SELECT * FROM building WHERE cidx=" .. "'" .. cidx .. "'" ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
+    local sql = "SELECT * FROM building WHERE cidx=" .. cidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
     local list = skynet.call("CLMySQL", "lua", "exesql", sql)
     if list and list.errno then
         skynet.error("[dbbuilding.getGroup] sql error==" .. sql)
@@ -365,6 +377,51 @@ function dbbuilding.getListBycidx(cidx, orderby, limitOffset, limitNum)
      return ret
 end
 
+function dbbuilding.validData(data)
+    if data == nil then return nil end
+
+    if type(data.idx) ~= "number" then
+        data.idx = tonumber(data.idx) or 0
+    end
+    if type(data.cidx) ~= "number" then
+        data.cidx = tonumber(data.cidx) or 0
+    end
+    if type(data.pos) ~= "number" then
+        data.pos = tonumber(data.pos) or 0
+    end
+    if type(data.attrid) ~= "number" then
+        data.attrid = tonumber(data.attrid) or 0
+    end
+    if type(data.lev) ~= "number" then
+        data.lev = tonumber(data.lev) or 0
+    end
+    if type(data.state) ~= "number" then
+        data.state = tonumber(data.state) or 0
+    end
+    if type(data.starttime) == "number" then
+        data.starttime = dateEx.seconds2Str(data.starttime/1000)
+    end
+    if type(data.endtime) == "number" then
+        data.endtime = dateEx.seconds2Str(data.endtime/1000)
+    end
+    if type(data.val) ~= "number" then
+        data.val = tonumber(data.val) or 0
+    end
+    if type(data.val2) ~= "number" then
+        data.val2 = tonumber(data.val2) or 0
+    end
+    if type(data.val3) ~= "number" then
+        data.val3 = tonumber(data.val3) or 0
+    end
+    if type(data.val4) ~= "number" then
+        data.val4 = tonumber(data.val4) or 0
+    end
+    if type(data.val5) ~= "number" then
+        data.val5 = tonumber(data.val5) or 0
+    end
+    return data
+end
+
 function dbbuilding.instanse(idx)
     if type(idx) == "table" then
         local d = idx
@@ -380,7 +437,6 @@ function dbbuilding.instanse(idx)
     end
     ---@type dbbuilding
     local obj = dbbuilding.new()
-    obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbbuilding.name, key)
     if d == nil then
         d = skynet.call("CLMySQL", "lua", "exesql", dbbuilding.querySql(idx, nil))
@@ -389,6 +445,7 @@ function dbbuilding.instanse(idx)
                 d = d[1]
                 -- 取得mysql表里的数据
                 obj.__isNew__ = false
+                obj.__key__ = key
                 obj:init(d)
             else
                 error("get data is more than one! count==" .. #d .. ", lua==dbbuilding")
@@ -399,6 +456,7 @@ function dbbuilding.instanse(idx)
         end
     else
         obj.__isNew__ = false
+        obj.__key__ = key
         skynet.call("CLDB", "lua", "SETUSE", dbbuilding.name, key)
     end
     return obj

@@ -34,6 +34,7 @@ function dbuser:ctor(v)
 end
 
 function dbuser:init(data, isNew)
+    data = dbuser.validData(data)
     self.__key__ = data.uid .. "_" .. data.uidChl
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbuser.name, self.__key__)
@@ -87,7 +88,8 @@ function dbuser:set_idx(v)
 end
 function dbuser:get_idx()
     -- 唯一标识
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    return (tonumber(val) or 0)
 end
 
 function dbuser:set_uidChl(v)
@@ -185,7 +187,8 @@ function dbuser:set_status(v)
 end
 function dbuser:get_status()
     -- 状态 0:正常;
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
+    return (tonumber(val) or 0)
 end
 
 function dbuser:set_email(v)
@@ -213,7 +216,8 @@ function dbuser:set_appid(v)
 end
 function dbuser:get_appid()
     -- 应用id
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "appid")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "appid")
+    return (tonumber(val) or 0)
 end
 
 function dbuser:set_channel(v)
@@ -269,7 +273,8 @@ function dbuser:set_groupid(v)
 end
 function dbuser:get_groupid()
     -- 组id
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "groupid")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "groupid")
+    return (tonumber(val) or 0)
 end
 
 -- 把数据flush到mysql里， immd=true 立即生效
@@ -401,6 +406,37 @@ function dbuser.getListBychannel_groupid(channel, groupid, orderby, limitOffset,
      return ret
 end
 
+function dbuser.validData(data)
+    if data == nil then return nil end
+
+    if type(data.idx) ~= "number" then
+        data.idx = tonumber(data.idx) or 0
+    end
+    data.uidChl = tostring(data.uidChl) or ""
+    data.uid = tostring(data.uid) or ""
+    data.password = tostring(data.password) or ""
+    if type(data.crtTime) == "number" then
+        data.crtTime = dateEx.seconds2Str(data.crtTime/1000)
+    end
+    if type(data.lastEnTime) == "number" then
+        data.lastEnTime = dateEx.seconds2Str(data.lastEnTime/1000)
+    end
+    if type(data.status) ~= "number" then
+        data.status = tonumber(data.status) or 0
+    end
+    data.email = tostring(data.email) or ""
+    if type(data.appid) ~= "number" then
+        data.appid = tonumber(data.appid) or 0
+    end
+    data.channel = tostring(data.channel) or ""
+    data.deviceid = tostring(data.deviceid) or ""
+    data.deviceinfor = tostring(data.deviceinfor) or ""
+    if type(data.groupid) ~= "number" then
+        data.groupid = tonumber(data.groupid) or 0
+    end
+    return data
+end
+
 function dbuser.instanse(uid, uidChl)
     if type(uid) == "table" then
         local d = uid
@@ -417,7 +453,6 @@ function dbuser.instanse(uid, uidChl)
     end
     ---@type dbuser
     local obj = dbuser.new()
-    obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbuser.name, key)
     if d == nil then
         d = skynet.call("CLMySQL", "lua", "exesql", dbuser.querySql(nil, uid, uidChl))
@@ -426,6 +461,7 @@ function dbuser.instanse(uid, uidChl)
                 d = d[1]
                 -- 取得mysql表里的数据
                 obj.__isNew__ = false
+                obj.__key__ = key
                 obj:init(d)
             else
                 error("get data is more than one! count==" .. #d .. ", lua==dbuser")
@@ -436,6 +472,7 @@ function dbuser.instanse(uid, uidChl)
         end
     else
         obj.__isNew__ = false
+        obj.__key__ = key
         skynet.call("CLDB", "lua", "SETUSE", dbuser.name, key)
     end
     return obj

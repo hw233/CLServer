@@ -34,6 +34,7 @@ function dbuserserver:ctor(v)
 end
 
 function dbuserserver:init(data, isNew)
+    data = dbuserserver.validData(data)
     self.__key__ = data.uidx .. "_" .. data.appid
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbuserserver.name, self.__key__)
@@ -85,7 +86,8 @@ function dbuserserver:set_sidx(v)
 end
 function dbuserserver:get_sidx()
     -- 服务器id
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "sidx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "sidx")
+    return (tonumber(val) or 0)
 end
 
 function dbuserserver:set_uidx(v)
@@ -99,7 +101,8 @@ function dbuserserver:set_uidx(v)
 end
 function dbuserserver:get_uidx()
     -- 用户id
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "uidx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "uidx")
+    return (tonumber(val) or 0)
 end
 
 function dbuserserver:set_appid(v)
@@ -113,7 +116,8 @@ function dbuserserver:set_appid(v)
 end
 function dbuserserver:get_appid()
     -- 应用id
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "appid")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "appid")
+    return (tonumber(val) or 0)
 end
 
 -- 把数据flush到mysql里， immd=true 立即生效
@@ -176,6 +180,21 @@ function dbuserserver.querySql(uidx, appid)
     end
 end
 
+function dbuserserver.validData(data)
+    if data == nil then return nil end
+
+    if type(data.sidx) ~= "number" then
+        data.sidx = tonumber(data.sidx) or 0
+    end
+    if type(data.uidx) ~= "number" then
+        data.uidx = tonumber(data.uidx) or 0
+    end
+    if type(data.appid) ~= "number" then
+        data.appid = tonumber(data.appid) or 0
+    end
+    return data
+end
+
 function dbuserserver.instanse(uidx, appid)
     if type(uidx) == "table" then
         local d = uidx
@@ -192,7 +211,6 @@ function dbuserserver.instanse(uidx, appid)
     end
     ---@type dbuserserver
     local obj = dbuserserver.new()
-    obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbuserserver.name, key)
     if d == nil then
         d = skynet.call("CLMySQL", "lua", "exesql", dbuserserver.querySql(uidx, appid))
@@ -201,6 +219,7 @@ function dbuserserver.instanse(uidx, appid)
                 d = d[1]
                 -- 取得mysql表里的数据
                 obj.__isNew__ = false
+                obj.__key__ = key
                 obj:init(d)
             else
                 error("get data is more than one! count==" .. #d .. ", lua==dbuserserver")
@@ -211,6 +230,7 @@ function dbuserserver.instanse(uidx, appid)
         end
     else
         obj.__isNew__ = false
+        obj.__key__ = key
         skynet.call("CLDB", "lua", "SETUSE", dbuserserver.name, key)
     end
     return obj

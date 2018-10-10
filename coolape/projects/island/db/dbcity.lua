@@ -34,6 +34,7 @@ function dbcity:ctor(v)
 end
 
 function dbcity:init(data, isNew)
+    data = dbcity.validData(data)
     self.__key__ = data.idx
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbcity.name, self.__key__)
@@ -85,7 +86,8 @@ function dbcity:set_idx(v)
 end
 function dbcity:get_idx()
     -- 唯一标识
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    return (tonumber(val) or 0)
 end
 
 function dbcity:set_name(v)
@@ -113,7 +115,8 @@ function dbcity:set_pidx(v)
 end
 function dbcity:get_pidx()
     -- 玩家idx
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pidx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pidx")
+    return (tonumber(val) or 0)
 end
 
 function dbcity:set_pos(v)
@@ -127,7 +130,8 @@ function dbcity:set_pos(v)
 end
 function dbcity:get_pos()
     -- 城所在世界grid的index
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pos")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pos")
+    return (tonumber(val) or 0)
 end
 
 function dbcity:set_status(v)
@@ -141,7 +145,8 @@ function dbcity:set_status(v)
 end
 function dbcity:get_status()
     -- 状态 1:正常;
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
+    return (tonumber(val) or 0)
 end
 
 -- 把数据flush到mysql里， immd=true 立即生效
@@ -237,6 +242,25 @@ function dbcity.getListBypidx(pidx, orderby, limitOffset, limitNum)
      return ret
 end
 
+function dbcity.validData(data)
+    if data == nil then return nil end
+
+    if type(data.idx) ~= "number" then
+        data.idx = tonumber(data.idx) or 0
+    end
+    data.name = tostring(data.name) or ""
+    if type(data.pidx) ~= "number" then
+        data.pidx = tonumber(data.pidx) or 0
+    end
+    if type(data.pos) ~= "number" then
+        data.pos = tonumber(data.pos) or 0
+    end
+    if type(data.status) ~= "number" then
+        data.status = tonumber(data.status) or 0
+    end
+    return data
+end
+
 function dbcity.instanse(idx)
     if type(idx) == "table" then
         local d = idx
@@ -252,7 +276,6 @@ function dbcity.instanse(idx)
     end
     ---@type dbcity
     local obj = dbcity.new()
-    obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbcity.name, key)
     if d == nil then
         d = skynet.call("CLMySQL", "lua", "exesql", dbcity.querySql(idx, nil))
@@ -261,6 +284,7 @@ function dbcity.instanse(idx)
                 d = d[1]
                 -- 取得mysql表里的数据
                 obj.__isNew__ = false
+                obj.__key__ = key
                 obj:init(d)
             else
                 error("get data is more than one! count==" .. #d .. ", lua==dbcity")
@@ -271,6 +295,7 @@ function dbcity.instanse(idx)
         end
     else
         obj.__isNew__ = false
+        obj.__key__ = key
         skynet.call("CLDB", "lua", "SETUSE", dbcity.name, key)
     end
     return obj

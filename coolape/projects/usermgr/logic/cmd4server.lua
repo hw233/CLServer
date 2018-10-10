@@ -29,6 +29,7 @@ cmd4server.CMD = {
             return skynet.call(NetProto, "lua", "send", "setEnterServer", ret)
         end
 
+        ---@type dbuserserver
         local us = dbuserserver.instanse(uidx, appid)
         if us:isEmpty() then
             local data = {}
@@ -36,6 +37,8 @@ cmd4server.CMD = {
             data.uidx = uidx
             data.appid = appid
             us:init(data, true)
+        else
+            us:set_sidx(sidx)
         end
         us:release()
         local ret = {}
@@ -64,8 +67,6 @@ cmd4server.CMD = {
         ret.msg = nil
         ret.code = Errcode.ok
         local result = s:value2copy()
-        s:set_isnew(false)
-        result.isnew = s:get_isnew()
         s:release()
         return skynet.call(NetProto, "lua", "send", "getServerInfor", ret, result)
     end,
@@ -81,7 +82,7 @@ cmd4server.CMD = {
             return skynet.call(NetProto, "lua", "send", "getServers", ret)
         end
 
-        local list = skynet.call("servermgr", "lua", "getServers", appid, channel)
+        local list = dbservers.getListByappid(appid, " idx desc ")
 
         local ret = {}
         ret.msg = nil

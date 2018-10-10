@@ -80,7 +80,7 @@ DELIMITER ;
 DROP TABLE IF EXISTS `building`;
 CREATE TABLE `building` (
   `idx` int(11) NOT NULL,
-  `cidx` varchar(45) NOT NULL,
+  `cidx` int(11)  NOT NULL,
   `pos` int(8) NOT NULL,
   `attrid` int(5),
   `lev` int(5),

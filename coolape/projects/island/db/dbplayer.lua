@@ -34,6 +34,7 @@ function dbplayer:ctor(v)
 end
 
 function dbplayer:init(data, isNew)
+    data = dbplayer.validData(data)
     self.__key__ = data.idx
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbplayer.name, self.__key__)
@@ -87,7 +88,8 @@ function dbplayer:set_idx(v)
 end
 function dbplayer:get_idx()
     -- 唯一标识
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    return (tonumber(val) or 0)
 end
 
 function dbplayer:set_status(v)
@@ -101,7 +103,8 @@ function dbplayer:set_status(v)
 end
 function dbplayer:get_status()
     -- 状态 1:正常;
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
+    return (tonumber(val) or 0)
 end
 
 function dbplayer:set_name(v)
@@ -129,7 +132,8 @@ function dbplayer:set_lev(v)
 end
 function dbplayer:get_lev()
     -- 等级
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lev")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lev")
+    return (tonumber(val) or 0)
 end
 
 function dbplayer:set_money(v)
@@ -143,7 +147,8 @@ function dbplayer:set_money(v)
 end
 function dbplayer:get_money()
     -- 充值总数
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "money")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "money")
+    return (tonumber(val) or 0)
 end
 
 function dbplayer:set_diam(v)
@@ -157,7 +162,8 @@ function dbplayer:set_diam(v)
 end
 function dbplayer:get_diam()
     -- 钻石
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "diam")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "diam")
+    return (tonumber(val) or 0)
 end
 
 function dbplayer:set_cityidx(v)
@@ -171,7 +177,8 @@ function dbplayer:set_cityidx(v)
 end
 function dbplayer:get_cityidx()
     -- 主城idx
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cityidx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cityidx")
+    return (tonumber(val) or 0)
 end
 
 function dbplayer:set_unionidx(v)
@@ -185,7 +192,8 @@ function dbplayer:set_unionidx(v)
 end
 function dbplayer:get_unionidx()
     -- 联盟idx
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "unionidx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "unionidx")
+    return (tonumber(val) or 0)
 end
 
 function dbplayer:set_crtTime(v)
@@ -315,6 +323,42 @@ function dbplayer.querySql(idx)
     end
 end
 
+function dbplayer.validData(data)
+    if data == nil then return nil end
+
+    if type(data.idx) ~= "number" then
+        data.idx = tonumber(data.idx) or 0
+    end
+    if type(data.status) ~= "number" then
+        data.status = tonumber(data.status) or 0
+    end
+    data.name = tostring(data.name) or ""
+    if type(data.lev) ~= "number" then
+        data.lev = tonumber(data.lev) or 0
+    end
+    if type(data.money) ~= "number" then
+        data.money = tonumber(data.money) or 0
+    end
+    if type(data.diam) ~= "number" then
+        data.diam = tonumber(data.diam) or 0
+    end
+    if type(data.cityidx) ~= "number" then
+        data.cityidx = tonumber(data.cityidx) or 0
+    end
+    if type(data.unionidx) ~= "number" then
+        data.unionidx = tonumber(data.unionidx) or 0
+    end
+    if type(data.crtTime) == "number" then
+        data.crtTime = dateEx.seconds2Str(data.crtTime/1000)
+    end
+    if type(data.lastEnTime) == "number" then
+        data.lastEnTime = dateEx.seconds2Str(data.lastEnTime/1000)
+    end
+    data.channel = tostring(data.channel) or ""
+    data.deviceid = tostring(data.deviceid) or ""
+    return data
+end
+
 function dbplayer.instanse(idx)
     if type(idx) == "table" then
         local d = idx
@@ -330,7 +374,6 @@ function dbplayer.instanse(idx)
     end
     ---@type dbplayer
     local obj = dbplayer.new()
-    obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbplayer.name, key)
     if d == nil then
         d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(idx))
@@ -339,6 +382,7 @@ function dbplayer.instanse(idx)
                 d = d[1]
                 -- 取得mysql表里的数据
                 obj.__isNew__ = false
+                obj.__key__ = key
                 obj:init(d)
             else
                 error("get data is more than one! count==" .. #d .. ", lua==dbplayer")
@@ -349,6 +393,7 @@ function dbplayer.instanse(idx)
         end
     else
         obj.__isNew__ = false
+        obj.__key__ = key
         skynet.call("CLDB", "lua", "SETUSE", dbplayer.name, key)
     end
     return obj

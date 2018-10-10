@@ -34,6 +34,7 @@ function dbtile:ctor(v)
 end
 
 function dbtile:init(data, isNew)
+    data = dbtile.validData(data)
     self.__key__ = data.idx
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbtile.name, self.__key__)
@@ -85,7 +86,8 @@ function dbtile:set_idx(v)
 end
 function dbtile:get_idx()
     -- 唯一标识
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    return (tonumber(val) or 0)
 end
 
 function dbtile:set_cidx(v)
@@ -99,7 +101,8 @@ function dbtile:set_cidx(v)
 end
 function dbtile:get_cidx()
     -- 主城idx
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cidx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cidx")
+    return (tonumber(val) or 0)
 end
 
 function dbtile:set_attrid(v)
@@ -113,7 +116,8 @@ function dbtile:set_attrid(v)
 end
 function dbtile:get_attrid()
     -- 属性id
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "attrid")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "attrid")
+    return (tonumber(val) or 0)
 end
 
 function dbtile:set_pos(v)
@@ -127,7 +131,8 @@ function dbtile:set_pos(v)
 end
 function dbtile:get_pos()
     -- 城所在世界grid的index
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pos")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pos")
+    return (tonumber(val) or 0)
 end
 
 -- 把数据flush到mysql里， immd=true 立即生效
@@ -223,6 +228,24 @@ function dbtile.getListBycidx(cidx, orderby, limitOffset, limitNum)
      return ret
 end
 
+function dbtile.validData(data)
+    if data == nil then return nil end
+
+    if type(data.idx) ~= "number" then
+        data.idx = tonumber(data.idx) or 0
+    end
+    if type(data.cidx) ~= "number" then
+        data.cidx = tonumber(data.cidx) or 0
+    end
+    if type(data.attrid) ~= "number" then
+        data.attrid = tonumber(data.attrid) or 0
+    end
+    if type(data.pos) ~= "number" then
+        data.pos = tonumber(data.pos) or 0
+    end
+    return data
+end
+
 function dbtile.instanse(idx)
     if type(idx) == "table" then
         local d = idx
@@ -238,7 +261,6 @@ function dbtile.instanse(idx)
     end
     ---@type dbtile
     local obj = dbtile.new()
-    obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbtile.name, key)
     if d == nil then
         d = skynet.call("CLMySQL", "lua", "exesql", dbtile.querySql(idx, nil))
@@ -247,6 +269,7 @@ function dbtile.instanse(idx)
                 d = d[1]
                 -- 取得mysql表里的数据
                 obj.__isNew__ = false
+                obj.__key__ = key
                 obj:init(d)
             else
                 error("get data is more than one! count==" .. #d .. ", lua==dbtile")
@@ -257,6 +280,7 @@ function dbtile.instanse(idx)
         end
     else
         obj.__isNew__ = false
+        obj.__key__ = key
         skynet.call("CLDB", "lua", "SETUSE", dbtile.name, key)
     end
     return obj

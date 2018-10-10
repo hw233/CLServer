@@ -3,7 +3,7 @@ local tab = {
     desc = "建筑表",
     columns = {
         { "idx", "int(11) NOT NULL", "唯一标识" },
-        { "cidx", "varchar(45) NOT NULL", "主城idx" },
+        { "cidx", "int(11)  NOT NULL", "主城idx" },
         { "pos", "int(8) NOT NULL", "位置，即在城的gird中的index" },
         { "attrid", "int(5)", "属性配置id" },
         { "lev", "int(5)", "等级" },

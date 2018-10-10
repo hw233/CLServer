@@ -34,6 +34,7 @@ function dbservers:ctor(v)
 end
 
 function dbservers:init(data, isNew)
+    data = dbservers.validData(data)
     self.__key__ = data.idx
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbservers.name, self.__key__)
@@ -86,7 +87,8 @@ function dbservers:set_idx(v)
 end
 function dbservers:get_idx()
     -- 唯一标识
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "idx")
+    return (tonumber(val) or 0)
 end
 
 function dbservers:set_appid(v)
@@ -100,7 +102,8 @@ function dbservers:set_appid(v)
 end
 function dbservers:get_appid()
     -- 应用id
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "appid")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "appid")
+    return (tonumber(val) or 0)
 end
 
 function dbservers:set_channel(v)
@@ -142,7 +145,8 @@ function dbservers:set_status(v)
 end
 function dbservers:get_status()
     -- 状态 1:正常; 2:爆满; 3:维护
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
+    return (tonumber(val) or 0)
 end
 
 function dbservers:set_isnew(v)
@@ -204,7 +208,8 @@ function dbservers:set_port(v)
 end
 function dbservers:get_port()
     -- port
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "port")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "port")
+    return (tonumber(val) or 0)
 end
 
 function dbservers:set_androidVer(v)
@@ -331,6 +336,44 @@ function dbservers.getListByappid(appid, orderby, limitOffset, limitNum)
      return ret
 end
 
+function dbservers.validData(data)
+    if data == nil then return nil end
+
+    if type(data.idx) ~= "number" then
+        data.idx = tonumber(data.idx) or 0
+    end
+    if type(data.appid) ~= "number" then
+        data.appid = tonumber(data.appid) or 0
+    end
+    data.channel = tostring(data.channel) or ""
+    data.name = tostring(data.name) or ""
+    if type(data.status) ~= "number" then
+        data.status = tonumber(data.status) or 0
+    end
+    if type(data.isnew) == "string" then
+        if data.isnew == "false" or data.isnew =="0" then
+            data.isnew = 0
+        else
+            data.isnew = 1
+        end
+    elseif type(data.isnew) == "number" then
+        if data.isnew == 0 then
+            data.isnew = 0
+        else
+            data.isnew = 1
+        end
+    else
+        data.isnew = 0
+    end
+    data.host = tostring(data.host) or ""
+    if type(data.port) ~= "number" then
+        data.port = tonumber(data.port) or 0
+    end
+    data.androidVer = tostring(data.androidVer) or ""
+    data.iosVer = tostring(data.iosVer) or ""
+    return data
+end
+
 function dbservers.instanse(idx)
     if type(idx) == "table" then
         local d = idx
@@ -346,7 +389,6 @@ function dbservers.instanse(idx)
     end
     ---@type dbservers
     local obj = dbservers.new()
-    obj.__key__ = key
     local d = skynet.call("CLDB", "lua", "get", dbservers.name, key)
     if d == nil then
         d = skynet.call("CLMySQL", "lua", "exesql", dbservers.querySql(idx, nil, nil))
@@ -355,6 +397,7 @@ function dbservers.instanse(idx)
                 d = d[1]
                 -- 取得mysql表里的数据
                 obj.__isNew__ = false
+                obj.__key__ = key
                 obj:init(d)
             else
                 error("get data is more than one! count==" .. #d .. ", lua==dbservers")
@@ -365,6 +408,7 @@ function dbservers.instanse(idx)
         end
     else
         obj.__isNew__ = false
+        obj.__key__ = key
         skynet.call("CLDB", "lua", "SETUSE", dbservers.name, key)
     end
     return obj
