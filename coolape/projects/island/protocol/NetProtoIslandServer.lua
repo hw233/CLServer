@@ -100,8 +100,8 @@ do
             r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
             r[45] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
             r[13] = m.name  -- 名称 string
-            r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
             r[26] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; int int
+            r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
             r[30] =  BioUtl.number2bio(m.lev)  -- 等级 int int
             r[33] =  BioUtl.number2bio(m.pos)  -- 城所在世界grid的index int int
             r[35] =  BioUtl.number2bio(m.pidx)  -- 玩家idx int int
@@ -113,8 +113,8 @@ do
             r.idx = m[12] --  int
             r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[45])  -- 地块信息 key=idx, map
             r.name = m[13] --  string
-            r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[32])  -- 建筑信息 key=idx, map
             r.status = m[26] --  int
+            r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[32])  -- 建筑信息 key=idx, map
             r.lev = m[30] --  int
             r.pos = m[33] --  int
             r.pidx = m[35] --  int
@@ -253,6 +253,7 @@ do
         ret.cmd = "upLevBuilding"
         ret.__session__ = map[1]
         ret.idx = map[12]-- 建筑idx int
+        ret.isEditMode = map[78]-- 编辑模式
         return ret
     end,
     -- 立即升级建筑
@@ -261,6 +262,7 @@ do
         ret.cmd = "upLevBuildingImm"
         ret.__session__ = map[1]
         ret.idx = map[12]-- 建筑idx int
+        ret.isEditMode = map[78]-- 编辑模式
         return ret
     end,
     -- 新建建筑

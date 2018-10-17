@@ -297,7 +297,7 @@ function cmd4city.initTiles(city)
                             local treeAttrid = math.random(32, 36)
                             local tree = cmd4city.newBuilding(treeAttrid, index2, city:get_idx())
                             if tree then
-                                tree:set_lev(1)
+                                --tree:set_lev(1)
                                 treeCounter = treeCounter + 1
                             end
                         end
@@ -1048,16 +1048,21 @@ cmd4city.CMD = {
             end
         end
 
-        -- 扣除资源
         local persent = (b:get_lev() + 1) / attr.MaxLev
-        local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
-        local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
-        local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
-        local succ, code = cmd4city.consumeRes(food, gold, oil)
-        if not succ then
-            ret.code = code
-            ret.msg = "资源不足"
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+
+        -- 如果是编辑模式，则不扣处资源
+        local isEditMode = m.isEditMode
+        if not isEditMode then
+            -- 扣除资源
+            local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
+            local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
+            local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
+            local succ, code = cmd4city.consumeRes(food, gold, oil)
+            if not succ then
+                ret.code = code
+                ret.msg = "资源不足"
+                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+            end
         end
 
         -- 设置冷却时间
@@ -1135,8 +1140,8 @@ cmd4city.CMD = {
             ret.msg = "建筑正忙，不可操作"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
-
-        if needDiam > 0 then
+        local isEditMode = m.isEditMode
+        if needDiam > 0 and (not isEditMode) then
             local pidx = myself:get_pidx()
             ---@type dbplayer
             local player = dbplayer.instanse(pidx)

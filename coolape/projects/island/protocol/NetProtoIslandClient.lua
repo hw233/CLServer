@@ -97,8 +97,8 @@ do
             r[12] = m.idx  -- 唯一标识 int int
             r[45] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
             r[13] = m.name  -- 名称 string
-            r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
             r[26] = m.status  -- 状态 1:正常; int int
+            r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
             r[30] = m.lev  -- 等级 int int
             r[33] = m.pos  -- 城所在世界grid的index int int
             r[35] = m.pidx  -- 玩家idx int int
@@ -110,8 +110,8 @@ do
             r.idx = m[12] --  int
             r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[45])  -- 地块信息 key=idx, map
             r.name = m[13] --  string
-            r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[32])  -- 建筑信息 key=idx, map
             r.status = m[26] --  int
+            r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[32])  -- 建筑信息 key=idx, map
             r.lev = m[30] --  int
             r.pos = m[33] --  int
             r.pidx = m[35] --  int
@@ -245,19 +245,21 @@ do
         return ret
     end,
     -- 升级建筑
-    upLevBuilding = function(idx)
+    upLevBuilding = function(idx, isEditMode)
         local ret = {}
         ret[0] = 54
         ret[1] = NetProtoIsland.__sessionID
         ret[12] = idx; -- 建筑idx int
+        ret[78] = isEditMode; -- 编辑模式
         return ret
     end,
     -- 立即升级建筑
-    upLevBuildingImm = function(idx)
+    upLevBuildingImm = function(idx, isEditMode)
         local ret = {}
         ret[0] = 77
         ret[1] = NetProtoIsland.__sessionID
         ret[12] = idx; -- 建筑idx int
+        ret[78] = isEditMode; -- 编辑模式
         return ret
     end,
     -- 新建建筑

@@ -66,6 +66,8 @@ function CMD.CONNECT(cfg)
         printe("failed to connect")
         return false
     end
+    -- 数据库连接成功后，通过这句可以解决数据库中文乱码问题
+    CMD.EXESQL("SET NAMES UTF8")
 
     -- 启动一个线路保存数据
     skynet.fork( storeData, db);
