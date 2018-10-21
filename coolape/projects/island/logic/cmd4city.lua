@@ -466,7 +466,7 @@ function cmd4city.delSelfBuilding(idx)
         return Errcode.buildingIsNil
     end
 
-    buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
+    buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) - 1
     cmd4city.unPlaceBuilding(b)
     b:unsetTrigger(skynet.self(), "onBuildingChg")
     b:delete()
@@ -854,8 +854,17 @@ function cmd4city.release()
     gridState4Building = {}
 end
 
---＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
---＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+function cmd4city.isEditMode()
+    if skynet.address(agent) ~= nil then
+        local playerserver = skynet.call(agent, "lua", "getLogic", "cmd4player")
+        return skynet.call(playerserver, "lua", "getEditMode")
+    end
+    return false
+end
+--＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+--＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+--＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+--＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 cmd4city.CMD = {
     new = function(idx, _agent)
         agent = _agent
@@ -921,18 +930,22 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil)
         end
 
-        -- 扣除资源
         local attrid = m.attrid
         local attr = cfgUtl.getBuildingByID(attrid)
         local persent = 1 / attr.MaxLev
-        local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
-        local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
-        local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
-        local succ, code = cmd4city.consumeRes(food, gold, oil)
-        if not succ then
-            ret.code = code
-            ret.msg = "资源不足"
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+
+        local isEditMode = cmd4city.isEditMode()
+        if not isEditMode then
+            -- 扣除资源
+            local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
+            local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
+            local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
+            local succ, code = cmd4city.consumeRes(food, gold, oil)
+            if not succ then
+                ret.code = code
+                ret.msg = "资源不足"
+                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+            end
         end
 
         local building = cmd4city.newBuilding(m.attrid, m.pos, myself:get_idx())
@@ -1051,7 +1064,7 @@ cmd4city.CMD = {
         local persent = (b:get_lev() + 1) / attr.MaxLev
 
         -- 如果是编辑模式，则不扣处资源
-        local isEditMode = m.isEditMode
+        local isEditMode = cmd4city.isEditMode()
         if not isEditMode then
             -- 扣除资源
             local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
@@ -1140,7 +1153,7 @@ cmd4city.CMD = {
             ret.msg = "建筑正忙，不可操作"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
-        local isEditMode = m.isEditMode
+        local isEditMode = cmd4city.isEditMode()
         if needDiam > 0 and (not isEditMode) then
             local pidx = myself:get_pidx()
             ---@type dbplayer

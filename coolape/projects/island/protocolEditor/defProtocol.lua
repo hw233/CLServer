@@ -134,8 +134,8 @@ defProtocol.cmds = {
     },
     login = {
         desc = "登陆"; -- 接口说明
-        input = { "uidx", "channel", "deviceID" }; -- 入参
-        inputDesc = { "用户id", "渠道号", "机器码" }; -- 入参说明
+        input = { "uidx", "channel", "deviceID", "isEditMode" }; -- 入参
+        inputDesc = { "用户id", "渠道号", "机器码", "编辑模式" }; -- 入参说明
         output = { structs.retInfor, structs.player, structs.city, "systime", "session" }; -- 出参
         outputDesc = { "返回信息", "玩家信息", "主城信息", "系统时间 long", "会话id" }; -- 出参说明
         logic = "cmd4player";
@@ -206,16 +206,16 @@ defProtocol.cmds = {
     },
     upLevBuilding = {
         desc = "升级建筑"; -- 接口说明
-        input = { "idx", "isEditMode" }; -- 入参
-        inputDesc = { "建筑idx int", "编辑模式"}; -- 入参说明
+        input = { "idx"}; -- 入参
+        inputDesc = { "建筑idx int"}; -- 入参说明
         output = { structs.retInfor, defProtocol.structs.building }; -- 出参
         outputDesc = { "返回信息", "建筑信息" }; -- 出参说明
         logic = "cmd4city";
     },
     upLevBuildingImm = {
         desc = "立即升级建筑"; -- 接口说明
-        input = { "idx", "isEditMode" }; -- 入参
-        inputDesc = { "建筑idx int", "编辑模式" }; -- 入参说明
+        input = { "idx" }; -- 入参
+        inputDesc = { "建筑idx int" }; -- 入参说明
         output = { structs.retInfor, defProtocol.structs.building }; -- 出参
         outputDesc = { "返回信息", "建筑信息" }; -- 出参说明
         logic = "cmd4city";

@@ -22,10 +22,15 @@ local table = table
 local myself;
 local city
 local agent
+local isEditMode
 
 cmd4player.CMD = {
+    getEditMode = function()
+        return isEditMode
+    end,
     login = function(m, fd, _agent)
         local cmd = m.cmd
+        isEditMode = m.isEditMode
         agent = _agent
         -- 登陆
         if m.uidx == nil then
