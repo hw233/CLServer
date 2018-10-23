@@ -1258,6 +1258,23 @@ cmd4city.CMD = {
         ret.code = cmd4city.delSelfBuilding(m.idx)
         return skynet.call(NetProtoIsland, "lua", "send", "rmBuilding", ret, m.idx)
     end,
+    collectRes = function(m, fd, agent)
+        local cmd = m.cmd
+        local idx = m.idx
+        local ret = {}
+        ---@type dbbuilding
+        local b = buildings[idx] -- 不要使用new(), 或者instance()，也不能直接传data
+        if b == nil then
+            ret.code = Errcode.error
+            ret.msg = "取得建筑为空"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        if b.get_state() == ConstVals.BuildingState.normal then
+            local proTime = dateEx.nowMS() - b.get_starttime()
+            -- todo:判断时长是否超过最大生产时长
+        end
+    end,
 }
 
 skynet.start(function()

@@ -70,10 +70,10 @@ do
             r[12] = m.idx  -- 唯一标识 int int
             r[29] = m.diam  -- 钻石 long int
             r[13] = m.name  -- 名字 string
-            r[26] = m.status  -- 状态 1：正常 int int
-            r[28] = m.cityidx  -- 城池id int int
             r[27] = m.unionidx  -- 联盟id int int
+            r[28] = m.cityidx  -- 城池id int int
             r[30] = m.lev  -- 等级 long int
+            r[26] = m.status  -- 状态 1：正常 int int
             return r;
         end,
         parse = function(m)
@@ -82,10 +82,10 @@ do
             r.idx = m[12] --  int
             r.diam = m[29] --  int
             r.name = m[13] --  string
-            r.status = m[26] --  int
-            r.cityidx = m[28] --  int
             r.unionidx = m[27] --  int
+            r.cityidx = m[28] --  int
             r.lev = m[30] --  int
+            r.status = m[26] --  int
             return r;
         end,
     }
@@ -98,8 +98,8 @@ do
             r[45] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
             r[13] = m.name  -- 名称 string
             r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
-            r[26] = m.status  -- 状态 1:正常; int int
             r[30] = m.lev  -- 等级 int int
+            r[26] = m.status  -- 状态 1:正常; int int
             r[33] = m.pos  -- 城所在世界grid的index int int
             r[35] = m.pidx  -- 玩家idx int int
             return r;
@@ -111,8 +111,8 @@ do
             r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[45])  -- 地块信息 key=idx, map
             r.name = m[13] --  string
             r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[32])  -- 建筑信息 key=idx, map
-            r.status = m[26] --  int
             r.lev = m[30] --  int
+            r.status = m[26] --  int
             r.pos = m[33] --  int
             r.pidx = m[35] --  int
             return r;
@@ -199,51 +199,6 @@ do
     }
     --==============================
     NetProtoIsland.send = {
-    -- 建筑升级完成
-    onFinishBuildingUpgrade = function()
-        local ret = {}
-        ret[0] = 73
-        ret[1] = NetProtoIsland.__sessionID
-        return ret
-    end,
-    -- 玩家信息变化时推送
-    onPlayerChg = function()
-        local ret = {}
-        ret[0] = 72
-        ret[1] = NetProtoIsland.__sessionID
-        return ret
-    end,
-    -- 资源变化时推送
-    onResChg = function()
-        local ret = {}
-        ret[0] = 69
-        ret[1] = NetProtoIsland.__sessionID
-        return ret
-    end,
-    -- 新建地块
-    newTile = function(pos)
-        local ret = {}
-        ret[0] = 74
-        ret[1] = NetProtoIsland.__sessionID
-        ret[33] = pos; -- 位置 int
-        return ret
-    end,
-    -- 移动建筑
-    moveBuilding = function(idx, pos)
-        local ret = {}
-        ret[0] = 56
-        ret[1] = NetProtoIsland.__sessionID
-        ret[12] = idx; -- 建筑idx int
-        ret[33] = pos; -- 位置 int
-        return ret
-    end,
-    -- 登出
-    logout = function()
-        local ret = {}
-        ret[0] = 15
-        ret[1] = NetProtoIsland.__sessionID
-        return ret
-    end,
     -- 升级建筑
     upLevBuilding = function(idx)
         local ret = {}
@@ -252,12 +207,12 @@ do
         ret[12] = idx; -- 建筑idx int
         return ret
     end,
-    -- 立即升级建筑
-    upLevBuildingImm = function(idx)
+    -- 移除建筑
+    rmBuilding = function(idx)
         local ret = {}
-        ret[0] = 77
+        ret[0] = 76
         ret[1] = NetProtoIsland.__sessionID
-        ret[12] = idx; -- 建筑idx int
+        ret[12] = idx; -- 地块idx int
         return ret
     end,
     -- 新建建筑
@@ -269,13 +224,6 @@ do
         ret[33] = pos; -- 位置 int
         return ret
     end,
-    -- 建筑变化时推送
-    onBuildingChg = function()
-        local ret = {}
-        ret[0] = 71
-        ret[1] = NetProtoIsland.__sessionID
-        return ret
-    end,
     -- 登陆
     login = function(uidx, channel, deviceID, isEditMode)
         local ret = {}
@@ -285,30 +233,6 @@ do
         ret[18] = channel; -- 渠道号
         ret[19] = deviceID; -- 机器码
         ret[78] = isEditMode; -- 编辑模式
-        return ret
-    end,
-    -- 心跳
-    heart = function()
-        local ret = {}
-        ret[0] = 59
-        ret[1] = NetProtoIsland.__sessionID
-        return ret
-    end,
-    -- 移除建筑
-    rmBuilding = function(idx)
-        local ret = {}
-        ret[0] = 76
-        ret[1] = NetProtoIsland.__sessionID
-        ret[12] = idx; -- 地块idx int
-        return ret
-    end,
-    -- 移动地块
-    moveTile = function(idx, pos)
-        local ret = {}
-        ret[0] = 57
-        ret[1] = NetProtoIsland.__sessionID
-        ret[12] = idx; -- 地块idx int
-        ret[33] = pos; -- 位置 int
         return ret
     end,
     -- 取得建筑
@@ -327,50 +251,93 @@ do
         ret[12] = idx; -- 地块idx int
         return ret
     end,
+    -- 资源变化时推送
+    onResChg = function()
+        local ret = {}
+        ret[0] = 69
+        ret[1] = NetProtoIsland.__sessionID
+        return ret
+    end,
+    -- 移动建筑
+    moveBuilding = function(idx, pos)
+        local ret = {}
+        ret[0] = 56
+        ret[1] = NetProtoIsland.__sessionID
+        ret[12] = idx; -- 建筑idx int
+        ret[33] = pos; -- 位置 int
+        return ret
+    end,
+    -- 登出
+    logout = function()
+        local ret = {}
+        ret[0] = 15
+        ret[1] = NetProtoIsland.__sessionID
+        return ret
+    end,
+    -- 立即升级建筑
+    upLevBuildingImm = function(idx)
+        local ret = {}
+        ret[0] = 77
+        ret[1] = NetProtoIsland.__sessionID
+        ret[12] = idx; -- 建筑idx int
+        return ret
+    end,
+    -- 新建地块
+    newTile = function(pos)
+        local ret = {}
+        ret[0] = 74
+        ret[1] = NetProtoIsland.__sessionID
+        ret[33] = pos; -- 位置 int
+        return ret
+    end,
+    -- 建筑变化时推送
+    onBuildingChg = function()
+        local ret = {}
+        ret[0] = 71
+        ret[1] = NetProtoIsland.__sessionID
+        return ret
+    end,
+    -- 玩家信息变化时推送
+    onPlayerChg = function()
+        local ret = {}
+        ret[0] = 72
+        ret[1] = NetProtoIsland.__sessionID
+        return ret
+    end,
+    -- 心跳
+    heart = function()
+        local ret = {}
+        ret[0] = 59
+        ret[1] = NetProtoIsland.__sessionID
+        return ret
+    end,
+    -- 移动地块
+    moveTile = function(idx, pos)
+        local ret = {}
+        ret[0] = 57
+        ret[1] = NetProtoIsland.__sessionID
+        ret[12] = idx; -- 地块idx int
+        ret[33] = pos; -- 位置 int
+        return ret
+    end,
+    -- 收集资源
+    collectRes = function(idx)
+        local ret = {}
+        ret[0] = 79
+        ret[1] = NetProtoIsland.__sessionID
+        ret[12] = idx; -- 资源建筑的idx int
+        return ret
+    end,
+    -- 建筑升级完成
+    onFinishBuildingUpgrade = function()
+        local ret = {}
+        ret[0] = 73
+        ret[1] = NetProtoIsland.__sessionID
+        return ret
+    end,
     }
     --==============================
     NetProtoIsland.recive = {
-    onFinishBuildingUpgrade = function(map)
-        local ret = {}
-        ret.cmd = "onFinishBuildingUpgrade"
-        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
-        return ret
-    end,
-    onPlayerChg = function(map)
-        local ret = {}
-        ret.cmd = "onPlayerChg"
-        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        ret.player = NetProtoIsland.ST_player.parse(map[20]) -- 玩家信息
-        return ret
-    end,
-    onResChg = function(map)
-        local ret = {}
-        ret.cmd = "onResChg"
-        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        ret.resInfor = NetProtoIsland.ST_resInfor.parse(map[70]) -- 资源信息
-        return ret
-    end,
-    newTile = function(map)
-        local ret = {}
-        ret.cmd = "newTile"
-        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        ret.tile = NetProtoIsland.ST_tile.parse(map[58]) -- 地块信息对象
-        return ret
-    end,
-    moveBuilding = function(map)
-        local ret = {}
-        ret.cmd = "moveBuilding"
-        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
-        return ret
-    end,
-    logout = function(map)
-        local ret = {}
-        ret.cmd = "logout"
-        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        return ret
-    end,
     upLevBuilding = function(map)
         local ret = {}
         ret.cmd = "upLevBuilding"
@@ -378,11 +345,11 @@ do
         ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
         return ret
     end,
-    upLevBuildingImm = function(map)
+    rmBuilding = function(map)
         local ret = {}
-        ret.cmd = "upLevBuildingImm"
+        ret.cmd = "rmBuilding"
         ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
+        ret.idx = map[12]-- 被移除建筑的idx int
         return ret
     end,
     newBuilding = function(map)
@@ -390,13 +357,6 @@ do
         ret.cmd = "newBuilding"
         ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
         ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息对象
-        return ret
-    end,
-    onBuildingChg = function(map)
-        local ret = {}
-        ret.cmd = "onBuildingChg"
-        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
         return ret
     end,
     login = function(map)
@@ -407,25 +367,6 @@ do
         ret.city = NetProtoIsland.ST_city.parse(map[44]) -- 主城信息
         ret.systime = map[21]-- 系统时间 long
         ret.session = map[22]-- 会话id
-        return ret
-    end,
-    heart = function(map)
-        local ret = {}
-        ret.cmd = "heart"
-        return ret
-    end,
-    rmBuilding = function(map)
-        local ret = {}
-        ret.cmd = "rmBuilding"
-        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        ret.idx = map[12]-- 被移除建筑的idx int
-        return ret
-    end,
-    moveTile = function(map)
-        local ret = {}
-        ret.cmd = "moveTile"
-        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
-        ret.tile = NetProtoIsland.ST_tile.parse(map[58]) -- 地块信息
         return ret
     end,
     getBuilding = function(map)
@@ -442,42 +383,119 @@ do
         ret.idx = map[12]-- 被移除地块的idx int
         return ret
     end,
+    onResChg = function(map)
+        local ret = {}
+        ret.cmd = "onResChg"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.resInfor = NetProtoIsland.ST_resInfor.parse(map[70]) -- 资源信息
+        return ret
+    end,
+    moveBuilding = function(map)
+        local ret = {}
+        ret.cmd = "moveBuilding"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
+        return ret
+    end,
+    logout = function(map)
+        local ret = {}
+        ret.cmd = "logout"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        return ret
+    end,
+    upLevBuildingImm = function(map)
+        local ret = {}
+        ret.cmd = "upLevBuildingImm"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
+        return ret
+    end,
+    newTile = function(map)
+        local ret = {}
+        ret.cmd = "newTile"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.tile = NetProtoIsland.ST_tile.parse(map[58]) -- 地块信息对象
+        return ret
+    end,
+    onBuildingChg = function(map)
+        local ret = {}
+        ret.cmd = "onBuildingChg"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
+        return ret
+    end,
+    onPlayerChg = function(map)
+        local ret = {}
+        ret.cmd = "onPlayerChg"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.player = NetProtoIsland.ST_player.parse(map[20]) -- 玩家信息
+        return ret
+    end,
+    heart = function(map)
+        local ret = {}
+        ret.cmd = "heart"
+        return ret
+    end,
+    moveTile = function(map)
+        local ret = {}
+        ret.cmd = "moveTile"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.tile = NetProtoIsland.ST_tile.parse(map[58]) -- 地块信息
+        return ret
+    end,
+    collectRes = function(map)
+        local ret = {}
+        ret.cmd = "collectRes"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.resType = map[80]-- 收集的资源类型 int
+        ret.resVal = map[81]-- 收集到的资源量 int
+        return ret
+    end,
+    onFinishBuildingUpgrade = function(map)
+        local ret = {}
+        ret.cmd = "onFinishBuildingUpgrade"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
+        return ret
+    end,
     }
     --==============================
-    NetProtoIsland.dispatch[73]={onReceive = NetProtoIsland.recive.onFinishBuildingUpgrade, send = NetProtoIsland.send.onFinishBuildingUpgrade}
-    NetProtoIsland.dispatch[72]={onReceive = NetProtoIsland.recive.onPlayerChg, send = NetProtoIsland.send.onPlayerChg}
-    NetProtoIsland.dispatch[69]={onReceive = NetProtoIsland.recive.onResChg, send = NetProtoIsland.send.onResChg}
-    NetProtoIsland.dispatch[74]={onReceive = NetProtoIsland.recive.newTile, send = NetProtoIsland.send.newTile}
-    NetProtoIsland.dispatch[56]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding}
-    NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout}
     NetProtoIsland.dispatch[54]={onReceive = NetProtoIsland.recive.upLevBuilding, send = NetProtoIsland.send.upLevBuilding}
-    NetProtoIsland.dispatch[77]={onReceive = NetProtoIsland.recive.upLevBuildingImm, send = NetProtoIsland.send.upLevBuildingImm}
-    NetProtoIsland.dispatch[52]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding}
-    NetProtoIsland.dispatch[71]={onReceive = NetProtoIsland.recive.onBuildingChg, send = NetProtoIsland.send.onBuildingChg}
-    NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login}
-    NetProtoIsland.dispatch[59]={onReceive = NetProtoIsland.recive.heart, send = NetProtoIsland.send.heart}
     NetProtoIsland.dispatch[76]={onReceive = NetProtoIsland.recive.rmBuilding, send = NetProtoIsland.send.rmBuilding}
-    NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.moveTile, send = NetProtoIsland.send.moveTile}
+    NetProtoIsland.dispatch[52]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding}
+    NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login}
     NetProtoIsland.dispatch[55]={onReceive = NetProtoIsland.recive.getBuilding, send = NetProtoIsland.send.getBuilding}
     NetProtoIsland.dispatch[75]={onReceive = NetProtoIsland.recive.rmTile, send = NetProtoIsland.send.rmTile}
+    NetProtoIsland.dispatch[69]={onReceive = NetProtoIsland.recive.onResChg, send = NetProtoIsland.send.onResChg}
+    NetProtoIsland.dispatch[56]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding}
+    NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout}
+    NetProtoIsland.dispatch[77]={onReceive = NetProtoIsland.recive.upLevBuildingImm, send = NetProtoIsland.send.upLevBuildingImm}
+    NetProtoIsland.dispatch[74]={onReceive = NetProtoIsland.recive.newTile, send = NetProtoIsland.send.newTile}
+    NetProtoIsland.dispatch[71]={onReceive = NetProtoIsland.recive.onBuildingChg, send = NetProtoIsland.send.onBuildingChg}
+    NetProtoIsland.dispatch[72]={onReceive = NetProtoIsland.recive.onPlayerChg, send = NetProtoIsland.send.onPlayerChg}
+    NetProtoIsland.dispatch[59]={onReceive = NetProtoIsland.recive.heart, send = NetProtoIsland.send.heart}
+    NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.moveTile, send = NetProtoIsland.send.moveTile}
+    NetProtoIsland.dispatch[79]={onReceive = NetProtoIsland.recive.collectRes, send = NetProtoIsland.send.collectRes}
+    NetProtoIsland.dispatch[73]={onReceive = NetProtoIsland.recive.onFinishBuildingUpgrade, send = NetProtoIsland.send.onFinishBuildingUpgrade}
     --==============================
     NetProtoIsland.cmds = {
-        onFinishBuildingUpgrade = "onFinishBuildingUpgrade",
-        onPlayerChg = "onPlayerChg",
+        upLevBuilding = "upLevBuilding",
+        rmBuilding = "rmBuilding",
+        newBuilding = "newBuilding",
+        login = "login",
+        getBuilding = "getBuilding",
+        rmTile = "rmTile",
         onResChg = "onResChg",
-        newTile = "newTile",
         moveBuilding = "moveBuilding",
         logout = "logout",
-        upLevBuilding = "upLevBuilding",
         upLevBuildingImm = "upLevBuildingImm",
-        newBuilding = "newBuilding",
+        newTile = "newTile",
         onBuildingChg = "onBuildingChg",
-        login = "login",
+        onPlayerChg = "onPlayerChg",
         heart = "heart",
-        rmBuilding = "rmBuilding",
         moveTile = "moveTile",
-        getBuilding = "getBuilding",
-        rmTile = "rmTile"
+        collectRes = "collectRes",
+        onFinishBuildingUpgrade = "onFinishBuildingUpgrade"
     }
     --==============================
     return NetProtoIsland

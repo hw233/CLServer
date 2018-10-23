@@ -4,7 +4,7 @@ ConstVals = {
     foodStorageBuildingID = 7,
     goldStorageBuildingID = 11,
     oildStorageBuildingID = 9,
-    baseRes = 50000,    -- 基础资源量
+    baseRes = 50000, -- 基础资源量
 }
 
 ConstVals.BuildingState = {
@@ -20,5 +20,13 @@ ConstVals.UnitType = {
     tech = 3,
     pet = 4,
     skill = 5,
+}
+
+---@public 资源各类
+ConstVals.ResType = {
+    food = 1,
+    gold = 2,
+    oil = 3,
+    diam = 9,
 }
 return ConstVals

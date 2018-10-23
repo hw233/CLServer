@@ -252,6 +252,14 @@ defProtocol.cmds = {
         outputDesc = { "返回信息", "建筑信息" }; -- 出参说明
         logic = "cmd4city";
     },
+    collectRes = {
+        desc = "收集资源"; -- 接口说明
+        input = {"idx" }; -- 入参
+        inputDesc = {"资源建筑的idx int" }; -- 入参说明
+        output = { structs.retInfor, "resType", "resVal"}; -- 出参
+        outputDesc = { "返回信息", "收集的资源类型 int", "收集到的资源量 int" }; -- 出参说明
+        logic = "cmd4city";
+    },
 
 }
 
