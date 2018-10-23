@@ -22,5 +22,6 @@ Errcode.buildingNotIdel = 17 -- 建筑的状态不是空闲状态
 Errcode.playerIsNil = 18 -- 玩家数据取得为空
 Errcode.diamNotEnough = 19  -- 钻石不足
 Errcode.buildingIsBusy = 20 -- 建筑正忙，不可操作
+Errcode.buildingIsNotResFactory = 21 -- 不是资源建筑，不可操作
 
 return Errcode

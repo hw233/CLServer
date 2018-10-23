@@ -658,6 +658,7 @@ end
 ---@param attrid 建筑配置id
 ---@return list 建筑列表
 ---@return totalStore 总存储量
+---@return emptySpace 剩余空间
 function cmd4city.getStoreBuildings(attrid)
     ---@type dbbuilding
     local b, list, totalStore
@@ -670,6 +671,7 @@ function cmd4city.getStoreBuildings(attrid)
             totalStore = totalStore + b:get_val()
         end
     end
+    --todo
     return list, totalStore
 end
 
@@ -774,6 +776,14 @@ function cmd4city.consumeRes4Base(food, gold, oil)
     -- cmd4city.CMD.onBuildingChg(headquarters:value2copy())
     ------------------------------------------
     return food, gold, oil
+end
+
+function cmd4city.consumeRes2(data)
+    if data == nil then return end
+    local food = data[ConstVals.ResType.food] or 0
+    local oil = data[ConstVals.ResType.oil] or 0
+    local gold = data[ConstVals.ResType.gold] or 0
+    cmd4city.consumeRes(food, gold, oil)
 end
 
 ---@public 消耗资源
@@ -1265,15 +1275,56 @@ cmd4city.CMD = {
         ---@type dbbuilding
         local b = buildings[idx] -- 不要使用new(), 或者instance()，也不能直接传data
         if b == nil then
-            ret.code = Errcode.error
+            ret.code = Errcode.buildingIsNil
             ret.msg = "取得建筑为空"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
 
+        local resType = nil
+        local attrid = b:get_attrid()
+        if attrid == 6 then
+            resType = ConstVals.ResType.food
+        elseif attrid == 8 then
+            resType = ConstVals.ResType.oil
+        elseif attrid == 10 then
+            resType = ConstVals.ResType.gold
+        end
+        if resType == nil then
+            ret.code = Errcode.buildingIsNotResFactory
+            ret.msg = "不是资源建筑，不可操作"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        local val = 0
         if b.get_state() == ConstVals.BuildingState.normal then
             local proTime = dateEx.nowMS() - b.get_starttime()
-            -- todo:判断时长是否超过最大生产时长
+            proTime = numEx.getIntPart(proTime / 60000)-- 转成分钟
+            if proTime > 0 then
+                local constcfg = cfgUtl.getConstCfg()
+                -- 判断时长是否超过最大生产时长(目前配置的时最大只可生产8小时产量)
+                if proTime > constcfg.MaxTimeLen4ResYields then
+                    proTime = constcfg.MaxTimeLen4ResYields
+                end
+
+                local attr = cfgUtl.getBuildingByID(attrid)
+                local maxLev = attr.MaxLev
+                local persent = b:get_lev() / maxLev
+                -- 每分钟产量
+                local yieldsPerMinutes = cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, persent)
+                val = yieldsPerMinutes * proTime
+                -- 判断仓库空间能否装下
+                local _, totalStore, emptySpace = cmd4city.getStoreBuildings(attrid)
+                if val > emptySpace then
+                    --todo:说明空间不够了,看超出了多少，如果只超出了一点点，也可以收集
+                end
+
+                cmd4city.consumeRes2({ [resType] = val })
+                b:set_starttime(dateEx.nowMS())
+                b:set_endtime(dateEx.nowMS())
+            end
         end
+
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, resType, val)
     end,
 }
 
@@ -1292,4 +1343,3 @@ skynet.start(function()
         end
     end)
 end)
-
