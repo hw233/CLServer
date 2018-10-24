@@ -654,25 +654,58 @@ function cmd4city.getSelfBuilding(idx)
     return b
 end
 
+---@public 取得某种资源的信息
+---@param resType ConstVals.ResType
+---@return { type = resType, stored = 当前存储的量, maxstore = 最大存储量 }
+function cmd4city.getResInforByType(resType)
+    local attrid = 0
+    local hadRes = 0  -- 已有资源
+    local maxstore = 0
+    local ret = {}
+    if resType == ConstVals.ResType.food then
+        attrid = ConstVals.foodStorageBuildingID
+        hadRes = headquarters:get_val()
+    elseif resType == ConstVals.ResType.gold then
+        attrid = ConstVals.goldStorageBuildingID
+        hadRes = headquarters:get_val2()
+    elseif resType == ConstVals.ResType.oil then
+        attrid = ConstVals.oildStorageBuildingID
+        hadRes = headquarters:get_val3()
+    end
+    if attrid > 0 then
+        local _, stored, _maxstore = cmd4city.getStoreBuildings(attrid)
+        hadRes = hadRes + stored
+        maxstore = maxstore + ConstVals.baseRes
+    end
+    return { type = resType, stored = hadRes, maxstore = maxstore }
+end
+
 ---@public 取得仓库建筑列表
 ---@param attrid 建筑配置id
 ---@return list 建筑列表
 ---@return totalStore 总存储量
----@return emptySpace 剩余空间
+---@return maxStore 最大存储空间
 function cmd4city.getStoreBuildings(attrid)
     ---@type dbbuilding
-    local b, list, totalStore
+    local b, list, totalStore, attr, maxStore, emptySpace
     list = {}
     totalStore = 0
+    maxStore = 0
+    emptySpace = 0
     for k, v in pairs(buildings) do
         b = v
         if b:get_attrid() == attrid then
             table.insert(list, v)
             totalStore = totalStore + b:get_val()
+
+            if attr == nil then
+                attr = cfgUtl.getBuildingByID(b:get_attrid())
+            end
+            maxStore = maxStore + cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, b:get_lev() / attr.MaxLev)
         end
     end
-    --todo
-    return list, totalStore
+
+    return list, totalStore, maxStore
 end
 
 ---@public 处理其中一种资源变化
@@ -779,7 +812,9 @@ function cmd4city.consumeRes4Base(food, gold, oil)
 end
 
 function cmd4city.consumeRes2(data)
-    if data == nil then return end
+    if data == nil then
+        return
+    end
     local food = data[ConstVals.ResType.food] or 0
     local oil = data[ConstVals.ResType.oil] or 0
     local gold = data[ConstVals.ResType.gold] or 0
@@ -1296,8 +1331,8 @@ cmd4city.CMD = {
         end
 
         local val = 0
-        if b.get_state() == ConstVals.BuildingState.normal then
-            local proTime = dateEx.nowMS() - b.get_starttime()
+        if b:get_state() == ConstVals.BuildingState.normal then
+            local proTime = dateEx.nowMS() - b:get_starttime()
             proTime = numEx.getIntPart(proTime / 60000)-- 转成分钟
             if proTime > 0 then
                 local constcfg = cfgUtl.getConstCfg()
@@ -1313,12 +1348,21 @@ cmd4city.CMD = {
                 local yieldsPerMinutes = cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, persent)
                 val = yieldsPerMinutes * proTime
                 -- 判断仓库空间能否装下
-                local _, totalStore, emptySpace = cmd4city.getStoreBuildings(attrid)
+                local resinfor = cmd4city.getResInforByType(resType)
+                local emptySpace = resinfor.maxstore - resinfor.stored
                 if val > emptySpace then
-                    --todo:说明空间不够了,看超出了多少，如果只超出了一点点，也可以收集
+                    --说明空间不够了,看超出了多少，如果只超出了一点点，也可以收集
+                    local outPrent = (val - emptySpace)/val
+                    if outPrent > 0.2 then
+                        ret.code = Errcode.storeNotEnough
+                        ret.msg = "仓库空间不足"
+                        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+                    end
+                    -- 只能存储剩余的空间
+                    val = emptySpace
                 end
 
-                cmd4city.consumeRes2({ [resType] = val })
+                cmd4city.consumeRes2({ [resType] = -val }) --负数就是增加资源
                 b:set_starttime(dateEx.nowMS())
                 b:set_endtime(dateEx.nowMS())
             end
