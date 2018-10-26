@@ -72,8 +72,10 @@ end
 
 function dbplayer:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
     local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
-    ret.crtTime = self:get_crtTime()
-    ret.lastEnTime = self:get_lastEnTime()
+    if ret then
+        ret.crtTime = self:get_crtTime()
+        ret.lastEnTime = self:get_lastEnTime()
+    end
     return ret
 end
 

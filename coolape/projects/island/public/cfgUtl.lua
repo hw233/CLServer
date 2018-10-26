@@ -75,8 +75,8 @@ function cfgUtl.getGrowingVal(min, max, curveID, persent, precision)
     if curveins == nil then
         return 0
     end
-    local persent = curveins:evaluate(persent)
-    local val = min + (max - min) * persent
+    local persentVal = curveins:evaluate(persent)
+    local val = min + (max - min) * persentVal
 
     if precision == nil or precision == 0 then
         return math.ceil(val)

@@ -654,6 +654,18 @@ function cmd4city.getSelfBuilding(idx)
     return b
 end
 
+local getResTypeByBuildingAttrID = function(attrid)
+    local resType
+    if attrid == 6 or attrid == 7 then
+        resType = ConstVals.ResType.food
+    elseif attrid == 8 or attrid == 9 then
+        resType = ConstVals.ResType.oil
+    elseif attrid == 10 or attrid == 11 then
+        resType = ConstVals.ResType.gold
+    end
+    return resType
+end
+
 ---@public 取得某种资源的信息
 ---@param resType ConstVals.ResType
 ---@return { type = resType, stored = 当前存储的量, maxstore = 最大存储量 }
@@ -661,7 +673,6 @@ function cmd4city.getResInforByType(resType)
     local attrid = 0
     local hadRes = 0  -- 已有资源
     local maxstore = 0
-    local ret = {}
     if resType == ConstVals.ResType.food then
         attrid = ConstVals.foodStorageBuildingID
         hadRes = headquarters:get_val()
@@ -675,7 +686,7 @@ function cmd4city.getResInforByType(resType)
     if attrid > 0 then
         local _, stored, _maxstore = cmd4city.getStoreBuildings(attrid)
         hadRes = hadRes + stored
-        maxstore = maxstore + ConstVals.baseRes
+        maxstore = _maxstore + ConstVals.baseRes
     end
     return { type = resType, stored = hadRes, maxstore = maxstore }
 end
@@ -1315,15 +1326,8 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
 
-        local resType = nil
         local attrid = b:get_attrid()
-        if attrid == 6 then
-            resType = ConstVals.ResType.food
-        elseif attrid == 8 then
-            resType = ConstVals.ResType.oil
-        elseif attrid == 10 then
-            resType = ConstVals.ResType.gold
-        end
+        local resType = getResTypeByBuildingAttrID(attrid)
         if resType == nil then
             ret.code = Errcode.buildingIsNotResFactory
             ret.msg = "不是资源建筑，不可操作"
@@ -1352,7 +1356,7 @@ cmd4city.CMD = {
                 local emptySpace = resinfor.maxstore - resinfor.stored
                 if val > emptySpace then
                     --说明空间不够了,看超出了多少，如果只超出了一点点，也可以收集
-                    local outPrent = (val - emptySpace)/val
+                    local outPrent = (val - emptySpace) / val
                     if outPrent > 0.2 then
                         ret.code = Errcode.storeNotEnough
                         ret.msg = "仓库空间不足"
