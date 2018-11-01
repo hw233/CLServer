@@ -25,6 +25,22 @@ dbbuilding = class("dbbuilding")
 
 dbbuilding.name = "building"
 
+dbbuilding.keys = {
+    idx = "idx",
+    cidx = "cidx",
+    pos = "pos",
+    attrid = "attrid",
+    lev = "lev",
+    state = "state",
+    starttime = "starttime",
+    endtime = "endtime",
+    val = "val",
+    val2 = "val2",
+    val3 = "val3",
+    val4 = "val4",
+    val5 = "val5",
+}
+
 function dbbuilding:ctor(v)
     self.__name__ = "building"    -- 表名
     self.__isNew__ = nil -- false:说明mysql里已经有数据了
@@ -77,6 +93,21 @@ function dbbuilding:value2copy()  -- 取得数据复样，注意是只读的数�
         ret.endtime = self:get_endtime()
     end
     return ret
+end
+
+function dbbuilding:refreshData(data)
+    if data == nil or self.__key__ then
+        skynet.error("dbbuilding:refreshData error!")
+        return
+    end
+    local orgData = self:value2copy()
+    if orgData == nil then
+        skynet.error("get old data error!!")
+    end
+    for k, v in ipairs(data) do
+        orgData[k] = v
+    end
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, orgData)
 end
 
 function dbbuilding:set_idx(v)

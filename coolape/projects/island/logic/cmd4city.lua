@@ -106,10 +106,12 @@ function cmd4city.new (uidx)
     ---@type dbbuilding
     local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), idx)
     if building then
-        building:set_lev(1)     -- 初始成一级
-        building:set_val(ConstVals.baseRes)     -- 粮
-        building:set_val2(ConstVals.baseRes)    -- 金
-        building:set_val3(ConstVals.baseRes)    -- 油
+        building:refreshData({
+            [dbbuilding.keys.lev] = 1,-- 初始成一级
+            [dbbuilding.keys.val] = ConstVals.baseRes,-- 粮
+            [dbbuilding.keys.val2] = ConstVals.baseRes,-- 金
+            [dbbuilding.keys.val3] = ConstVals.baseRes,-- 油
+        })
         buildings[building:get_idx()] = building
         headquarters = building
     end
@@ -530,7 +532,7 @@ function cmd4city.getBuildingCountAtCurrLev(buildingAttrId)
         return 1
     end
     local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters:get_lev())
-    return headquartersOpen[buildingAttrId] or 1
+    return headquartersOpen["Building" .. buildingAttrId] or 1
 end
 
 ---@public 新建筑
@@ -873,9 +875,12 @@ end
 function cmd4city.onFinishBuildingUpgrade(b)
     -- 移除队列
     queueInfor.removeBuildQueue(b)
-    b:set_state(ConstVals.BuildingState.normal)
-    b:set_lev(b:get_lev() + 1)
-    b:set_starttime(b:get_endtime())
+    local v = {}
+    v[dbbuilding.keys.state] =ConstVals.BuildingState.normal
+    v[dbbuilding.keys.lev] = b:get_lev() + 1
+    v[dbbuilding.keys.starttime] =b:get_endtime()
+    b:refreshData(v)  -- 这样处理的目的是保证不会多次触发通知客户端
+
     -- 通知客户端
     cmd4city.CMD.onBuildingChg(b:value2copy(), "onFinishBuildingUpgrade")
 end
@@ -1016,9 +1021,12 @@ cmd4city.CMD = {
         local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin * 60, attr.BuildTimeMax * 60, attr.BuildTimeCurve, persent)
         if sec > 0 then
             local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
-            building:set_starttime(dateEx.nowMS())
-            building:set_endtime(endTime)
-            building:set_state(ConstVals.BuildingState.upgrade)
+            local _v = {
+                [dbbuilding.keys.starttime] = dateEx.nowMS(),
+                [dbbuilding.keys.endtime] = endTime,
+                [dbbuilding.keys.state] = ConstVals.BuildingState.upgrade,
+            }
+            building:refreshData(_v)
             queueInfor.addBuildQueue(building)
         end
 
@@ -1138,9 +1146,12 @@ cmd4city.CMD = {
         local sec = cfgUtl.getGrowingVal(attr.BuildTimeMin * 60, attr.BuildTimeMax * 60, attr.BuildTimeCurve, persent)
         if sec > 0 then
             local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
-            b:set_starttime(dateEx.nowMS())
-            b:set_endtime(endTime)
-            b:set_state(ConstVals.BuildingState.upgrade)
+            local v = {
+                [dbbuilding.keys.starttime] =dateEx.nowMS(),
+                [dbbuilding.keys.endtime] =endTime,
+                [dbbuilding.keys.state] =ConstVals.BuildingState.upgrade,
+            }
+            b:refreshData(v)
             queueInfor.addBuildQueue(b)
         else
             b:set_lev(b:get_lev() + 1)
@@ -1367,8 +1378,10 @@ cmd4city.CMD = {
                 end
 
                 cmd4city.consumeRes2({ [resType] = -val }) --负数就是增加资源
-                b:set_starttime(dateEx.nowMS())
-                b:set_endtime(dateEx.nowMS())
+                b:refreshData({
+                    [dbbuilding.keys.starttime]=dateEx.nowMS(),
+                    [dbbuilding.keys.endtime]=dateEx.nowMS(),
+                })
             end
         end
 

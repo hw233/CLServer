@@ -25,6 +25,13 @@ dbtile = class("dbtile")
 
 dbtile.name = "tile"
 
+dbtile.keys = {
+    idx = "idx",
+    cidx = "cidx",
+    attrid = "attrid",
+    pos = "pos",
+}
+
 function dbtile:ctor(v)
     self.__name__ = "tile"    -- 表名
     self.__isNew__ = nil -- false:说明mysql里已经有数据了
@@ -75,6 +82,21 @@ function dbtile:value2copy()  -- 取得数据复样，注意是只读的数据�
     if ret then
     end
     return ret
+end
+
+function dbtile:refreshData(data)
+    if data == nil or self.__key__ then
+        skynet.error("dbtile:refreshData error!")
+        return
+    end
+    local orgData = self:value2copy()
+    if orgData == nil then
+        skynet.error("get old data error!!")
+    end
+    for k, v in ipairs(data) do
+        orgData[k] = v
+    end
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, orgData)
 end
 
 function dbtile:set_idx(v)

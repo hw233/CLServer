@@ -25,6 +25,21 @@ dbplayer = class("dbplayer")
 
 dbplayer.name = "player"
 
+dbplayer.keys = {
+    idx = "idx",
+    status = "status",
+    name = "name",
+    lev = "lev",
+    money = "money",
+    diam = "diam",
+    cityidx = "cityidx",
+    unionidx = "unionidx",
+    crtTime = "crtTime",
+    lastEnTime = "lastEnTime",
+    channel = "channel",
+    deviceid = "deviceid",
+}
+
 function dbplayer:ctor(v)
     self.__name__ = "player"    -- 表名
     self.__isNew__ = nil -- false:说明mysql里已经有数据了
@@ -77,6 +92,21 @@ function dbplayer:value2copy()  -- 取得数据复样，注意是只读的数据
         ret.lastEnTime = self:get_lastEnTime()
     end
     return ret
+end
+
+function dbplayer:refreshData(data)
+    if data == nil or self.__key__ then
+        skynet.error("dbplayer:refreshData error!")
+        return
+    end
+    local orgData = self:value2copy()
+    if orgData == nil then
+        skynet.error("get old data error!!")
+    end
+    for k, v in ipairs(data) do
+        orgData[k] = v
+    end
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, orgData)
 end
 
 function dbplayer:set_idx(v)
