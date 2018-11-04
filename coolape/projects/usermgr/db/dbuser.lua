@@ -25,6 +25,22 @@ dbuser = class("dbuser")
 
 dbuser.name = "user"
 
+dbuser.keys = {
+    idx = "idx",
+    uidChl = "uidChl",
+    uid = "uid",
+    password = "password",
+    crtTime = "crtTime",
+    lastEnTime = "lastEnTime",
+    status = "status",
+    email = "email",
+    appid = "appid",
+    channel = "channel",
+    deviceid = "deviceid",
+    deviceinfor = "deviceinfor",
+    groupid = "groupid",
+}
+
 function dbuser:ctor(v)
     self.__name__ = "user"    -- 表名
     self.__isNew__ = nil -- false:说明mysql里已经有数据了
@@ -72,9 +88,27 @@ end
 
 function dbuser:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
     local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
-    ret.crtTime = self:get_crtTime()
-    ret.lastEnTime = self:get_lastEnTime()
+    if ret then
+        ret.crtTime = self:get_crtTime()
+        ret.lastEnTime = self:get_lastEnTime()
+    end
     return ret
+end
+
+function dbuser:refreshData(data)
+    if data == nil or self.__key__ == nil then
+        skynet.error("dbuser:refreshData error!")
+        return
+    end
+    local orgData = self:value2copy()
+    if orgData == nil then
+        skynet.error("get old data error!!")
+    end
+    for k, v in pairs(data) do
+        orgData[k] = v
+    end
+    orgData = dbuser.validData(orgData)
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, orgData)
 end
 
 function dbuser:set_idx(v)

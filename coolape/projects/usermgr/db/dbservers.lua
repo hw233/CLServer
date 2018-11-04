@@ -25,6 +25,19 @@ dbservers = class("dbservers")
 
 dbservers.name = "servers"
 
+dbservers.keys = {
+    idx = "idx",
+    appid = "appid",
+    channel = "channel",
+    name = "name",
+    status = "status",
+    isnew = "isnew",
+    host = "host",
+    port = "port",
+    androidVer = "androidVer",
+    iosVer = "iosVer",
+}
+
 function dbservers:ctor(v)
     self.__name__ = "servers"    -- 表名
     self.__isNew__ = nil -- false:说明mysql里已经有数据了
@@ -72,8 +85,26 @@ end
 
 function dbservers:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
     local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
-    ret.isnew = self:get_isnew()
+    if ret then
+        ret.isnew = self:get_isnew()
+    end
     return ret
+end
+
+function dbservers:refreshData(data)
+    if data == nil or self.__key__ == nil then
+        skynet.error("dbservers:refreshData error!")
+        return
+    end
+    local orgData = self:value2copy()
+    if orgData == nil then
+        skynet.error("get old data error!!")
+    end
+    for k, v in pairs(data) do
+        orgData[k] = v
+    end
+    orgData = dbservers.validData(orgData)
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, orgData)
 end
 
 function dbservers:set_idx(v)

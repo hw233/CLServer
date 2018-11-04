@@ -138,7 +138,7 @@ function command.ADDTRIGGER(tableName, key, server, funcName, fieldKey)
     else
         _key2 = server .. "_" .. funcName
     end
-    list[_key2] = { tableName = tableName, key = key, server = server, funcName = funcName, fieldKey = fieldKey}
+    list[_key2] = { tableName = tableName, key = key, server = server, funcName = funcName, fieldKey = fieldKey }
     triggerData[_key] = list
 end
 
@@ -230,9 +230,9 @@ function command.SET(tableName, key, ...)
             printe("[cldb.remove],get tabel config is nil==" .. tableName)
         end
         if tableCfg.groupKey and #tableCfg.groupKey > 0 then
-            for i, group  in ipairs(tableCfg.groupKey) do
+            for i, group in ipairs(tableCfg.groupKey) do
                 local groupkey = ""
-                for j,gkey in ipairs(group) do
+                for j, gkey in ipairs(group) do
                     if j == 1 then
                         groupkey = tostring(d[gkey])
                     else
@@ -243,12 +243,15 @@ function command.SET(tableName, key, ...)
             end
         end
 
+        needUpdateData:enQueue({ tableName = tableName, key = key })
+        -- 触发回调
         if count > 1 then
-            -- 说明是更新某个字段， 记录下需要更新
-            needUpdateData:enQueue({ tableName = tableName, key = key })
-            -- 触发回调
+            --说明是更新某个字段， 记录下需要更新
             local fieldKey = params[1]
             onTrigger(tableName, key, fieldKey)
+        else
+
+            onTrigger(tableName, key, nil)
         end
     end
 
@@ -281,9 +284,9 @@ function command.REMOVE(tableName, key)
         end
 
         if tableCfg.groupKey and #tableCfg.groupKey > 0 then
-            for i, group  in ipairs(tableCfg.groupKey) do
+            for i, group in ipairs(tableCfg.groupKey) do
                 local groupkey = ""
-                for j,gkey in ipairs(group) do
+                for j, gkey in ipairs(group) do
                     if j == 1 then
                         groupkey = tostring(last[gkey])
                     else

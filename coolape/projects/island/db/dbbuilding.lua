@@ -96,7 +96,7 @@ function dbbuilding:value2copy()  -- 取得数据复样，注意是只读的数�
 end
 
 function dbbuilding:refreshData(data)
-    if data == nil or self.__key__ then
+    if data == nil or self.__key__ == nil then
         skynet.error("dbbuilding:refreshData error!")
         return
     end
@@ -104,9 +104,10 @@ function dbbuilding:refreshData(data)
     if orgData == nil then
         skynet.error("get old data error!!")
     end
-    for k, v in ipairs(data) do
+    for k, v in pairs(data) do
         orgData[k] = v
     end
+    orgData = dbbuilding.validData(orgData)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, orgData)
 end
 

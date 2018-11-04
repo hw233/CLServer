@@ -107,10 +107,10 @@ function cmd4city.new (uidx)
     local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), idx)
     if building then
         building:refreshData({
-            [dbbuilding.keys.lev] = 1,-- 初始成一级
-            [dbbuilding.keys.val] = ConstVals.baseRes,-- 粮
-            [dbbuilding.keys.val2] = ConstVals.baseRes,-- 金
-            [dbbuilding.keys.val3] = ConstVals.baseRes,-- 油
+            [dbbuilding.keys.lev] = 1, -- 初始成一级
+            [dbbuilding.keys.val] = ConstVals.baseRes, -- 粮
+            [dbbuilding.keys.val2] = ConstVals.baseRes, -- 金
+            [dbbuilding.keys.val3] = ConstVals.baseRes, -- 油
         })
         buildings[building:get_idx()] = building
         headquarters = building
@@ -775,6 +775,7 @@ function cmd4city.consumeRes4Base(food, gold, oil)
                 val = ConstVals.baseRes - tmpval
             else
                 headquarters:set_val((tmpval))
+                val = 0
             end
         end
     end
@@ -794,6 +795,7 @@ function cmd4city.consumeRes4Base(food, gold, oil)
                 val = ConstVals.baseRes - tmpval
             else
                 headquarters:set_val2((tmpval))
+                val = 0
             end
         end
     end
@@ -813,6 +815,7 @@ function cmd4city.consumeRes4Base(food, gold, oil)
                 val = ConstVals.baseRes - tmpval
             else
                 headquarters:set_val3((tmpval))
+                val = 0
             end
         end
     end
@@ -854,7 +857,6 @@ function cmd4city.consumeRes(food, gold, oil)
         return false, Errcode.resNotEnough
     end
     food, gold, oil = cmd4city.consumeRes4Base(food, gold, oil)
-    headquarters:get_val()
     consumeOneRes(food, list1)
     consumeOneRes(gold, list2)
     consumeOneRes(oil, list3)
@@ -876,9 +878,9 @@ function cmd4city.onFinishBuildingUpgrade(b)
     -- 移除队列
     queueInfor.removeBuildQueue(b)
     local v = {}
-    v[dbbuilding.keys.state] =ConstVals.BuildingState.normal
+    v[dbbuilding.keys.state] = ConstVals.BuildingState.normal
     v[dbbuilding.keys.lev] = b:get_lev() + 1
-    v[dbbuilding.keys.starttime] =b:get_endtime()
+    v[dbbuilding.keys.starttime] = b:get_endtime()
     b:refreshData(v)  -- 这样处理的目的是保证不会多次触发通知客户端
 
     -- 通知客户端
@@ -1147,9 +1149,9 @@ cmd4city.CMD = {
         if sec > 0 then
             local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
             local v = {
-                [dbbuilding.keys.starttime] =dateEx.nowMS(),
-                [dbbuilding.keys.endtime] =endTime,
-                [dbbuilding.keys.state] =ConstVals.BuildingState.upgrade,
+                [dbbuilding.keys.starttime] = dateEx.nowMS(),
+                [dbbuilding.keys.endtime] = endTime,
+                [dbbuilding.keys.state] = ConstVals.BuildingState.upgrade,
             }
             b:refreshData(v)
             queueInfor.addBuildQueue(b)
@@ -1347,7 +1349,7 @@ cmd4city.CMD = {
 
         local val = 0
         if b:get_state() == ConstVals.BuildingState.normal then
-            local proTime = dateEx.nowMS() - b:get_starttime()
+            local proTime = dateEx.nowMS() - (b:get_starttime() or 0)
             proTime = numEx.getIntPart(proTime / 60000)-- 转成分钟
             if proTime > 0 then
                 local constcfg = cfgUtl.getConstCfg()
@@ -1379,8 +1381,8 @@ cmd4city.CMD = {
 
                 cmd4city.consumeRes2({ [resType] = -val }) --负数就是增加资源
                 b:refreshData({
-                    [dbbuilding.keys.starttime]=dateEx.nowMS(),
-                    [dbbuilding.keys.endtime]=dateEx.nowMS(),
+                    [dbbuilding.keys.starttime] = dateEx.nowMS(),
+                    [dbbuilding.keys.endtime] = dateEx.nowMS(),
                 })
             end
         end

@@ -86,7 +86,7 @@ function dbcity:value2copy()  -- 取得数据复样，注意是只读的数据�
 end
 
 function dbcity:refreshData(data)
-    if data == nil or self.__key__ then
+    if data == nil or self.__key__ == nil then
         skynet.error("dbcity:refreshData error!")
         return
     end
@@ -94,9 +94,10 @@ function dbcity:refreshData(data)
     if orgData == nil then
         skynet.error("get old data error!!")
     end
-    for k, v in ipairs(data) do
+    for k, v in pairs(data) do
         orgData[k] = v
     end
+    orgData = dbcity.validData(orgData)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, orgData)
 end
 
