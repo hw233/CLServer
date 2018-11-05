@@ -23,6 +23,7 @@ do
         BioUtl.init();
         --local os = LuaB2OutputStream.new();
         local os = outputStreemPool:borrow()
+        os:init()
         local status = pcall(BioOutputStream.writeObject, os, obj);
         if status then
             local bytes = os:toBytes();
@@ -31,6 +32,7 @@ do
             outputStreemPool:retObj(os)
             return bytes;
         else
+            os:release()
             outputStreemPool:retObj(os)
             return nil;
         end
@@ -48,6 +50,7 @@ do
             inputStreemPool:retObj(is)
             return result;
         else
+            is:release()
             inputStreemPool:retObj(is)
             --print(result)
             return nil;
@@ -58,6 +61,7 @@ do
         BioUtl.init();
         --local os = LuaB2OutputStream.new();
         local os = outputStreemPool:borrow()
+        os:init()
         local status = pcall(BioOutputStream.writeInt, os, val);
         if status then
             local bytes = os:toBytes();
@@ -66,6 +70,7 @@ do
             outputStreemPool:retObj(os)
             return bytes;
         else
+            os:release()
             outputStreemPool:retObj(os)
             --print(result)
             return nil;
@@ -84,6 +89,7 @@ do
             inputStreemPool:retObj(is)
             return result;
         else
+            is:release()
             --print(result)
             inputStreemPool:retObj(is)
             return 0;
