@@ -166,7 +166,7 @@
             $("#pageprev").addClass("disabled");
             return;
         }
-        var sql = currsql + " LIMIT " + (currpageIndex - 1) * pagesize + ", " + pagesize;
+        var sql = currsql + " LIMIT " + (currpageIndex - 2) * pagesize + ", " + pagesize;
 
         var params = {cmd: "doSQL", sql: sql, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
@@ -192,10 +192,13 @@
         var params = {cmd: "doSQL", sql: sql, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {  //成功的回调函数
-                if (result == null || result.length < pagesize) {
+                if (result == null) {
                     alert("已经没有更多数据！");
                     $("#pagenext").addClass("disabled");
-                } else {
+                } else if (result.length < pagesize) {
+                    $("#pagenext").addClass("disabled");
+                }
+                if(result != null) {
                     currpageIndex = currpageIndex + 1;
                     dataList = result;
                     refreshContent();
