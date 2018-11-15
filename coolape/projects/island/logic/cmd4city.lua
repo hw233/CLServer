@@ -1388,7 +1388,7 @@ cmd4city.CMD = {
         end
 
         ret.code = Errcode.ok
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, resType, val)
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, resType, val, b:value2copy())
     end,
 }
 

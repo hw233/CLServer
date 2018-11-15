@@ -449,6 +449,7 @@ do
         ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
         ret.resType = map[80]-- 收集的资源类型 int
         ret.resVal = map[81]-- 收集到的资源量 int
+        ret.building = NetProtoIsland.ST_building.parse(map[53]) -- 建筑信息
         return ret
     end,
     onFinishBuildingUpgrade = function(map)

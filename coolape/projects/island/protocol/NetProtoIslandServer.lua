@@ -462,7 +462,7 @@ do
         ret[58] = NetProtoIsland.ST_tile.toMap(tile); -- 地块信息
         return ret
     end,
-    collectRes = function(retInfor, resType, resVal)
+    collectRes = function(retInfor, resType, resVal, building)
         local ret = {}
         ret[0] = 79
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
@@ -476,6 +476,7 @@ do
         else
             ret[81] = resVal; -- 收集到的资源量 int
         end
+        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
         return ret
     end,
     onFinishBuildingUpgrade = function(retInfor, building)
