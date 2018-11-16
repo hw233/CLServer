@@ -52,6 +52,7 @@ queueInfor.removeBuildQueue = function(b)
     for i, v in ipairs(queueInfor.build) do
         building = v.param
         if building:get_idx() == b:get_idx() then
+            timerEx.cancel(v) --取消timer
             table.remove(queueInfor.build, i)
             break
         end
