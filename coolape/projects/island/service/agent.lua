@@ -13,8 +13,8 @@ local mysql
 local strLen = string.len;
 local strSub = string.sub;
 local strPack = string.pack
-local maxPackSize = 64 * 1024 - 1;
-local subPackSize = 64 * 1024 - 1 - 50;
+local maxPackSize = 12--64 * 1024 - 1;
+local subPackSize = 6--64 * 1024 - 1 - 50;
 
 local function send_package(pack)
     if pack == nil then
@@ -25,19 +25,25 @@ local function send_package(pack)
     if len > maxPackSize then
         local subPackgeCount = math.floor(len / subPackSize)
         local left = len % subPackSize
+        local count = subPackgeCount
+        if left > 0 then
+            count = subPackgeCount + 1
+        end
         for i = 1, subPackgeCount do
             local subPackg = {}
-            table.insert(subPackg, subPackgeCount);
-            table.insert(subPackg, i);
-            table.insert(subPackg, strSub(bytes, ((i - 1) * subPackSize) + 1, i * subPackSize));
+            subPackg.__isSubPack = true
+            subPackg.count = count
+            subPackg.i = i;
+            subPackg.content = strSub(bytes, ((i - 1) * subPackSize) + 1, i * subPackSize)
             local package = strPack(">s2", BioUtl.writeObject(subPackg))
             socket.write(client_fd, package)
         end
         if left > 0 then
             local subPackg = {}
-            table.insert(subPackg, subPackgeCount);
-            table.insert(subPackg, subPackgeCount + 1);
-            table.insert(subPackg, strSub(bytes, (subPackgeCount * subPackSize) + 1, subPackgeCount * subPackSize + left));
+            subPackg.__isSubPack = true
+            subPackg.count = count
+            subPackg.i = count
+            subPackg.content = strSub(bytes, (subPackgeCount * subPackSize) + 1, subPackgeCount * subPackSize + left)
             local package = strPack(">s2", BioUtl.writeObject(subPackg))
             socket.write(client_fd, package)
         end
@@ -61,12 +67,9 @@ end
 
 -- 完整的接口都是table，当有分包的时候会收到list。list[1]=共有几个分包，list[2]＝第几个分包，list[3]＝ 内容
 local function isSubPackage(m)
-    if m[0] then
+    if m.__isSubPack then
         --判断有没有cmd
-        return false
-    end
-    if CLUtl.isArray(m) then
-        return true;
+        return true
     end
     return false
 end
@@ -82,12 +85,13 @@ local function procPackage(m)
 
     if isSubPackage(m) then
         -- 是分包
-        local len = m[1]
-        local index = m[2]
-        table.insert(currPack, index, m[3])
-        if (#currPack == len) then
+        local count = m.count
+        local index = m.i
+        table.insert(currPack, index, m.content)
+        if (#currPack == count) then
             -- 说明分包已经取完整
             local bytes = table.concat(currPack, "")
+
             local map = BioUtl.readObject(bytes)
             currPack = nil;
             currPack = {}
@@ -124,7 +128,7 @@ end
 
 function CMD.disconnect()
     print("agent disconnect. fd==" .. client_fd)
-    for k,v in pairs(LogicMap) do
+    for k, v in pairs(LogicMap) do
         skynet.call(v, "lua", "release")
     end
     LogicMap = {}

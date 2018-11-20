@@ -529,7 +529,7 @@ do
     --==============================
     function CMD.dispatcher(agent, map, client_fd)
         if map == nil then
-            skynet.error("[dispatcher] mpa == nil")
+            skynet.error("[dispatcher] map == nil")
             return nil
         end
         local cmd = map[0]

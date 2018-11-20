@@ -515,7 +515,7 @@ do
         add(strsServer, "    --==============================");
         add(strsServer, "    function CMD.dispatcher(agent, map, client_fd)")
         add(strsServer, "        if map == nil then")
-        add(strsServer, "            skynet.error(\"[dispatcher] mpa == nil\")")
+        add(strsServer, "            skynet.error(\"[dispatcher] map == nil\")")
         add(strsServer, "            return nil")
         add(strsServer, "        end")
         add(strsServer, "        local cmd = map[0]")
