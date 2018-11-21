@@ -532,7 +532,7 @@ do
         --add(strsServer, "        local logicCMD = assert(dis.logic.CMD)")
         add(strsServer, "        local logicProc = skynet.call(agent, \"lua\", \"getLogic\", dis.logicName)")
         add(strsServer, "        if logicProc == nil then")
-        add(strsServer, "            printe(\"get logicServe is nil. serverName=[\" .. dis.loginAccount ..\"]\")")
+        add(strsServer, "            skynet.error(\"get logicServe is nil. serverName=[\" .. dis.loginAccount ..\"]\")")
         add(strsServer, "            return nil")
         add(strsServer, "        else")
         add(strsServer, "            return skynet.call(logicProc, \"lua\", m.cmd, m, client_fd, agent)")

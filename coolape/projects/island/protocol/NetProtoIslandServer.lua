@@ -543,9 +543,10 @@ do
             return nil;
         end
         local m = dis.onReceive(map)
+        skynet.error("onrecive cmd====" .. m.cmd)
         local logicProc = skynet.call(agent, "lua", "getLogic", dis.logicName)
         if logicProc == nil then
-            printe("get logicServe is nil. serverName=[" .. dis.loginAccount .."]")
+            skynet.error("get logicServe is nil. serverName=[" .. dis.loginAccount .."]")
             return nil
         else
             return skynet.call(logicProc, "lua", m.cmd, m, client_fd, agent)
@@ -555,6 +556,7 @@ do
     skynet.start(function()
         skynet.dispatch("lua", function(_, _, command, command2, ...)
             if command == "send" then
+                skynet.error('send cmd =====' ..  command2)
                 local f = NetProtoIsland.send[command2]
                 skynet.ret(skynet.pack(f(...)))
             else

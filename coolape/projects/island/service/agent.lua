@@ -88,9 +88,11 @@ local function procPackage(m)
         local count = m.count
         local index = m.i
         table.insert(currPack, index, m.content)
+        printe(count, index, string.len(m.content))
         if (#currPack == count) then
             -- 说明分包已经取完整
             local bytes = table.concat(currPack, "")
+            printe("len========" .. string.len(bytes))
 
             local map = BioUtl.readObject(bytes)
             currPack = nil;
