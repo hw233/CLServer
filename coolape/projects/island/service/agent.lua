@@ -13,8 +13,8 @@ local mysql
 local strLen = string.len;
 local strSub = string.sub;
 local strPack = string.pack
-local maxPackSize = 12--64 * 1024 - 1;
-local subPackSize = 6--64 * 1024 - 1 - 50;
+local maxPackSize = 64 * 1024 - 1;
+local subPackSize = 64 * 1024 - 1 - 50;
 
 local function send_package(pack)
     if pack == nil then
@@ -87,17 +87,13 @@ local function procPackage(m)
         -- 是分包
         local count = m.count
         local index = m.i
-        table.insert(currPack, index, m.content)
-        printe(count, index, string.len(m.content))
+        currPack[index]= m.content
         if (#currPack == count) then
             -- 说明分包已经取完整
             local bytes = table.concat(currPack, "")
-            printe("len========" .. string.len(bytes))
-
             local map = BioUtl.readObject(bytes)
-            currPack = nil;
             currPack = {}
-            procCmd(map);
+            procCmd(map)
         end
     else
         procCmd(m)
