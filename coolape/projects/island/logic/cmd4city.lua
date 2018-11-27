@@ -9,7 +9,7 @@ require("dbbuilding")
 require("dbplayer")
 require("Errcode")
 local timerEx = require("timerEx")
-local ConstVals = require("ConstVals")
+local IDConstVals = require("IDConstVals")
 
 local math = math
 local table = table
@@ -109,9 +109,9 @@ function cmd4city.new (uidx)
     if building then
         building:refreshData({
             [dbbuilding.keys.lev] = 1, -- 初始成一级
-            [dbbuilding.keys.val] = ConstVals.baseRes, -- 粮
-            [dbbuilding.keys.val2] = ConstVals.baseRes, -- 金
-            [dbbuilding.keys.val3] = ConstVals.baseRes, -- 油
+            [dbbuilding.keys.val] = IDConstVals.baseRes, -- 粮
+            [dbbuilding.keys.val2] = IDConstVals.baseRes, -- 金
+            [dbbuilding.keys.val3] = IDConstVals.baseRes, -- 油
         })
         buildings[building:get_idx()] = building
         headquarters = building
@@ -543,7 +543,7 @@ end
 function cmd4city.newBuilding(attrid, pos, cidx)
     -- 数量判断
     local hadNum = (buildingCountMap[attrid] or 0)
-    if attrid ~= ConstVals.headquartersBuildingID then
+    if attrid ~= IDConstVals.headquartersBuildingID then
         local maxNum = cmd4city.getBuildingCountAtCurrLev(attrid)
         if hadNum >= maxNum then
             printe("已经达到建筑最大数量！")
@@ -614,7 +614,7 @@ function cmd4city.setSelfBuildings()
         buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
 
         -- todo:处理建筑升级
-        if b:get_state() == ConstVals.BuildingState.upgrade then
+        if b:get_state() == IDConstVals.BuildingState.upgrade then
             if b:get_endtime() <= dateEx.nowMS() then
                 cmd4city.onFinishBuildingUpgrade(b)
             else
@@ -660,36 +660,36 @@ end
 local getResTypeByBuildingAttrID = function(attrid)
     local resType
     if attrid == 6 or attrid == 7 then
-        resType = ConstVals.ResType.food
+        resType = IDConstVals.ResType.food
     elseif attrid == 8 or attrid == 9 then
-        resType = ConstVals.ResType.oil
+        resType = IDConstVals.ResType.oil
     elseif attrid == 10 or attrid == 11 then
-        resType = ConstVals.ResType.gold
+        resType = IDConstVals.ResType.gold
     end
     return resType
 end
 
 ---@public 取得某种资源的信息
----@param resType ConstVals.ResType
+---@param resType IDConstVals.ResType
 ---@return { type = resType, stored = 当前存储的量, maxstore = 最大存储量 }
 function cmd4city.getResInforByType(resType)
     local attrid = 0
     local hadRes = 0  -- 已有资源
     local maxstore = 0
-    if resType == ConstVals.ResType.food then
-        attrid = ConstVals.foodStorageBuildingID
+    if resType == IDConstVals.ResType.food then
+        attrid = IDConstVals.foodStorageBuildingID
         hadRes = headquarters:get_val()
-    elseif resType == ConstVals.ResType.gold then
-        attrid = ConstVals.goldStorageBuildingID
+    elseif resType == IDConstVals.ResType.gold then
+        attrid = IDConstVals.goldStorageBuildingID
         hadRes = headquarters:get_val2()
-    elseif resType == ConstVals.ResType.oil then
-        attrid = ConstVals.oildStorageBuildingID
+    elseif resType == IDConstVals.ResType.oil then
+        attrid = IDConstVals.oildStorageBuildingID
         hadRes = headquarters:get_val3()
     end
     if attrid > 0 then
         local _, stored, _maxstore = cmd4city.getStoreBuildings(attrid)
         hadRes = hadRes + stored
-        maxstore = _maxstore + ConstVals.baseRes
+        maxstore = _maxstore + IDConstVals.baseRes
     end
     return { type = resType, stored = hadRes, maxstore = maxstore }
 end
@@ -771,9 +771,9 @@ function cmd4city.consumeRes4Base(food, gold, oil)
             val = -tmpval
         else
             -- 说明是存储
-            if tmpval > ConstVals.baseRes then
-                headquarters:set_val(ConstVals.baseRes)
-                val = ConstVals.baseRes - tmpval
+            if tmpval > IDConstVals.baseRes then
+                headquarters:set_val(IDConstVals.baseRes)
+                val = IDConstVals.baseRes - tmpval
             else
                 headquarters:set_val((tmpval))
                 val = 0
@@ -791,9 +791,9 @@ function cmd4city.consumeRes4Base(food, gold, oil)
             val = -tmpval
         else
             -- 说明是存储
-            if tmpval > ConstVals.baseRes then
-                headquarters:set_val2(ConstVals.baseRes)
-                val = ConstVals.baseRes - tmpval
+            if tmpval > IDConstVals.baseRes then
+                headquarters:set_val2(IDConstVals.baseRes)
+                val = IDConstVals.baseRes - tmpval
             else
                 headquarters:set_val2((tmpval))
                 val = 0
@@ -811,9 +811,9 @@ function cmd4city.consumeRes4Base(food, gold, oil)
             val = -tmpval
         else
             -- 说明是存储
-            if tmpval > ConstVals.baseRes then
-                headquarters:set_val3(ConstVals.baseRes)
-                val = ConstVals.baseRes - tmpval
+            if tmpval > IDConstVals.baseRes then
+                headquarters:set_val3(IDConstVals.baseRes)
+                val = IDConstVals.baseRes - tmpval
             else
                 headquarters:set_val3((tmpval))
                 val = 0
@@ -832,9 +832,9 @@ function cmd4city.consumeRes2(data)
     if data == nil then
         return
     end
-    local food = data[ConstVals.ResType.food] or 0
-    local oil = data[ConstVals.ResType.oil] or 0
-    local gold = data[ConstVals.ResType.gold] or 0
+    local food = data[IDConstVals.ResType.food] or 0
+    local oil = data[IDConstVals.ResType.oil] or 0
+    local gold = data[IDConstVals.ResType.gold] or 0
     cmd4city.consumeRes(food, gold, oil)
 end
 
@@ -843,17 +843,17 @@ end
 ---@param gold 金
 ---@param oil 油
 function cmd4city.consumeRes(food, gold, oil)
-    local list1, total1 = cmd4city.getStoreBuildings(ConstVals.foodStorageBuildingID)
+    local list1, total1 = cmd4city.getStoreBuildings(IDConstVals.foodStorageBuildingID)
     if food > total1 + headquarters:get_val() then
         return false, Errcode.resNotEnough
     end
 
-    local list2, total2 = cmd4city.getStoreBuildings(ConstVals.goldStorageBuildingID)
+    local list2, total2 = cmd4city.getStoreBuildings(IDConstVals.goldStorageBuildingID)
     if gold > total2 + headquarters:get_val2() then
         return false, Errcode.resNotEnough
     end
 
-    local list3, total3 = cmd4city.getStoreBuildings(ConstVals.oildStorageBuildingID)
+    local list3, total3 = cmd4city.getStoreBuildings(IDConstVals.oildStorageBuildingID)
     if oil > total3 + headquarters:get_val3() then
         return false, Errcode.resNotEnough
     end
@@ -879,7 +879,7 @@ function cmd4city.onFinishBuildingUpgrade(b)
     -- 移除队列
     queueInfor.removeBuildQueue(b)
     local v = {}
-    v[dbbuilding.keys.state] = ConstVals.BuildingState.normal
+    v[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
     v[dbbuilding.keys.lev] = b:get_lev() + 1
     v[dbbuilding.keys.starttime] = b:get_endtime()
     b:refreshData(v)  -- 这样处理的目的是保证不会多次触发通知客户端
@@ -1027,7 +1027,7 @@ cmd4city.CMD = {
             local _v = {
                 [dbbuilding.keys.starttime] = dateEx.nowMS(),
                 [dbbuilding.keys.endtime] = endTime,
-                [dbbuilding.keys.state] = ConstVals.BuildingState.upgrade,
+                [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade,
             }
             building:refreshData(_v)
             queueInfor.addBuildQueue(building)
@@ -1096,7 +1096,7 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
 
-        if b:get_state() ~= ConstVals.BuildingState.normal then
+        if b:get_state() ~= IDConstVals.BuildingState.normal then
             ret.code = Errcode.buildingNotIdel
             ret.msg = "取得建筑不是空闲"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
@@ -1120,7 +1120,7 @@ cmd4city.CMD = {
         end
 
         -- 非主基地时，基它建筑要不能超过主基地
-        if b:get_attrid() ~= ConstVals.headquartersBuildingID then
+        if b:get_attrid() ~= IDConstVals.headquartersBuildingID then
             if b:get_lev() >= headquarters:get_lev() then
                 ret.code = Errcode.exceedHeadquarters
                 ret.msg = "不能超过主基地等级"
@@ -1152,7 +1152,7 @@ cmd4city.CMD = {
             local v = {
                 [dbbuilding.keys.starttime] = dateEx.nowMS(),
                 [dbbuilding.keys.endtime] = endTime,
-                [dbbuilding.keys.state] = ConstVals.BuildingState.upgrade,
+                [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade,
             }
             b:refreshData(v)
             queueInfor.addBuildQueue(b)
@@ -1191,7 +1191,7 @@ cmd4city.CMD = {
         end
 
         -- 非主基地时，基它建筑要不能超过主基地
-        if b:get_attrid() ~= ConstVals.headquartersBuildingID then
+        if b:get_attrid() ~= IDConstVals.headquartersBuildingID then
             if b:get_lev() >= headquarters:get_lev() then
                 ret.code = Errcode.exceedHeadquarters
                 ret.msg = "不能超过主基地等级"
@@ -1202,12 +1202,12 @@ cmd4city.CMD = {
         -- 看建筑状态
         local leftMinutes = 0
         local needDiam = 0
-        if b:get_state() == ConstVals.BuildingState.upgrade then
+        if b:get_state() == IDConstVals.BuildingState.upgrade then
             -- 正在升级
             leftMinutes = (b:get_endtime() - dateEx.nowMS()) / 60000
             leftMinutes = math.ceil(leftMinutes)
             needDiam = cfgUtl.minutes2Diam(leftMinutes)
-        elseif b:get_state() == ConstVals.BuildingState.normal then
+        elseif b:get_state() == IDConstVals.BuildingState.normal then
             -- 空闲状态
             local persent = (b:get_lev() + 1) / attr.MaxLev
             leftMinutes = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
@@ -1349,7 +1349,7 @@ cmd4city.CMD = {
         end
 
         local val = 0
-        if b:get_state() == ConstVals.BuildingState.normal then
+        if b:get_state() == IDConstVals.BuildingState.normal then
             local proTime = dateEx.nowMS() - (b:get_starttime() or 0)
             proTime = numEx.getIntPart(proTime / 60000)-- 转成分钟
             if proTime > 0 then

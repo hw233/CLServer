@@ -1,5 +1,5 @@
 ---@public 常量定义
-ConstVals = {
+IDConstVals = {
     headquartersBuildingID = 1,
     foodStorageBuildingID = 7,
     goldStorageBuildingID = 11,
@@ -7,14 +7,14 @@ ConstVals = {
     baseRes = 50000, -- 基础资源量
 }
 
-ConstVals.BuildingState = {
+IDConstVals.BuildingState = {
     normal = 0, --正常
     upgrade = 1, --升级中
     renew = 9, -- 恢复中
 }
 
 ---@public 游戏中各种类型
-ConstVals.UnitType = {
+IDConstVals.UnitType = {
     building = 1,
     ship = 2,
     tech = 3,
@@ -22,11 +22,18 @@ ConstVals.UnitType = {
     skill = 5,
 }
 
+IDConstVals.RoleGID = {
+    worker = 0, -- 工人
+    ship = 1, -- 舰船
+    solider = 2, -- 陆战兵
+    pet = 3, -- 宠物
+}
+
 ---@public 资源各类
-ConstVals.ResType = {
+IDConstVals.ResType = {
     food = 1,
     gold = 2,
     oil = 3,
     diam = 9,
 }
-return ConstVals
+return IDConstVals
