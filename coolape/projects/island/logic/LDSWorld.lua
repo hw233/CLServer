@@ -4,6 +4,7 @@ require "skynet.manager"    -- import skynet.register
 ---@type Grid
 require("Grid")
 require("public.cfgUtl")
+require("numEx")
 
 local constCfg  -- 常量配置
 local grid
@@ -17,12 +18,12 @@ local currScreenOrder = 1
 local CMD = {}
 
 --取得下屏的order
-local getNextScreenOrder = function()
-    currScreenOrder = currScreenOrder + 1
-    if currScreenOrder > #screenCneterIndexs then
-        currScreenOrder = 1
-    end
-end
+--local getNextScreenOrder = function()
+--    currScreenOrder = currScreenOrder + 1
+--    if currScreenOrder > #screenCneterIndexs then
+--        currScreenOrder = 1
+--    end
+--end
 
 --============================================
 -- 初始化
@@ -43,13 +44,20 @@ function CMD.init()
 end
 
 -- 取得空闲位置的index
-function CMD.getIdleIdx(screenOrder)
-    if screenOrder then
-        currScreenOrder = screenOrder
+function CMD.getIdleIdx(creenIdx)
+    --if screenOrder then
+    --    currScreenOrder = screenOrder
+    --end
+    if creenIdx == nil then
+        local i = numEx.nextInt(1, #screenCneterIndexs)
+        creenIdx = screenCneterIndexs[i]
     end
-    local creenIdx = screenCneterIndexs[currScreenOrder]
 
-    return 0
+    local cells = screenCells[creenIdx]
+    local i = numEx.nextInt(1, #cells)
+    local index = cells[i]
+    --todo:判断该位置是否可用
+    return index
 end
 
 skynet.start(function()
