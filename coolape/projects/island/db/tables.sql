@@ -133,3 +133,15 @@ CREATE TABLE `tile` (
   `pos` int(11),
   PRIMARY KEY (`idx`, `cidx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 世界地图
+DROP TABLE IF EXISTS `worldmap`;
+CREATE TABLE `worldmap` (
+  `idx` INT(10) NOT NULL,
+  `type` TINYINT NOT NULL,
+  `cidx` INT(11),
+  `val1` INT(11),
+  `val2` INT(11),
+  `val3` INT(11),
+  PRIMARY KEY (`idx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

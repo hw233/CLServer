@@ -150,7 +150,17 @@ function CMD.saveTableDesign(map)
         table.insert(str, '        "' .. v .. '",')
     end
     table.insert(str, "    },")
-    table.insert(str, "    groupKey = \"" .. designinfor.groupKey .. "\", -- 组key")
+
+    table.insert(str, "    groupKey  = { -- 缓存组key")
+    for i, v in ipairs(designinfor.groupKey or {}) do
+        table.insert(str, "    {")
+        for j, k in ipairs(v) do
+            table.insert(str, '        "' .. v .. '",')
+        end
+        table.insert(str, "    },")
+    end
+    table.insert(str, "    },")
+
     table.insert(str, "    defaultData = {}, -- 初始数据")
     table.insert(str, "}")
     table.insert(str, "return tab\n")

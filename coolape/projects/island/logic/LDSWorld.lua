@@ -5,6 +5,7 @@ require "skynet.manager"    -- import skynet.register
 require("Grid")
 require("public.cfgUtl")
 require("numEx")
+require("db.dbworldmap")
 
 local constCfg  -- 常量配置
 local grid
@@ -54,10 +55,47 @@ function CMD.getIdleIdx(creenIdx)
     end
 
     local cells = screenCells[creenIdx]
-    local i = numEx.nextInt(1, #cells)
-    local index = cells[i]
-    --todo:判断该位置是否可用
-    return index
+    local index = numEx.nextInt(1, #cells)
+    local pos = cells[index]
+    local mapCell = dbworldmap.instanse(pos)
+    if mapCell:isEmpty() then
+        -- 该位置是可用
+        return pos
+    else
+        mapCell:release()
+        local i = index + 1
+        if i > #cells then
+            i = 1
+        end
+        while i ~= index do
+            local pos = cells[i]
+            local mapCell = dbworldmap.instanse(pos)
+            if mapCell:isEmpty() then
+                -- 该位置是可用
+                return pos
+            end
+            mapCell:release()
+            i = i + 1
+            if i > #cells then
+                i = 1
+            end
+        end
+        -- 仍然没有找到
+        return CMD.getIdleIdx()
+    end
+end
+
+---@public 占用一个格子
+function CMD.occupyMapCell(cidx, type)
+    local pos = CMD.getIdleIdx()
+    local mapCell = dbworldmap.instanse(pos)
+    local cellData = {}
+    cellData[dbworldmap.keys.idx] = pos
+    cellData[dbworldmap.keys.cidx] = cidx or 0
+    cellData[dbworldmap.keys.type] = type
+    mapCell:init(cellData, true)
+    mapCell:release()
+    return mapCell:value2copy()
 end
 
 skynet.start(function()

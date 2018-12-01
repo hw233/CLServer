@@ -92,12 +92,14 @@ function cmd4city.new (uidx)
 
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
 
+    -- 分配一个世界坐标
+    local mapcell = skynet.call("LDSWorld", "lua", "occupyMapCell", idx, 1)
     myself = dbcity.new()
     local d = {}
     d.idx = idx
     d.name = "new city"
     d.pidx = uidx
-    d.pos = skynet.call("LDSWorld", "lua", "getIdleIdx")
+    d.pos = mapcell.idx
     d.status = 1
     d.lev = 1
     myself:init(d, true)
