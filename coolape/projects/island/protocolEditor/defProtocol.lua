@@ -114,6 +114,28 @@ defProtocol.structs.resInfor = {
     }
 }
 
+defProtocol.structs.mapCell = {
+    "大地图地块数据",
+    {
+        idx = { 0, "网格index" },
+        type = { 0, "地块类型 1：玩家，2：npc" },
+        cidx = { 0, "主城idx" },
+        pageIdx = { 0, "所在屏的index" },
+        val1 = { 0, "值1" },
+        val2 = { 0, "值2" },
+        val3 = { 0, "值3" },
+    }
+}
+
+defProtocol.structs.mapPage = {
+    "一屏大地图数据",
+    {
+        pageIdx = { 0, "一屏所在的网格index " },
+        cells = { { defProtocol.structs.mapCell, defProtocol.structs.mapCell }, "地图数据 key=网络index, map" },
+    }
+}
+
+
 --===================================================
 --===================================================
 --===================================================
@@ -206,8 +228,8 @@ defProtocol.cmds = {
     },
     upLevBuilding = {
         desc = "升级建筑"; -- 接口说明
-        input = { "idx"}; -- 入参
-        inputDesc = { "建筑idx int"}; -- 入参说明
+        input = { "idx" }; -- 入参
+        inputDesc = { "建筑idx int" }; -- 入参说明
         output = { structs.retInfor, defProtocol.structs.building }; -- 出参
         outputDesc = { "返回信息", "建筑信息" }; -- 出参说明
         logic = "cmd4city";
@@ -254,13 +276,20 @@ defProtocol.cmds = {
     },
     collectRes = {
         desc = "收集资源"; -- 接口说明
-        input = {"idx" }; -- 入参
-        inputDesc = {"资源建筑的idx int" }; -- 入参说明
+        input = { "idx" }; -- 入参
+        inputDesc = { "资源建筑的idx int" }; -- 入参说明
         output = { structs.retInfor, "resType", "resVal", defProtocol.structs.building }; -- 出参
         outputDesc = { "返回信息", "收集的资源类型 int", "收集到的资源量 int", "建筑信息" }; -- 出参说明
         logic = "cmd4city";
     },
-
+    getMapDataByPageIdx = {
+        desc = "取得一屏的在地图数据"; -- 接口说明
+        input = { "pageIdx" }; -- 入参
+        inputDesc = { "一屏所在的网格index" }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.mapPage }; -- 出参
+        outputDesc = { "返回信息", "在地图一屏数据 map" }; -- 出参说明
+        logic = "LDSWorld";
+    },
 }
 
 return defProtocol

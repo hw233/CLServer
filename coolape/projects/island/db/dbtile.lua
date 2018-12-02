@@ -26,10 +26,10 @@ dbtile = class("dbtile")
 dbtile.name = "tile"
 
 dbtile.keys = {
-    idx = "idx",
-    cidx = "cidx",
-    attrid = "attrid",
-    pos = "pos",
+    idx = "idx", -- 唯一标识
+    cidx = "cidx", -- 主城idx
+    attrid = "attrid", -- 属性id
+    pos = "pos", -- 城所在世界grid的index
 }
 
 function dbtile:ctor(v)

@@ -178,6 +178,50 @@ do
             return r;
         end,
     }
+    ---@class NetProtoIsland.ST_mapPage 一屏大地图数据
+    NetProtoIsland.ST_mapPage = {
+        toMap = function(m)
+            local r = {}
+            if m == nil then return r end
+            r[82] = NetProtoIsland._toList(NetProtoIsland.ST_mapCell, m.cells)  -- 地图数据 key=网络index, map
+            r[83] = m.pageIdx  -- 一屏所在的网格index  int
+            return r;
+        end,
+        parse = function(m)
+            local r = {}
+            if m == nil then return r end
+            r.cells = NetProtoIsland._parseList(NetProtoIsland.ST_mapCell, m[82])  -- 地图数据 key=网络index, map
+            r.pageIdx = m[83] --  int
+            return r;
+        end,
+    }
+    ---@class NetProtoIsland.ST_mapCell 大地图地块数据
+    NetProtoIsland.ST_mapCell = {
+        toMap = function(m)
+            local r = {}
+            if m == nil then return r end
+            r[12] = m.idx  -- 网格index int
+            r[84] = m.val1  -- 值1 int
+            r[47] = m.cidx  -- 主城idx int
+            r[49] = m.val3  -- 值3 int
+            r[83] = m.pageIdx  -- 所在屏的index int
+            r[50] = m.val2  -- 值2 int
+            r[85] = m.type  -- 地块类型 1：玩家，2：npc int
+            return r;
+        end,
+        parse = function(m)
+            local r = {}
+            if m == nil then return r end
+            r.idx = m[12] --  int
+            r.val1 = m[84] --  int
+            r.cidx = m[47] --  int
+            r.val3 = m[49] --  int
+            r.pageIdx = m[83] --  int
+            r.val2 = m[50] --  int
+            r.type = m[85] --  int
+            return r;
+        end,
+    }
     ---@class NetProtoIsland.ST_resInfor 资源信息
     NetProtoIsland.ST_resInfor = {
         toMap = function(m)
@@ -311,6 +355,14 @@ do
         ret[1] = NetProtoIsland.__sessionID
         return ret
     end,
+    -- 取得一屏的在地图数据
+    getMapDataByPageIdx = function(pageIdx)
+        local ret = {}
+        ret[0] = 88
+        ret[1] = NetProtoIsland.__sessionID
+        ret[83] = pageIdx; -- 一屏所在的网格index
+        return ret
+    end,
     -- 移动地块
     moveTile = function(idx, pos)
         local ret = {}
@@ -436,6 +488,13 @@ do
         ret.cmd = "heart"
         return ret
     end,
+    getMapDataByPageIdx = function(map)
+        local ret = {}
+        ret.cmd = "getMapDataByPageIdx"
+        ret.retInfor = NetProtoIsland.ST_retInfor.parse(map[2]) -- 返回信息
+        ret.mapPage = NetProtoIsland.ST_mapPage.parse(map[87]) -- 在地图一屏数据 map
+        return ret
+    end,
     moveTile = function(map)
         local ret = {}
         ret.cmd = "moveTile"
@@ -475,28 +534,30 @@ do
     NetProtoIsland.dispatch[71]={onReceive = NetProtoIsland.recive.onBuildingChg, send = NetProtoIsland.send.onBuildingChg}
     NetProtoIsland.dispatch[72]={onReceive = NetProtoIsland.recive.onPlayerChg, send = NetProtoIsland.send.onPlayerChg}
     NetProtoIsland.dispatch[59]={onReceive = NetProtoIsland.recive.heart, send = NetProtoIsland.send.heart}
+    NetProtoIsland.dispatch[88]={onReceive = NetProtoIsland.recive.getMapDataByPageIdx, send = NetProtoIsland.send.getMapDataByPageIdx}
     NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.moveTile, send = NetProtoIsland.send.moveTile}
     NetProtoIsland.dispatch[79]={onReceive = NetProtoIsland.recive.collectRes, send = NetProtoIsland.send.collectRes}
     NetProtoIsland.dispatch[73]={onReceive = NetProtoIsland.recive.onFinishBuildingUpgrade, send = NetProtoIsland.send.onFinishBuildingUpgrade}
     --==============================
     NetProtoIsland.cmds = {
-        upLevBuilding = "upLevBuilding",
-        rmBuilding = "rmBuilding",
-        newBuilding = "newBuilding",
-        login = "login",
-        getBuilding = "getBuilding",
-        rmTile = "rmTile",
-        onResChg = "onResChg",
-        moveBuilding = "moveBuilding",
-        logout = "logout",
-        upLevBuildingImm = "upLevBuildingImm",
-        newTile = "newTile",
-        onBuildingChg = "onBuildingChg",
-        onPlayerChg = "onPlayerChg",
-        heart = "heart",
-        moveTile = "moveTile",
-        collectRes = "collectRes",
-        onFinishBuildingUpgrade = "onFinishBuildingUpgrade"
+        upLevBuilding = "upLevBuilding", -- 升级建筑,
+        rmBuilding = "rmBuilding", -- 移除建筑,
+        newBuilding = "newBuilding", -- 新建建筑,
+        login = "login", -- 登陆,
+        getBuilding = "getBuilding", -- 取得建筑,
+        rmTile = "rmTile", -- 移除地块,
+        onResChg = "onResChg", -- 资源变化时推送,
+        moveBuilding = "moveBuilding", -- 移动建筑,
+        logout = "logout", -- 登出,
+        upLevBuildingImm = "upLevBuildingImm", -- 立即升级建筑,
+        newTile = "newTile", -- 新建地块,
+        onBuildingChg = "onBuildingChg", -- 建筑变化时推送,
+        onPlayerChg = "onPlayerChg", -- 玩家信息变化时推送,
+        heart = "heart", -- 心跳,
+        getMapDataByPageIdx = "getMapDataByPageIdx", -- 取得一屏的在地图数据,
+        moveTile = "moveTile", -- 移动地块,
+        collectRes = "collectRes", -- 收集资源,
+        onFinishBuildingUpgrade = "onFinishBuildingUpgrade", -- 建筑升级完成
     }
     --==============================
     return NetProtoIsland

@@ -26,19 +26,19 @@ dbbuilding = class("dbbuilding")
 dbbuilding.name = "building"
 
 dbbuilding.keys = {
-    idx = "idx",
-    cidx = "cidx",
-    pos = "pos",
-    attrid = "attrid",
-    lev = "lev",
-    state = "state",
-    starttime = "starttime",
-    endtime = "endtime",
-    val = "val",
-    val2 = "val2",
-    val3 = "val3",
-    val4 = "val4",
-    val5 = "val5",
+    idx = "idx", -- 唯一标识
+    cidx = "cidx", -- 主城idx
+    pos = "pos", -- 位置，即在城的gird中的index
+    attrid = "attrid", -- 属性配置id
+    lev = "lev", -- 等级
+    state = "state", -- 状态. 0：正常；1：升级中；9：恢复中
+    starttime = "starttime", -- 开始升级、恢复、采集等的时间点
+    endtime = "endtime", -- 完成升级、恢复、采集等的时间点
+    val = "val", -- 值。如:产量，仓库的存储量等
+    val2 = "val2", -- 值2。如:产量，仓库的存储量等
+    val3 = "val3", -- 值3。如:产量，仓库的存储量等
+    val4 = "val4", -- 值4。如:产量，仓库的存储量等
+    val5 = "val5", -- 值5。如:产量，仓库的存储量等
 }
 
 function dbbuilding:ctor(v)

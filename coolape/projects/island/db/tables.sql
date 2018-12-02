@@ -140,6 +140,7 @@ CREATE TABLE `worldmap` (
   `idx` INT(10) NOT NULL,
   `type` TINYINT NOT NULL,
   `cidx` INT(11),
+  `pageIdx` INT(11) NOT NULL,
   `val1` INT(11),
   `val2` INT(11),
   `val3` INT(11),

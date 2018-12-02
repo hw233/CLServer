@@ -136,6 +136,9 @@ end
 
 -- 取得逻辑处理类
 function CMD.getLogic(logicName)
+    if logicName == "LDSWorld" then
+        return logicName
+    end
     local logic = LogicMap[logicName]
     if logic == nil then
         logic = skynet.newservice(logicName)

@@ -416,7 +416,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "")
     table.insert(str, name .. ".keys = {")
     for i, v in ipairs(tableCfg.columns) do
-        table.insert(str, "    " .. v[1] .. " = \"" .. v[1] .. "\",")
+        table.insert(str, "    " .. v[1] .. " = \"" .. v[1] .. "\", -- " .. v[3])
     end
     table.insert(str, "}")
     table.insert(str, "")

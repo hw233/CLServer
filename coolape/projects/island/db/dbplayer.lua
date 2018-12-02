@@ -26,18 +26,18 @@ dbplayer = class("dbplayer")
 dbplayer.name = "player"
 
 dbplayer.keys = {
-    idx = "idx",
-    status = "status",
-    name = "name",
-    lev = "lev",
-    money = "money",
-    diam = "diam",
-    cityidx = "cityidx",
-    unionidx = "unionidx",
-    crtTime = "crtTime",
-    lastEnTime = "lastEnTime",
-    channel = "channel",
-    deviceid = "deviceid",
+    idx = "idx", -- 唯一标识
+    status = "status", -- 状态 1:正常;
+    name = "name", -- 名称
+    lev = "lev", -- 等级
+    money = "money", -- 充值总数
+    diam = "diam", -- 钻石
+    cityidx = "cityidx", -- 主城idx
+    unionidx = "unionidx", -- 联盟idx
+    crtTime = "crtTime", -- 创建时间
+    lastEnTime = "lastEnTime", -- 最后登陆时间
+    channel = "channel", -- 渠道
+    deviceid = "deviceid", -- 机器id
 }
 
 function dbplayer:ctor(v)

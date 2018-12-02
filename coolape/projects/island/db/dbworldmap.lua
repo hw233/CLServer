@@ -26,12 +26,13 @@ dbworldmap = class("dbworldmap")
 dbworldmap.name = "worldmap"
 
 dbworldmap.keys = {
-    idx = "idx",
-    type = "type",
-    cidx = "cidx",
-    val1 = "val1",
-    val2 = "val2",
-    val3 = "val3",
+    idx = "idx", -- 网格index
+    type = "type", -- 地块类型 1：玩家，2：npc
+    cidx = "cidx", -- 主城idx
+    pageIdx = "pageIdx", -- 所在屏的index
+    val1 = "val1", -- 值1
+    val2 = "val2", -- 值2
+    val3 = "val3", -- 值3
 }
 
 function dbworldmap:ctor(v)
@@ -147,6 +148,21 @@ function dbworldmap:get_cidx()
     return (tonumber(val) or 0)
 end
 
+function dbworldmap:set_pageIdx(v)
+    -- 所在屏的index
+    if self:isEmpty() then
+        skynet.error("[dbworldmap:set_pageIdx],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pageIdx", v)
+end
+function dbworldmap:get_pageIdx()
+    -- 所在屏的index
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pageIdx")
+    return (tonumber(val) or 0)
+end
+
 function dbworldmap:set_val1(v)
     -- 值1
     if self:isEmpty() then
@@ -249,6 +265,39 @@ function dbworldmap.querySql(idx)
     end
 end
 
+-- 取得一个组
+function dbworldmap.getListBypageIdx(pageIdx, orderby, limitOffset, limitNum)
+    local sql = "SELECT * FROM worldmap WHERE pageIdx=" .. pageIdx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
+    local list = skynet.call("CLMySQL", "lua", "exesql", sql)
+    if list and list.errno then
+        skynet.error("[dbworldmap.getGroup] sql error==" .. sql)
+        return nil
+     end
+     local cachlist = skynet.call("CLDB", "lua", "GETGROUP", dbworldmap.name, pageIdx) or {}
+     for i, v in ipairs(list) do
+         local key = tostring(v.idx)
+         local d = cachlist[key]
+         if d ~= nil then
+             -- 用缓存的数据才是最新的
+             list[i] = d
+             cachlist[key] = nil
+         end
+     end
+     for k ,v in pairs(cachlist) do
+         table.insert(list, v)
+     end
+     cachlist = nil
+     local data
+     local ret = {}
+     for k, v in ipairs(list) do
+         data = dbworldmap.new(v, false)
+         ret[k] = data:value2copy()
+         data:release()
+     end
+     list = nil
+     return ret
+end
+
 function dbworldmap.validData(data)
     if data == nil then return nil end
 
@@ -260,6 +309,9 @@ function dbworldmap.validData(data)
     end
     if type(data.cidx) ~= "number" then
         data.cidx = tonumber(data.cidx) or 0
+    end
+    if type(data.pageIdx) ~= "number" then
+        data.pageIdx = tonumber(data.pageIdx) or 0
     end
     if type(data.val1) ~= "number" then
         data.val1 = tonumber(data.val1) or 0

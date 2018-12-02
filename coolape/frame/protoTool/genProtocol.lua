@@ -298,7 +298,7 @@ do
         local cmdMap = {}
         for cmd, cfg in pairs(defProtocol.cmds) do
             requires[cfg.logic] = true;
-            add(cmdMap, "        " .. cmd .. " = \"" .. cmd .. "\"")
+            add(cmdMap, "        " .. cmd .. " = \"" .. cmd .. "\", -- " .. cfg.desc)
             add(dispatch, "    " .. defProtocol.name .. ".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = " .. defProtocol.name .. ".recive." .. cmd .. ", send = " .. defProtocol.name .. ".send." .. cmd .. "}")
             add(dispatchserver, "    " .. defProtocol.name .. ".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = " .. defProtocol.name .. ".recive." .. cmd .. ", send = " .. defProtocol.name .. ".send." .. cmd .. ", logicName = \"" .. cfg.logic .. "\"}")
             if cfg.desc then

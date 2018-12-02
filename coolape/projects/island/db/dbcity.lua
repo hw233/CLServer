@@ -26,11 +26,11 @@ dbcity = class("dbcity")
 dbcity.name = "city"
 
 dbcity.keys = {
-    idx = "idx",
-    name = "name",
-    pidx = "pidx",
-    pos = "pos",
-    status = "status",
+    idx = "idx", -- 唯一标识
+    name = "name", -- 名称
+    pidx = "pidx", -- 玩家idx
+    pos = "pos", -- 城所在世界grid的index
+    status = "status", -- 状态 1:正常;
 }
 
 function dbcity:ctor(v)
