@@ -19,7 +19,11 @@ local screenCneterIndexs = {}
 local currScreenOrder = 1
 local NetProtoIsland = "NetProtoIsland"
 
+local cachePages = {}
+local ConstTimeOut = 60 * 100 -- 60秒
+
 local CMD = {}
+local pauseFork = false
 
 --取得下屏的order
 --local getNextScreenOrder = function()
@@ -28,6 +32,33 @@ local CMD = {}
 --        currScreenOrder = 1
 --    end
 --end
+
+
+---@public 启动一个线路处理超时数据（应该有多线程数据同步问题）
+local procTimeoutData = function()
+    while (true) do
+        if not pauseFork then
+            for pageIdx, lastUseTime in pairs(cachePages) do
+                if not pauseFork then
+                    if lastUseTime and (dateEx.nowMS() - lastUseTime > ConstTimeOut) then
+                        -- 已经超时了
+                        local list = skynet.call("CLDB", "lua", "GETGROUP", dbworldmap.name, pageIdx)
+                        if list then
+                            local cell = nil
+                            for i, v in ipairs(list) do
+                                cell = dbworldmap.new()
+                                cell.__key__ = v.idx
+                                cell:release()
+                            end
+                        end
+                        cachePages[pageIdx] = nil
+                    end
+                end
+            end
+        end
+        skynet.sleep(ConstTimeOut)
+    end
+end
 
 --============================================
 -- 初始化
@@ -119,13 +150,27 @@ end
 
 ---@public 取得一屏数据
 function CMD.getMapDataByPageIdx(map)
+    pauseFork = true
     local pageIdx = map.pageIdx
     local cmd = map.cmd
-    local list = dbworldmap.getListBypageIdx(pageIdx)
+
+    -- 先从缓存里取
+    local list = skynet.call("CLDB", "lua", "GETGROUP", dbworldmap.name, pageIdx)
+    if list == nil then
+        -- 缓存里没有，那就从数据库里取
+        list = dbworldmap.getListBypageIdx(pageIdx)
+        for i, v in ipairs(list) do
+            -- 这样就会把数据先缓存起来
+            dbworldmap.instanse(v.idx)
+        end
+    end
+    -- 记录已经缓存了的page
+    cachePages[pageIdx] = dateEx.nowMS()
     local mapPage = {}
     mapPage.pageIdx = pageIdx
     mapPage.mapPage = list
-    skynet.ret(NetProtoIsland, "lua", "send", cmd, { code = Errcode.ok }, mapPage)
+    pauseFork = false
+    return skynet.ret(NetProtoIsland, "lua", "send", cmd, { code = Errcode.ok }, mapPage)
 end
 
 skynet.start(function()
@@ -140,5 +185,9 @@ skynet.start(function()
         local f = CMD[command]
         skynet.ret(skynet.pack(f(...)))
     end)
+
+    -- 启动一个线路处理超时数据（应该有多线程数据同步问题）
+    skynet.fork( procTimeoutData);
+
     skynet.register "LDSWorld"
 end)
