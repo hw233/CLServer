@@ -96,7 +96,7 @@ end
 -- 取得一个组，注意这个组不是list而是个table
 function command.GETGROUP(tableName, groupKey)
     local t = db4Group[tableName] or {}
-    local cacheGroup = t[tostring(groupKey)] or {}
+    local cacheGroup = t[tostring(groupKey)]
     return cacheGroup;
 end
 

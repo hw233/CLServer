@@ -80,13 +80,13 @@ end
 
 -- pass in world space coords. Get the tile index at the passed position
 function Grid:GetCellIndexByPos(pos)
-    if (not self:IsInBounds(pos)) then
-        return kInvalidIndex
-    end
     pos = pos - self.Origin
     local col, row
     col = numEx.getIntPart(pos.x / self.m_cellSize)
     row = numEx.getIntPart(pos.z / self.m_cellSize)
+    if not self:IsInBounds(col, row) then
+        return kInvalidIndex
+    end
     return row * self.m_numberOfColumns + col
 end
 

@@ -144,8 +144,9 @@ function CMD.occupyMapCell(cidx, type)
     cellData[dbworldmap.keys.cidx] = cidx or 0
     cellData[dbworldmap.keys.type] = type
     mapCell:init(cellData, true)
+    local ret = mapCell:value2copy()
     mapCell:release()
-    return mapCell:value2copy()
+    return ret
 end
 
 ---@public 取得一屏数据
@@ -156,7 +157,7 @@ function CMD.getMapDataByPageIdx(map)
 
     -- 先从缓存里取
     local list = skynet.call("CLDB", "lua", "GETGROUP", dbworldmap.name, pageIdx)
-    if list == nil then
+    if list == nil or cachePages[pageIdx] == nil then
         -- 缓存里没有，那就从数据库里取
         list = dbworldmap.getListBypageIdx(pageIdx)
         for i, v in ipairs(list) do
@@ -168,9 +169,10 @@ function CMD.getMapDataByPageIdx(map)
     cachePages[pageIdx] = dateEx.nowMS()
     local mapPage = {}
     mapPage.pageIdx = pageIdx
-    mapPage.mapPage = list
+    mapPage.cells = list
+    skynet.error("=================" .. #list)
     pauseFork = false
-    return skynet.ret(NetProtoIsland, "lua", "send", cmd, { code = Errcode.ok }, mapPage)
+    return skynet.call(NetProtoIsland, "lua", "send", cmd, { code = Errcode.ok }, mapPage)
 end
 
 skynet.start(function()
@@ -187,7 +189,7 @@ skynet.start(function()
     end)
 
     -- 启动一个线路处理超时数据（应该有多线程数据同步问题）
-    skynet.fork( procTimeoutData);
+    skynet.fork(procTimeoutData);
 
     skynet.register "LDSWorld"
 end)
