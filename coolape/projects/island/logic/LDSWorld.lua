@@ -83,12 +83,13 @@ function CMD.getPageIdx(gidx)
     local pos = grid:GetCellCenter(gidx)
     pos = pos - grid.Origin
 
+    local screen = screenSize * cellSize
     local col, row
-    col = numEx.getIntPart(pos.x / screenSize)
-    row = numEx.getIntPart(pos.z / screenSize)
+    col = numEx.getIntPart(pos.x / screen)
+    row = numEx.getIntPart(pos.z / screen)
 
-    local x2 = col * screenSize + (screenSize / 2)
-    local z2 = row * screenSize + (screenSize / 2)
+    local x2 = col * screen + (screen / 2)
+    local z2 = row * screen + (screen / 2)
     local cellPosition = grid.Origin + Vector3(x2, 0, z2)
     return grid:GetCellIndex(cellPosition)
 end
