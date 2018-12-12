@@ -16,16 +16,17 @@ timerEx.new = function(sec, func, param)
     if sec < 0 then
         sec = 0
     end
-    local function cb()
-        if func then
-            func(param)
-        end
-    end
     local coroutine = {}
     coroutine.param = param
     coroutine.func = func
     coroutine.cancel = function()
         func = nil
+    end
+
+    local function cb()
+        if func then
+            func(param, coroutine)
+        end
     end
 
     --将当前 coroutine 挂起 ti 个单位时间。一个单位是 1/100 秒

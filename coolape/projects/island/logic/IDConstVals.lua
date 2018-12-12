@@ -1,6 +1,7 @@
 ---@public 常量定义
 IDConstVals = {
-    headquartersBuildingID = 1,
+    headquartersBuildingID = 1, -- 主基地
+    dockyardBuildingID = 2,     -- 造船厂
     foodStorageBuildingID = 7,
     goldStorageBuildingID = 11,
     oildStorageBuildingID = 9,

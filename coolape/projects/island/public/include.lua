@@ -4,7 +4,7 @@ require("class")
 require("CLLPool")
 require("CLLQueue")
 require("CLLStack")
-require("json")
+json = require("json")
 require("BioUtl")
 
 require("DBUtl")

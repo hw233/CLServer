@@ -36,16 +36,29 @@ end
 
 ---@public 加入造兵队列
 ---@param b dbbuilding
-buildQueue.addShipQueue = function(b, callback)
-    local endtime = b:get_endtime()
-    local diff = endtime - dateEx.nowMS()
-    local cor = timerEx.new(diff / 1000, callback, b)
-    table.insert(buildQueue.ship, cor)
+buildQueue.addShipQueue = function(b, seconds, callback)
+    if b:get_state() ~= IDConstVals.BuildingState.working then
+        buildQueue.removeShipQueue(b)
+        return
+    end
+    local roleAttrId = b:get_val()
+    local num = b:get_val2()
+    if num <= 0 then
+        buildQueue.removeShipQueue(b)
+        return
+    end
+
+    local cor = timerEx.new(seconds, callback, b)
+    buildQueue.ship[b:get_idx()] = cor
 end
 
 ---@param b dbbuilding
 buildQueue.removeShipQueue = function(b)
-
+    local cor = buildQueue.ship[b:get_idx()]
+    if cor then
+        timerEx.cancel(cor) --取消timer
+    end
+    buildQueue.ship[b:get_idx()] = nil
 end
 
 buildQueue.release = function()

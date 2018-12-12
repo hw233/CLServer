@@ -569,12 +569,17 @@ function cmd4city.setSelfBuildings()
         b:setTrigger(skynet.self(), "onBuildingChg")
         buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
 
-        -- todo:处理建筑升级
         if b:get_state() == IDConstVals.BuildingState.upgrade then
             if b:get_endtime() <= dateEx.nowMS() then
                 cmd4city.onFinishBuildingUpgrade(b)
             else
                 buildQueue.addBuildQueue(b, cmd4city.onFinishBuildingUpgrade)
+            end
+        elseif b:get_state() == IDConstVals.BuildingState.working then
+            -- 正生产
+            if b:get_attrid() == IDConstVals.dockyardBuildingID then
+                -- 造船厂
+                cmd4city.procDockyardBuildShip(b)
             end
         end
 
@@ -832,7 +837,7 @@ end
 ---@public 当建筑升级完成时
 ---@param b dbbuilding
 function cmd4city.onFinishBuildingUpgrade(b)
-    -- 移除队列
+    --移除升级队列
     buildQueue.removeBuildQueue(b)
     local v = {}
     v[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
@@ -842,6 +847,69 @@ function cmd4city.onFinishBuildingUpgrade(b)
 
     -- 通知客户端
     cmd4city.CMD.onBuildingChg(b:value2copy(), "onFinishBuildingUpgrade")
+end
+
+---@public 当完成造船时
+---@param b dbbuilding
+---@param shipAttrid number 舰船的配置id
+---@param num number 已经造好的船的数量
+function cmd4city.onFinishBuildShip(b, shipAttrid, num)
+    local shipsMap = json.decode(b:get_valstr() or "")
+    shipsMap = shipsMap or {}
+    shipsMap[tostring(shipAttrid)] = num + (shipsMap[tostring(shipAttrid)] or 0)
+    local str = json.encode(shipsMap)
+    b:set_valstr(str)
+
+    -- 通知客户端
+    cmd4city.CMD.onDockyardShipsChg(b:get_idx(), shipsMap)
+end
+
+---@public 处理造船厂建造舰船的逻辑
+---@param b dbbuilding
+function cmd4city.procDockyardBuildShip(b)
+    if b:get_state() == IDConstVals.BuildingState.working then
+        local roleAttrId = b:get_val()
+        local num = b:get_val2()
+        if roleAttrId <= 0 or num <= 0 then
+            local data = {}
+            data[dbbuilding.keys.val] = 0
+            data[dbbuilding.keys.val2] = 0
+            data[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
+            b:refreshData(data)
+            return
+        end
+        local attr = cfgUtl.getRoleByID(roleAttrId)
+        -- 建船时间
+        local BuildTimeS = attr.BuildTimeS / 10
+        local starttime = b:get_starttime()
+        local diffSec = (dateEx.nowMS() - starttime) / 1000
+        local finishBuildNum = numEx.getIntPart(diffSec / BuildTimeS)
+        if finishBuildNum > 0 then
+            if finishBuildNum >= num then
+                -- 说明全部已经完成
+                finishBuildNum = num
+                local data = {}
+                data[dbbuilding.keys.val] = 0
+                data[dbbuilding.keys.val2] = 0
+                data[dbbuilding.keys.starttime] = b:get_endtime()
+                data[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
+                b:refreshData(data)
+            else
+                local leftSec = diffSec % BuildTimeS
+                local data = {}
+                data[dbbuilding.keys.val2] = b:get_val2() - finishBuildNum
+                data[dbbuilding.keys.starttime] = dateEx.nowMS() - numEx.getIntPart(leftSec * 1000)
+                b:refreshData(data)
+            end
+            cmd4city.onFinishBuildShip(b, roleAttrId, finishBuildNum)
+        end
+
+        if b:get_state() == IDConstVals.BuildingState.working then
+            buildQueue.addShipQueue(b, BuildTimeS, cmd4city.procDockyardBuildShip)
+        else
+            buildQueue.removeShipQueue(b)
+        end
+    end
 end
 
 -- 释放数据
@@ -1408,7 +1476,7 @@ cmd4city.CMD = {
         b:refreshData(data)
 
         -- 添加造兵队列
-        buildQueue.addShipQueue(b)
+        cmd4city.procDockyardBuildShip(b)
 
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy())
@@ -1433,7 +1501,23 @@ cmd4city.CMD = {
         dockyardShips.shipsMap = shipsMap
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", cmd, dockyardShips)
-    end
+    end,
+
+    ---@public 当造船厂的舰艇数量发化变化时
+    onDockyardShipsChg = function(bidx, shipsMap)
+        local cmd = "getShipsByBuildingIdx"
+        local ret = {}
+
+        local dockyardShips = {}
+        dockyardShips.buildingIdx = b:get_idx()
+        dockyardShips.shipsMap = shipsMap
+        ret.code = Errcode.ok
+        -- 推送给客户端
+        local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, dockyardShips)
+        if skynet.address(agent) ~= nil then
+            skynet.call(agent, "lua", "sendPackage", package)
+        end
+    end,
 }
 
 skynet.start(function()
