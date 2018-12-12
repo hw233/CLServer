@@ -8,6 +8,7 @@ cfgUtl = {}
 
 local curves = nil
 
+---@public 初始化曲线
 function cfgUtl.initCurves()
     curves = {}
     local curveIns = curve.new(1, 0, 1, curve.easing.linear)
@@ -39,24 +40,29 @@ function cfgUtl.initCurves()
     table.insert(curves, curveIns)
 end
 
--- 取得常量配置
+---@public 取得常量配置
 function cfgUtl.getConstCfg()
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFCfgData", 1)
 end
 
--- 取得主基地等级开放
+---@public 取得主基地等级开放
 function cfgUtl.getHeadquartersLevsByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFHeadquartersLevsData", id)
 end
 
--- 取得地块的cfg
+---@public 取得地块的cfg
 function cfgUtl.getTileByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFTileData", id)
 end
 
--- 取得建筑
+---@public 取得建筑
 function cfgUtl.getBuildingByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFBuildingData", id)
+end
+
+---@public 取得兵种数据
+function cfgUtl.getRoleByID(id)
+    return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFRoleData", id)
 end
 
 ---@public 取得成长值

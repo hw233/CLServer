@@ -8,6 +8,7 @@ require("dbtile")
 require("dbbuilding")
 require("dbplayer")
 require("Errcode")
+require("buildQueue")
 local timerEx = require("timerEx")
 local IDConstVals = require("IDConstVals")
 
@@ -36,53 +37,6 @@ local buildings = {}    -- 建筑信息 key=idx, val=dbbuilding
 local headquarters -- 主基地
 local buildingCountMap = {}  -- key=buildingAttrid;value=count
 local hadTileCount = 0  -- 地块总量
-
---======================================================
---======================================================
--- 队列情况
-local queueInfor = {
-    build = {}, -- 建筑队列
-    ship = {}, -- 兵队列
-    tech = {}, -- 科技队列
-}
----@param b dbbuilding
-queueInfor.removeBuildQueue = function(b)
-    ---@type dbbuilding
-    local building
-    for i, v in ipairs(queueInfor.build) do
-        building = v.param
-        if building:get_idx() == b:get_idx() then
-            timerEx.cancel(v) --取消timer
-            table.remove(queueInfor.build, i)
-            break
-        end
-    end
-end
-
--- 加入建筑队列
----@param b dbbuilding
-queueInfor.addBuildQueue = function(b)
-    local endtime = b:get_endtime()
-    local diff = endtime - dateEx.nowMS()
-    local cor = timerEx.new(diff / 1000, cmd4city.onFinishBuildingUpgrade, b)
-    table.insert(queueInfor.build, cor)
-end
-
-queueInfor.release = function()
-    for i, v in ipairs(queueInfor.build) do
-        timerEx.cancel(v)
-    end
-    queueInfor.build = {}
-
-    for i, v in ipairs(queueInfor.ship) do
-        timerEx.cancel(v)
-    end
-    queueInfor.ship = {}
-    for i, v in ipairs(queueInfor.tech) do
-        timerEx.cancel(v)
-    end
-    queueInfor.tech = {}
-end
 
 --======================================================
 --======================================================
@@ -620,7 +574,7 @@ function cmd4city.setSelfBuildings()
             if b:get_endtime() <= dateEx.nowMS() then
                 cmd4city.onFinishBuildingUpgrade(b)
             else
-                queueInfor.addBuildQueue(b)
+                buildQueue.addBuildQueue(b, cmd4city.onFinishBuildingUpgrade)
             end
         end
 
@@ -879,7 +833,7 @@ end
 ---@param b dbbuilding
 function cmd4city.onFinishBuildingUpgrade(b)
     -- 移除队列
-    queueInfor.removeBuildQueue(b)
+    buildQueue.removeBuildQueue(b)
     local v = {}
     v[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
     v[dbbuilding.keys.lev] = b:get_lev() + 1
@@ -893,7 +847,7 @@ end
 -- 释放数据
 function cmd4city.release()
     -- 队列释放
-    queueInfor.release()
+    buildQueue.release()
 
     ---@type dbbuilding
     local b
@@ -983,7 +937,7 @@ cmd4city.CMD = {
         end
 
         -- 是否有空闲队列
-        if #(queueInfor.build) >= cmd4city.maxBuildQueue() then
+        if #(buildQueue.build) >= cmd4city.maxBuildQueue() then
             ret.code = Errcode.noIdelQueue
             ret.msg = "没有空闲队列"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
@@ -1032,7 +986,7 @@ cmd4city.CMD = {
                 [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade,
             }
             building:refreshData(_v)
-            queueInfor.addBuildQueue(building)
+            buildQueue.addBuildQueue(building, cmd4city.onFinishBuildingUpgrade)
         end
 
         buildings[building:get_idx()] = building
@@ -1105,7 +1059,7 @@ cmd4city.CMD = {
         end
 
         -- 是否有空闲队列
-        if #(queueInfor.build) >= cmd4city.maxBuildQueue() then
+        if #(buildQueue.build) >= cmd4city.maxBuildQueue() then
             ret.code = Errcode.noIdelQueue
             ret.msg = "没有空闲队列"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
@@ -1157,7 +1111,7 @@ cmd4city.CMD = {
                 [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade,
             }
             b:refreshData(v)
-            queueInfor.addBuildQueue(b)
+            buildQueue.addBuildQueue(b, cmd4city.onFinishBuildingUpgrade)
         else
             b:set_lev(b:get_lev() + 1)
         end
@@ -1393,6 +1347,93 @@ cmd4city.CMD = {
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, resType, val, b:value2copy())
     end,
+    ---@public 建造舰船
+    buildShip = function(map, fd, agent)
+        local ret = {}
+        local cmd = map.cmd
+        local buildingIdx = map.buildingIdx
+        local shipAttrID = map.shipAttrID
+        local num = map.num
+        ---@type dbbuilding
+        local b = buildings[buildingIdx] -- 不要使用new(), 或者instance()，也不能直接传data
+        if b == nil then
+            ret.code = Errcode.buildingIsNil
+            ret.msg = "取得建筑为空"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+        if b:get_state() ~= IDConstVals.BuildingState.normal then
+            ret.code = Errcode.buildingIsBusy
+            ret.msg = "建筑状态不是空闲"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+        if num <= 0 then
+            ret.code = Errcode.numError
+            ret.msg = "数量必须大于0"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+        local roleAttr = cfgUtl.getRoleByID(shipAttrID)
+        if roleAttr == nil then
+            ret.code = Errcode.cfgIsNil
+            ret.msg = "舰船配置取得为空"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        -- 如果是编辑模式，则不扣处资源
+        local isEditMode = cmd4city.isEditMode()
+        if not isEditMode then
+            -- 扣除资源
+            local BuildRscType = roleAttr.BuildRscType
+            local BuildCost = roleAttr.BuildCost
+            local resInfor = {}
+            resInfor[BuildRscType] = BuildCost
+            local succ, code = cmd4city.consumeRes2(resInfor)
+            if not succ then
+                ret.code = code
+                ret.msg = "资源不足"
+                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+            end
+        end
+
+        -- 建造时间
+        local BuildTimeS = roleAttr.BuildTimeS / 10
+        local totalSec = BuildTimeS * num
+
+        -- 更新建筑数据
+        local data = {}
+        data[dbbuilding.keys.val] = shipAttrID
+        data[dbbuilding.keys.val2] = num
+        data[dbbuilding.keys.starttime] = dateEx.nowMS()
+        data[dbbuilding.keys.endtime] = numEx.getIntPart(dateEx.nowMS() + totalSec * 1000)
+        data[dbbuilding.keys.state] = IDConstVals.BuildingState.working
+        b:refreshData(data)
+
+        -- 添加造兵队列
+        buildQueue.addShipQueue(b)
+
+        ret.code = Errcode.ok
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy())
+    end,
+
+    ---@public 取得造船厂所有舰艇列表
+    getShipsByBuildingIdx = function(map, fd, agent)
+        local ret = {}
+        local cmd = map.cmd
+        local buildingIdx = map.buildingIdx
+        ---@type dbbuilding
+        local b = buildings[buildingIdx] -- 不要使用new(), 或者instance()，也不能直接传data
+        if b == nil then
+            ret.code = Errcode.buildingIsNil
+            ret.msg = "取得建筑为空"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
+        local shipsMap = json.decode(b:get_valstr() or "")
+        local dockyardShips = {}
+        dockyardShips.buildingIdx = buildingIdx
+        dockyardShips.shipsMap = shipsMap
+        ret.code = Errcode.ok
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, dockyardShips)
+    end
 }
 
 skynet.start(function()

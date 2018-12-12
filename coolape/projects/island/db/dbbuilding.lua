@@ -39,6 +39,8 @@ dbbuilding.keys = {
     val3 = "val3", -- 值3。如:产量，仓库的存储量等
     val4 = "val4", -- 值4。如:产量，仓库的存储量等
     val5 = "val5", -- 值5。如:产量，仓库的存储量等
+    valstr = "valstr", -- string类型的值
+    valstr2 = "valstr2", -- string类型的值
 }
 
 function dbbuilding:ctor(v)
@@ -318,6 +320,34 @@ function dbbuilding:get_val5()
     return (tonumber(val) or 0)
 end
 
+function dbbuilding:set_valstr(v)
+    -- string类型的值
+    if self:isEmpty() then
+        skynet.error("[dbbuilding:set_valstr],please init first!!")
+        return nil
+    end
+    v = v or ""
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "valstr", v)
+end
+function dbbuilding:get_valstr()
+    -- string类型的值
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "valstr")
+end
+
+function dbbuilding:set_valstr2(v)
+    -- string类型的值
+    if self:isEmpty() then
+        skynet.error("[dbbuilding:set_valstr2],please init first!!")
+        return nil
+    end
+    v = v or ""
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "valstr2", v)
+end
+function dbbuilding:get_valstr2()
+    -- string类型的值
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "valstr2")
+end
+
 -- 把数据flush到mysql里， immd=true 立即生效
 function dbbuilding:flush(immd)
     local sql
@@ -453,6 +483,8 @@ function dbbuilding.validData(data)
     if type(data.val5) ~= "number" then
         data.val5 = tonumber(data.val5) or 0
     end
+    data.valstr = tostring(data.valstr) or ""
+    data.valstr2 = tostring(data.valstr2) or ""
     return data
 end
 

@@ -135,6 +135,14 @@ defProtocol.structs.mapPage = {
     }
 }
 
+defProtocol.structs.dockyardShips = {
+    "造船厂的舰船信息",
+    {
+        buildingIdx = { 0, "造船厂的idx" },
+        shipsMap = { { skipAttrid = 0 }, "key=舰船的配置id, val=舰船数量 map" },
+    }
+}
+
 
 --===================================================
 --===================================================
@@ -289,6 +297,22 @@ defProtocol.cmds = {
         output = { structs.retInfor, defProtocol.structs.mapPage }; -- 出参
         outputDesc = { "返回信息", "在地图一屏数据 map" }; -- 出参说明
         logic = "LDSWorld";
+    },
+    buildShip = {
+        desc = "造船"; -- 接口说明
+        input = { "buildingIdx", "shipAttrID", "num" }; -- 入参
+        inputDesc = { "造船厂的idx int", "舰船配置id int", "数量 int" }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.building }; -- 出参
+        outputDesc = { "返回信息", "造船厂信息"}; -- 出参说明
+        logic = "cmd4city";
+    },
+    getShipsByBuildingIdx = {
+        desc = "取得造船厂所有舰艇列表"; -- 接口说明
+        input = { "buildingIdx" }; -- 入参
+        inputDesc = { "造船厂的idx int" }; -- 入参说明
+        output = { structs.retInfor, defProtocol.structs.dockyardShips }; -- 出参
+        outputDesc = { "返回信息", "造船厂的idx int", "造船厂里存放的舰船信息" }; -- 出参说明
+        logic = "cmd4city";
     },
 }
 

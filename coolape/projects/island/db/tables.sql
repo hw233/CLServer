@@ -92,6 +92,8 @@ CREATE TABLE `building` (
   `val3` int(11),
   `val4` int(11),
   `val5` INT(11),
+  `valstr` VARCHAR(2000),
+  `valstr2` VARCHAR(2000),
   PRIMARY KEY (`idx`, `cidx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------

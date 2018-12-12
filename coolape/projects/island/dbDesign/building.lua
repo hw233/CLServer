@@ -15,15 +15,21 @@ local tab = {
         { "val3", "int(11)", "值3。如:产量，仓库的存储量等" },
         { "val4", "int(11)", "值4。如:产量，仓库的存储量等" },
         { "val5", "INT(11)", "值5。如:产量，仓库的存储量等" },
+        { "valstr", "VARCHAR(2000)", "string类型的值" },
+        { "valstr2", "VARCHAR(2000)", "string类型的值" },
     },
     primaryKey = {
         "idx",
         "cidx",
     },
-    cacheKey = { -- 缓存key,如果是多个字段的话，key最每是以"a_b"这种形式保存
+    cacheKey = { -- 缓存key
         "idx",
     },
-    groupKey = {{"cidx"}}, -- 组key，注意是二维数组，支持多个组
+    groupKey  = { -- 缓存组key
+    {
+        "cidx",
+    },
+    },
     defaultData = {}, -- 初始数据
 }
 return tab

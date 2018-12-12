@@ -10,6 +10,7 @@ IDConstVals = {
 IDConstVals.BuildingState = {
     normal = 0, --正常
     upgrade = 1, --升级中
+    working = 2, --工作中
     renew = 9, -- 恢复中
 }
 
@@ -21,7 +22,7 @@ IDConstVals.UnitType = {
     pet = 4,
     skill = 5,
 }
-
+---@public 角色类别
 IDConstVals.RoleGID = {
     worker = 0, -- 工人
     ship = 1, -- 舰船

@@ -155,7 +155,7 @@ function CMD.saveTableDesign(map)
     for i, v in ipairs(designinfor.groupKey or {}) do
         table.insert(str, "    {")
         for j, k in ipairs(v) do
-            table.insert(str, '        "' .. v .. '",')
+            table.insert(str, '        "' .. k .. '",')
         end
         table.insert(str, "    },")
     end

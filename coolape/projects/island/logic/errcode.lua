@@ -24,5 +24,6 @@ Errcode.diamNotEnough = 19  -- 钻石不足
 Errcode.buildingIsBusy = 20 -- 建筑正忙，不可操作
 Errcode.buildingIsNotResFactory = 21 -- 不是资源建筑，不可操作
 Errcode.storeNotEnough = 22 -- 仓库空间不足
-
+Errcode.numError = 23 -- 数量错误
+Errcode.cfgIsNil = 24 -- 取得配置数据为空
 return Errcode
