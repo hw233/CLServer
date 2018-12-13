@@ -1446,6 +1446,14 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
 
+        -- 是否解锁
+        local needDockyardLev = roleAttr.ArsenalLev
+        if needDockyardLev > b:get_lev() then
+            ret.code = Errcode.shipIsLocked
+            ret.msg = "舰船未解锁"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
+
         -- 如果是编辑模式，则不扣处资源
         local isEditMode = cmd4city.isEditMode()
         if not isEditMode then
