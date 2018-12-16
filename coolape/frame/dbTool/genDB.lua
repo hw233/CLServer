@@ -714,7 +714,7 @@ function genDB.genLuaFile(outPath, tableCfg)
             table.insert(str, "        " .. filed .. " = dateEx.seconds2Str(" .. filed .. "/1000)")
             table.insert(str, "    end")
         else
-            table.insert(str, "    " .. filed .. " = tostring(" .. filed .. ") or \"\"")
+            --table.insert(str, "    " .. filed .. " = ".. filed .. " == nil and nil or tostring(" .. filed .. ")")
         end
     end
 

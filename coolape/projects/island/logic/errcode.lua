@@ -27,4 +27,5 @@ Errcode.storeNotEnough = 22 -- 仓库空间不足
 Errcode.numError = 23 -- 数量错误
 Errcode.cfgIsNil = 24 -- 取得配置数据为空
 Errcode.shipIsLocked = 25 -- 航船未解锁
+Errcode.dockyardSpaceNotEnough = 26 -- 船坞空间不足
 return Errcode

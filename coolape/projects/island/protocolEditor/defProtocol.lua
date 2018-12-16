@@ -303,7 +303,7 @@ defProtocol.cmds = {
         input = { "buildingIdx", "shipAttrID", "num" }; -- 入参
         inputDesc = { "造船厂的idx int", "舰船配置id int", "数量 int" }; -- 入参说明
         output = { structs.retInfor, defProtocol.structs.building }; -- 出参
-        outputDesc = { "返回信息", "造船厂信息"}; -- 出参说明
+        outputDesc = { "返回信息", "造船厂信息" }; -- 出参说明
         logic = "cmd4city";
     },
     getShipsByBuildingIdx = {
@@ -312,6 +312,14 @@ defProtocol.cmds = {
         inputDesc = { "造船厂的idx int" }; -- 入参说明
         output = { structs.retInfor, defProtocol.structs.dockyardShips }; -- 出参
         outputDesc = { "返回信息", "造船厂的idx int", "造船厂里存放的舰船信息" }; -- 出参说明
+        logic = "cmd4city";
+    },
+    onFinishBuildOneShip = {
+        desc = "当完成建造部分舰艇的通知"; -- 接口说明
+        input = { "buildingIdx" }; -- 入参
+        inputDesc = { "造船厂的idx int" }; -- 入参说明
+        output = { structs.retInfor, "buildingIdx", "shipAttrID", "shipNum" }; -- 出参
+        outputDesc = { "返回信息", "造船厂的idx int", "航船的配置id", "航船的数量" }; -- 出参说明
         logic = "cmd4city";
     },
 }

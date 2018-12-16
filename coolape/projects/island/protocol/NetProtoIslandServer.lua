@@ -167,10 +167,10 @@ do
             r[12] =  BioUtl.number2bio(m.idx)  -- 网格index int
             r[84] =  BioUtl.number2bio(m.val1)  -- 值1 int
             r[47] =  BioUtl.number2bio(m.cidx)  -- 主城idx int
-            r[85] =  BioUtl.number2bio(m.type)  -- 地块类型 1：玩家，2：npc int
-            r[83] =  BioUtl.number2bio(m.pageIdx)  -- 所在屏的index int
-            r[50] =  BioUtl.number2bio(m.val2)  -- 值2 int
             r[49] =  BioUtl.number2bio(m.val3)  -- 值3 int
+            r[83] =  BioUtl.number2bio(m.pageIdx)  -- 所在屏的index int
+            r[85] =  BioUtl.number2bio(m.type)  -- 地块类型 1：玩家，2：npc int
+            r[50] =  BioUtl.number2bio(m.val2)  -- 值2 int
             return r;
         end,
         parse = function(m)
@@ -179,10 +179,10 @@ do
             r.idx = m[12] --  int
             r.val1 = m[84] --  int
             r.cidx = m[47] --  int
-            r.type = m[85] --  int
-            r.pageIdx = m[83] --  int
-            r.val2 = m[50] --  int
             r.val3 = m[49] --  int
+            r.pageIdx = m[83] --  int
+            r.type = m[85] --  int
+            r.val2 = m[50] --  int
             return r;
         end,
     }
@@ -213,9 +213,9 @@ do
             r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
             r[45] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
             r[13] = m.name  -- 名称 string
+            r[26] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; int int
             r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
             r[30] =  BioUtl.number2bio(m.lev)  -- 等级 int int
-            r[26] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; int int
             r[33] =  BioUtl.number2bio(m.pos)  -- 城所在世界grid的index int int
             r[35] =  BioUtl.number2bio(m.pidx)  -- 玩家idx int int
             return r;
@@ -226,9 +226,9 @@ do
             r.idx = m[12] --  int
             r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[45])  -- 地块信息 key=idx, map
             r.name = m[13] --  string
+            r.status = m[26] --  int
             r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[32])  -- 建筑信息 key=idx, map
             r.lev = m[30] --  int
-            r.status = m[26] --  int
             r.pos = m[33] --  int
             r.pidx = m[35] --  int
             return r;
@@ -242,9 +242,9 @@ do
             r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
             r[29] =  BioUtl.number2bio(m.diam)  -- 钻石 long int
             r[13] = m.name  -- 名字 string
-            r[27] =  BioUtl.number2bio(m.unionidx)  -- 联盟id int int
             r[26] =  BioUtl.number2bio(m.status)  -- 状态 1：正常 int int
             r[28] =  BioUtl.number2bio(m.cityidx)  -- 城池id int int
+            r[27] =  BioUtl.number2bio(m.unionidx)  -- 联盟id int int
             r[30] =  BioUtl.number2bio(m.lev)  -- 等级 long int
             return r;
         end,
@@ -254,9 +254,9 @@ do
             r.idx = m[12] --  int
             r.diam = m[29] --  int
             r.name = m[13] --  string
-            r.unionidx = m[27] --  int
             r.status = m[26] --  int
             r.cityidx = m[28] --  int
+            r.unionidx = m[27] --  int
             r.lev = m[30] --  int
             return r;
         end,
@@ -305,6 +305,14 @@ do
         ret.channel = map[18]-- 渠道号
         ret.deviceID = map[19]-- 机器码
         ret.isEditMode = map[78]-- 编辑模式
+        return ret
+    end,
+    -- 当完成建造部分舰艇的通知
+    onFinishBuildOneShip = function(map)
+        local ret = {}
+        ret.cmd = "onFinishBuildOneShip"
+        ret.__session__ = map[1]
+        ret.buildingIdx = map[90]-- 造船厂的idx int
         return ret
     end,
     -- 取得建筑
@@ -478,6 +486,27 @@ do
         end
         return ret
     end,
+    onFinishBuildOneShip = function(retInfor, buildingIdx, shipAttrID, shipNum)
+        local ret = {}
+        ret[0] = 96
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        if type(buildingIdx) == "number" then
+            ret[90] = BioUtl.number2bio(buildingIdx); -- 造船厂的idx int
+        else
+            ret[90] = buildingIdx; -- 造船厂的idx int
+        end
+        if type(shipAttrID) == "number" then
+            ret[94] = BioUtl.number2bio(shipAttrID); -- 航船的配置id
+        else
+            ret[94] = shipAttrID; -- 航船的配置id
+        end
+        if type(shipNum) == "number" then
+            ret[97] = BioUtl.number2bio(shipNum); -- 航船的数量
+        else
+            ret[97] = shipNum; -- 航船的数量
+        end
+        return ret
+    end,
     getBuilding = function(retInfor, building)
         local ret = {}
         ret[0] = 55
@@ -601,6 +630,7 @@ do
     NetProtoIsland.dispatch[76]={onReceive = NetProtoIsland.recive.rmBuilding, send = NetProtoIsland.send.rmBuilding, logicName = "cmd4city"}
     NetProtoIsland.dispatch[52]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding, logicName = "cmd4city"}
     NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login, logicName = "cmd4player"}
+    NetProtoIsland.dispatch[96]={onReceive = NetProtoIsland.recive.onFinishBuildOneShip, send = NetProtoIsland.send.onFinishBuildOneShip, logicName = "cmd4city"}
     NetProtoIsland.dispatch[55]={onReceive = NetProtoIsland.recive.getBuilding, send = NetProtoIsland.send.getBuilding, logicName = "cmd4city"}
     NetProtoIsland.dispatch[75]={onReceive = NetProtoIsland.recive.rmTile, send = NetProtoIsland.send.rmTile, logicName = "cmd4city"}
     NetProtoIsland.dispatch[69]={onReceive = NetProtoIsland.recive.onResChg, send = NetProtoIsland.send.onResChg, logicName = "cmd4city"}
@@ -623,6 +653,7 @@ do
         rmBuilding = "rmBuilding", -- 移除建筑,
         newBuilding = "newBuilding", -- 新建建筑,
         login = "login", -- 登陆,
+        onFinishBuildOneShip = "onFinishBuildOneShip", -- 当完成建造部分舰艇的通知,
         getBuilding = "getBuilding", -- 取得建筑,
         rmTile = "rmTile", -- 移除地块,
         onResChg = "onResChg", -- 资源变化时推送,

@@ -274,7 +274,6 @@ function dbcity.validData(data)
     if type(data.idx) ~= "number" then
         data.idx = tonumber(data.idx) or 0
     end
-    data.name = tostring(data.name) or ""
     if type(data.pidx) ~= "number" then
         data.pidx = tonumber(data.pidx) or 0
     end

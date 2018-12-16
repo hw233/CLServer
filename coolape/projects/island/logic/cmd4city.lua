@@ -854,14 +854,14 @@ end
 ---@param shipAttrid number 舰船的配置id
 ---@param num number 已经造好的船的数量
 function cmd4city.onFinishBuildShip(b, shipAttrid, num)
-    local shipsMap = json.decode(b:get_valstr() or "")
+    local shipsMap = json.decode(b:get_valstr() or "{}")
     shipsMap = shipsMap or {}
     shipsMap[tostring(shipAttrid)] = num + (shipsMap[tostring(shipAttrid)] or 0)
     local str = json.encode(shipsMap)
     b:set_valstr(str)
 
     -- 通知客户端
-    cmd4city.CMD.onDockyardShipsChg(b:get_idx(), shipsMap)
+    cmd4city.CMD.onDockyardShipsChg(b:get_idx(), shipAttrid, num)
 end
 
 ---@public 处理造船厂建造舰船的逻辑
@@ -1453,6 +1453,26 @@ cmd4city.CMD = {
             ret.msg = "舰船未解锁"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
+        -- 空间是否够
+        local buildingAttr = cfgUtl.getBuildingByID(b:get_attrid())
+        local totalSpace = cfgUtl.getGrowingVal(buildingAttr.ComVal1Min, buildingAttr.ComVal1Max, buildingAttr.ComVal1Curve, b:get_lev() / buildingAttr.MaxLev)
+        local shipsMap
+        if b:get_valstr() then
+            shipsMap = json.decode(b:get_valstr())
+        end
+        local usedSpace = 0
+        if shipsMap then
+            local _attr
+            for roleAttrId, num in pairs(shipsMap) do
+                _attr = cfgUtl.getRoleByID(tonumber(roleAttrId))
+                usedSpace = usedSpace + num * _attr.SpaceSize
+            end
+        end
+        if num * roleAttr.SpaceSize > (totalSpace - usedSpace) then
+            ret.code = Errcode.dockyardSpaceNotEnough
+            ret.msg = "船坞空间不足"
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
+        end
 
         -- 如果是编辑模式，则不扣处资源
         local isEditMode = cmd4city.isEditMode()
@@ -1502,26 +1522,41 @@ cmd4city.CMD = {
             ret.msg = "取得建筑为空"
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
-
-        local shipsMap = json.decode(b:get_valstr() or "")
+        local shipsMap
+        if b:get_valstr() then
+            shipsMap = json.decode(b:get_valstr())
+        end
         local dockyardShips = {}
         dockyardShips.buildingIdx = buildingIdx
         dockyardShips.shipsMap = shipsMap
         ret.code = Errcode.ok
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, dockyardShips)
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, dockyardShips)
     end,
 
     ---@public 当造船厂的舰艇数量发化变化时
-    onDockyardShipsChg = function(bidx, shipsMap)
-        local cmd = "getShipsByBuildingIdx"
+    onDockyardShipsChg = function(bidx, shipAttrid, num)
+        local cmd = ""
         local ret = {}
-
-        local dockyardShips = {}
-        dockyardShips.buildingIdx = b:get_idx()
-        dockyardShips.shipsMap = shipsMap
         ret.code = Errcode.ok
+
+        ---@type dbbuilding
+        local b = buildings[bidx] -- 不要使用new(), 或者instance()，也不能直接传data
+        local dockyardShips = {}
+        dockyardShips.buildingIdx = bidx
+
+        if b:get_valstr() then
+            dockyardShips.shipsMap = json.decode(b:get_valstr())
+        end
         -- 推送给客户端
+        cmd = "getShipsByBuildingIdx"
         local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, dockyardShips)
+        if skynet.address(agent) ~= nil then
+            skynet.call(agent, "lua", "sendPackage", package)
+        end
+
+        -- 推送给客户端
+        cmd = "onFinishBuildOneShip"
+        package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, bidx, shipAttrid, num)
         if skynet.address(agent) ~= nil then
             skynet.call(agent, "lua", "sendPackage", package)
         end

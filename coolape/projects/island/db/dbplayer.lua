@@ -365,7 +365,6 @@ function dbplayer.validData(data)
     if type(data.status) ~= "number" then
         data.status = tonumber(data.status) or 0
     end
-    data.name = tostring(data.name) or ""
     if type(data.lev) ~= "number" then
         data.lev = tonumber(data.lev) or 0
     end
@@ -387,8 +386,6 @@ function dbplayer.validData(data)
     if type(data.lastEnTime) == "number" then
         data.lastEnTime = dateEx.seconds2Str(data.lastEnTime/1000)
     end
-    data.channel = tostring(data.channel) or ""
-    data.deviceid = tostring(data.deviceid) or ""
     return data
 end
 

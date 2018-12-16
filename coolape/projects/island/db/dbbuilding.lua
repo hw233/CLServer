@@ -483,8 +483,6 @@ function dbbuilding.validData(data)
     if type(data.val5) ~= "number" then
         data.val5 = tonumber(data.val5) or 0
     end
-    data.valstr = tostring(data.valstr) or ""
-    data.valstr2 = tostring(data.valstr2) or ""
     return data
 end
 
