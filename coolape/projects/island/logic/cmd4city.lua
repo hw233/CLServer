@@ -854,7 +854,11 @@ end
 ---@param shipAttrid number 舰船的配置id
 ---@param num number 已经造好的船的数量
 function cmd4city.onFinishBuildShip(b, shipAttrid, num)
-    local shipsMap = json.decode(b:get_valstr() or "{}")
+    local shipsMap
+    local jsonstr = b:get_valstr()
+    if not CLUtl.isNilOrEmpty(jsonstr) then
+        shipsMap = json.decode(jsonstr)
+    end
     shipsMap = shipsMap or {}
     shipsMap[tostring(shipAttrid)] = num + (shipsMap[tostring(shipAttrid)] or 0)
     local str = json.encode(shipsMap)
@@ -1457,8 +1461,9 @@ cmd4city.CMD = {
         local buildingAttr = cfgUtl.getBuildingByID(b:get_attrid())
         local totalSpace = cfgUtl.getGrowingVal(buildingAttr.ComVal1Min, buildingAttr.ComVal1Max, buildingAttr.ComVal1Curve, b:get_lev() / buildingAttr.MaxLev)
         local shipsMap
-        if b:get_valstr() then
-            shipsMap = json.decode(b:get_valstr())
+        local jsonstr = b:get_valstr()
+        if not CLUtl.isNilOrEmpty(jsonstr) then
+            shipsMap = json.decode(jsonstr)
         end
         local usedSpace = 0
         if shipsMap then
@@ -1523,8 +1528,9 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", cmd, ret)
         end
         local shipsMap
-        if b:get_valstr() then
-            shipsMap = json.decode(b:get_valstr())
+        local jsonstr = b:get_valstr()
+        if not CLUtl.isNilOrEmpty(jsonstr) then
+            shipsMap = json.decode(jsonstr)
         end
         local dockyardShips = {}
         dockyardShips.buildingIdx = buildingIdx
@@ -1544,8 +1550,9 @@ cmd4city.CMD = {
         local dockyardShips = {}
         dockyardShips.buildingIdx = bidx
 
-        if b:get_valstr() then
-            dockyardShips.shipsMap = json.decode(b:get_valstr())
+        local jsonstr = b:get_valstr()
+        if not CLUtl.isNilOrEmpty(jsonstr) then
+            dockyardShips.shipsMap = json.decode(jsonstr)
         end
         -- 推送给客户端
         cmd = "getShipsByBuildingIdx"
