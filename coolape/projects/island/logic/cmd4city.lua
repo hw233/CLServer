@@ -878,6 +878,8 @@ function cmd4city.procDockyardBuildShip(b)
             local data = {}
             data[dbbuilding.keys.val] = 0
             data[dbbuilding.keys.val2] = 0
+            data[dbbuilding.keys.val3] = 0
+            data[dbbuilding.keys.starttime] = b:get_endtime()
             data[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
             b:refreshData(data)
             return
@@ -885,7 +887,7 @@ function cmd4city.procDockyardBuildShip(b)
         local attr = cfgUtl.getRoleByID(roleAttrId)
         -- 建船时间
         local BuildTimeS = attr.BuildTimeS / 10
-        local starttime = b:get_starttime()
+        local starttime = b:get_val3()  -- 保存的是上次造船的开始时间
         local diffSec = (dateEx.nowMS() - starttime) / 1000
         local finishBuildNum = numEx.getIntPart(diffSec / BuildTimeS)
         if finishBuildNum > 0 then
@@ -895,6 +897,7 @@ function cmd4city.procDockyardBuildShip(b)
                 local data = {}
                 data[dbbuilding.keys.val] = 0
                 data[dbbuilding.keys.val2] = 0
+                data[dbbuilding.keys.val3] = 0
                 data[dbbuilding.keys.starttime] = b:get_endtime()
                 data[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
                 b:refreshData(data)
@@ -902,7 +905,7 @@ function cmd4city.procDockyardBuildShip(b)
                 local leftSec = diffSec % BuildTimeS
                 local data = {}
                 data[dbbuilding.keys.val2] = b:get_val2() - finishBuildNum
-                data[dbbuilding.keys.starttime] = dateEx.nowMS() - numEx.getIntPart(leftSec * 1000)
+                data[dbbuilding.keys.val3] = dateEx.nowMS() - numEx.getIntPart(leftSec * 1000)
                 b:refreshData(data)
             end
             cmd4city.onFinishBuildShip(b, roleAttrId, finishBuildNum)
@@ -1503,6 +1506,7 @@ cmd4city.CMD = {
         local data = {}
         data[dbbuilding.keys.val] = shipAttrID
         data[dbbuilding.keys.val2] = num
+        data[dbbuilding.keys.val3] = dateEx.nowMS() -- 用于计算用
         data[dbbuilding.keys.starttime] = dateEx.nowMS()
         data[dbbuilding.keys.endtime] = numEx.getIntPart(dateEx.nowMS() + totalSec * 1000)
         data[dbbuilding.keys.state] = IDConstVals.BuildingState.working
