@@ -173,7 +173,7 @@ function CMD.getMapDataByPageIdx(map)
     mapPage.cells = list
     skynet.error("=================" .. #list)
     pauseFork = false
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, { code = Errcode.ok }, mapPage)
+    return skynet.call(NetProtoIsland, "lua", "send", cmd, { code = Errcode.ok }, mapPage, map)
 end
 
 skynet.start(function()

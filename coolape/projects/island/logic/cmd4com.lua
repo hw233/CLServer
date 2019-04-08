@@ -11,7 +11,7 @@ local NetProto = "NetProtoIsland"
 cmd4com.CMD = {
     --心跳
     heart = function(map)
-        return skynet.call(NetProto, "lua", "send", "heart")
+        return skynet.call(NetProto, "lua", "send", "heart", map)
     end,
 
     -- 释放
