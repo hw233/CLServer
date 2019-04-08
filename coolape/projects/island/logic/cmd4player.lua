@@ -37,7 +37,7 @@ cmd4player.CMD = {
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd)
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
         end
         if myself == nil then
             myself = dbplayer.instanse(m.uidx)
@@ -66,7 +66,7 @@ cmd4player.CMD = {
                 local ret = {}
                 ret.msg = "create player err"
                 ret.code = Errcode.error
-                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd)
+                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
             end
         else
             -- 取得主城信息
@@ -78,7 +78,7 @@ cmd4player.CMD = {
                 local ret = {}
                 ret.msg = "get city is nil or empty"
                 ret.code = Errcode.error
-                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd)
+                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
             end
         end
         -- 增加触发器
@@ -95,7 +95,7 @@ cmd4player.CMD = {
             local ret = {}
             ret.msg = "get buildings is nil"
             ret.code = Errcode.error
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd)
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
         end
         cityVal.tiles = tiles
         local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
@@ -106,14 +106,14 @@ cmd4player.CMD = {
             local ret = {}
             ret.msg = "get buildings is nil"
             ret.code = Errcode.error
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd)
+            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
         end
         cityVal.buildings = buildings
 
         local ret = {}
         ret.msg = nil;
         ret.code = Errcode.ok
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy(), cityVal, dateEx.nowMS(), fd)
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy(), cityVal, dateEx.nowMS(), fd, m)
     end,
     release = function(m, fd)
         print("player release")
@@ -126,7 +126,7 @@ cmd4player.CMD = {
     end,
 
     logout = function(m, fd)
-        skynet.call("watchdog", "lua", "close", fd)
+        skynet.call("watchdog", "lua", "close", fd, m)
     end,
 
     onPlayerChg = function(data, cmd)

@@ -70,15 +70,15 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[82] = NetProtoIsland._toList(NetProtoIsland.ST_mapCell, m.cells)  -- 地图数据 key=网络index, map
-            r[83] =  BioUtl.number2bio(m.pageIdx)  -- 一屏所在的网格index  int
+            r[12] = NetProtoIsland._toList(NetProtoIsland.ST_mapCell, m.cells)  -- 地图数据 key=网络index, map
+            r[13] =  BioUtl.number2bio(m.pageIdx)  -- 一屏所在的网格index  int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.cells = NetProtoIsland._parseList(NetProtoIsland.ST_mapCell, m[82])  -- 地图数据 key=网络index, map
-            r.pageIdx = m[83] --  int
+            r.cells = NetProtoIsland._parseList(NetProtoIsland.ST_mapCell, m[12])  -- 地图数据 key=网络index, map
+            r.pageIdx = m[13] --  int
             return r;
         end,
     }
@@ -87,15 +87,15 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[89] = m.shipsMap  -- key=舰船的配置id, val=舰船数量 map
-            r[90] =  BioUtl.number2bio(m.buildingIdx)  -- 造船厂的idx int
+            r[14] = m.shipsMap  -- key=舰船的配置id, val=舰船数量 map
+            r[15] =  BioUtl.number2bio(m.buildingIdx)  -- 造船厂的idx int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.shipsMap = m[89] --  table
-            r.buildingIdx = m[90] --  int
+            r.shipsMap = m[14] --  table
+            r.buildingIdx = m[15] --  int
             return r;
         end,
     }
@@ -104,19 +104,19 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
-            r[46] =  BioUtl.number2bio(m.attrid)  -- 属性配置id int int
-            r[47] =  BioUtl.number2bio(m.cidx)  -- 主城idx int int
-            r[33] =  BioUtl.number2bio(m.pos)  -- 位置，即在城的gird中的index int int
+            r[16] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
+            r[17] =  BioUtl.number2bio(m.attrid)  -- 属性配置id int int
+            r[18] =  BioUtl.number2bio(m.cidx)  -- 主城idx int int
+            r[19] =  BioUtl.number2bio(m.pos)  -- 位置，即在城的gird中的index int int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.idx = m[12] --  int
-            r.attrid = m[46] --  int
-            r.cidx = m[47] --  int
-            r.pos = m[33] --  int
+            r.idx = m[16] --  int
+            r.attrid = m[17] --  int
+            r.cidx = m[18] --  int
+            r.pos = m[19] --  int
             return r;
         end,
     }
@@ -125,37 +125,37 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
-            r[48] =  BioUtl.number2bio(m.val4)  -- 值4。如:产量，仓库的存储量等 int int
-            r[49] =  BioUtl.number2bio(m.val3)  -- 值3。如:产量，仓库的存储量等 int int
-            r[50] =  BioUtl.number2bio(m.val2)  -- 值2。如:产量，仓库的存储量等 int int
-            r[64] =  BioUtl.number2bio(m.endtime)  -- 完成升级、恢复、采集等的时间点 long int
-            r[30] =  BioUtl.number2bio(m.lev)  -- 等级 int int
-            r[51] =  BioUtl.number2bio(m.val)  -- 值。如:产量，仓库的存储量等 int int
-            r[47] =  BioUtl.number2bio(m.cidx)  -- 主城idx int int
-            r[61] =  BioUtl.number2bio(m.val5)  -- 值5。如:产量，仓库的存储量等 int int
-            r[46] =  BioUtl.number2bio(m.attrid)  -- 属性配置id int int
-            r[65] =  BioUtl.number2bio(m.starttime)  -- 开始升级、恢复、采集等的时间点 long int
-            r[63] =  BioUtl.number2bio(m.state)  -- 状态. 0：正常；1：升级中；9：恢复中 int
-            r[33] =  BioUtl.number2bio(m.pos)  -- 位置，即在城的gird中的index int int
+            r[16] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
+            r[20] =  BioUtl.number2bio(m.val4)  -- 值4。如:产量，仓库的存储量等 int int
+            r[21] =  BioUtl.number2bio(m.val3)  -- 值3。如:产量，仓库的存储量等 int int
+            r[22] =  BioUtl.number2bio(m.val2)  -- 值2。如:产量，仓库的存储量等 int int
+            r[23] =  BioUtl.number2bio(m.endtime)  -- 完成升级、恢复、采集等的时间点 long int
+            r[24] =  BioUtl.number2bio(m.lev)  -- 等级 int int
+            r[25] =  BioUtl.number2bio(m.val)  -- 值。如:产量，仓库的存储量等 int int
+            r[18] =  BioUtl.number2bio(m.cidx)  -- 主城idx int int
+            r[26] =  BioUtl.number2bio(m.val5)  -- 值5。如:产量，仓库的存储量等 int int
+            r[17] =  BioUtl.number2bio(m.attrid)  -- 属性配置id int int
+            r[27] =  BioUtl.number2bio(m.starttime)  -- 开始升级、恢复、采集等的时间点 long int
+            r[28] =  BioUtl.number2bio(m.state)  -- 状态. 0：正常；1：升级中；9：恢复中 int
+            r[19] =  BioUtl.number2bio(m.pos)  -- 位置，即在城的gird中的index int int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.idx = m[12] --  int
-            r.val4 = m[48] --  int
-            r.val3 = m[49] --  int
-            r.val2 = m[50] --  int
-            r.endtime = m[64] --  int
-            r.lev = m[30] --  int
-            r.val = m[51] --  int
-            r.cidx = m[47] --  int
-            r.val5 = m[61] --  int
-            r.attrid = m[46] --  int
-            r.starttime = m[65] --  int
-            r.state = m[63] --  int
-            r.pos = m[33] --  int
+            r.idx = m[16] --  int
+            r.val4 = m[20] --  int
+            r.val3 = m[21] --  int
+            r.val2 = m[22] --  int
+            r.endtime = m[23] --  int
+            r.lev = m[24] --  int
+            r.val = m[25] --  int
+            r.cidx = m[18] --  int
+            r.val5 = m[26] --  int
+            r.attrid = m[17] --  int
+            r.starttime = m[27] --  int
+            r.state = m[28] --  int
+            r.pos = m[19] --  int
             return r;
         end,
     }
@@ -164,25 +164,25 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.number2bio(m.idx)  -- 网格index int
-            r[84] =  BioUtl.number2bio(m.val1)  -- 值1 int
-            r[47] =  BioUtl.number2bio(m.cidx)  -- 主城idx int
-            r[49] =  BioUtl.number2bio(m.val3)  -- 值3 int
-            r[83] =  BioUtl.number2bio(m.pageIdx)  -- 所在屏的index int
-            r[85] =  BioUtl.number2bio(m.type)  -- 地块类型 1：玩家，2：npc int
-            r[50] =  BioUtl.number2bio(m.val2)  -- 值2 int
+            r[16] =  BioUtl.number2bio(m.idx)  -- 网格index int
+            r[29] =  BioUtl.number2bio(m.val1)  -- 值1 int
+            r[18] =  BioUtl.number2bio(m.cidx)  -- 主城idx int
+            r[21] =  BioUtl.number2bio(m.val3)  -- 值3 int
+            r[30] =  BioUtl.number2bio(m.type)  -- 地块类型 1：玩家，2：npc int
+            r[22] =  BioUtl.number2bio(m.val2)  -- 值2 int
+            r[13] =  BioUtl.number2bio(m.pageIdx)  -- 所在屏的index int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.idx = m[12] --  int
-            r.val1 = m[84] --  int
-            r.cidx = m[47] --  int
-            r.val3 = m[49] --  int
-            r.pageIdx = m[83] --  int
-            r.type = m[85] --  int
-            r.val2 = m[50] --  int
+            r.idx = m[16] --  int
+            r.val1 = m[29] --  int
+            r.cidx = m[18] --  int
+            r.val3 = m[21] --  int
+            r.type = m[30] --  int
+            r.val2 = m[22] --  int
+            r.pageIdx = m[13] --  int
             return r;
         end,
     }
@@ -191,17 +191,17 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[66] =  BioUtl.number2bio(m.oil)  -- 油 int
-            r[67] =  BioUtl.number2bio(m.gold)  -- 金 int
-            r[68] =  BioUtl.number2bio(m.food)  -- 粮 int
+            r[31] =  BioUtl.number2bio(m.oil)  -- 油 int
+            r[32] =  BioUtl.number2bio(m.gold)  -- 金 int
+            r[33] =  BioUtl.number2bio(m.food)  -- 粮 int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.oil = m[66] --  int
-            r.gold = m[67] --  int
-            r.food = m[68] --  int
+            r.oil = m[31] --  int
+            r.gold = m[32] --  int
+            r.food = m[33] --  int
             return r;
         end,
     }
@@ -210,27 +210,27 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
-            r[45] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
-            r[13] = m.name  -- 名称 string
-            r[26] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; int int
-            r[32] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
-            r[30] =  BioUtl.number2bio(m.lev)  -- 等级 int int
-            r[33] =  BioUtl.number2bio(m.pos)  -- 城所在世界grid的index int int
-            r[35] =  BioUtl.number2bio(m.pidx)  -- 玩家idx int int
+            r[16] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
+            r[34] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
+            r[35] = m.name  -- 名称 string
+            r[36] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
+            r[24] =  BioUtl.number2bio(m.lev)  -- 等级 int int
+            r[37] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; int int
+            r[19] =  BioUtl.number2bio(m.pos)  -- 城所在世界grid的index int int
+            r[38] =  BioUtl.number2bio(m.pidx)  -- 玩家idx int int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.idx = m[12] --  int
-            r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[45])  -- 地块信息 key=idx, map
-            r.name = m[13] --  string
-            r.status = m[26] --  int
-            r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[32])  -- 建筑信息 key=idx, map
-            r.lev = m[30] --  int
-            r.pos = m[33] --  int
-            r.pidx = m[35] --  int
+            r.idx = m[16] --  int
+            r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[34])  -- 地块信息 key=idx, map
+            r.name = m[35] --  string
+            r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[36])  -- 建筑信息 key=idx, map
+            r.lev = m[24] --  int
+            r.status = m[37] --  int
+            r.pos = m[19] --  int
+            r.pidx = m[38] --  int
             return r;
         end,
     }
@@ -239,25 +239,25 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
-            r[29] =  BioUtl.number2bio(m.diam)  -- 钻石 long int
-            r[13] = m.name  -- 名字 string
-            r[26] =  BioUtl.number2bio(m.status)  -- 状态 1：正常 int int
-            r[28] =  BioUtl.number2bio(m.cityidx)  -- 城池id int int
-            r[27] =  BioUtl.number2bio(m.unionidx)  -- 联盟id int int
-            r[30] =  BioUtl.number2bio(m.lev)  -- 等级 long int
+            r[16] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
+            r[39] =  BioUtl.number2bio(m.diam)  -- 钻石 long int
+            r[35] = m.name  -- 名字 string
+            r[41] =  BioUtl.number2bio(m.unionidx)  -- 联盟id int int
+            r[40] =  BioUtl.number2bio(m.cityidx)  -- 城池id int int
+            r[24] =  BioUtl.number2bio(m.lev)  -- 等级 long int
+            r[37] =  BioUtl.number2bio(m.status)  -- 状态 1：正常 int int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.idx = m[12] --  int
-            r.diam = m[29] --  int
-            r.name = m[13] --  string
-            r.status = m[26] --  int
-            r.cityidx = m[28] --  int
-            r.unionidx = m[27] --  int
-            r.lev = m[30] --  int
+            r.idx = m[16] --  int
+            r.diam = m[39] --  int
+            r.name = m[35] --  string
+            r.unionidx = m[41] --  int
+            r.cityidx = m[40] --  int
+            r.lev = m[24] --  int
+            r.status = m[37] --  int
             return r;
         end,
     }
@@ -268,7 +268,8 @@ do
         local ret = {}
         ret.cmd = "getShipsByBuildingIdx"
         ret.__session__ = map[1]
-        ret.buildingIdx = map[90]-- 造船厂的idx int
+        ret.callback = map[3]
+        ret.buildingIdx = map[15]-- 造船厂的idx int
         return ret
     end,
     -- 升级建筑
@@ -276,7 +277,8 @@ do
         local ret = {}
         ret.cmd = "upLevBuilding"
         ret.__session__ = map[1]
-        ret.idx = map[12]-- 建筑idx int
+        ret.callback = map[3]
+        ret.idx = map[16]-- 建筑idx int
         return ret
     end,
     -- 移除建筑
@@ -284,7 +286,8 @@ do
         local ret = {}
         ret.cmd = "rmBuilding"
         ret.__session__ = map[1]
-        ret.idx = map[12]-- 地块idx int
+        ret.callback = map[3]
+        ret.idx = map[16]-- 地块idx int
         return ret
     end,
     -- 新建建筑
@@ -292,8 +295,9 @@ do
         local ret = {}
         ret.cmd = "newBuilding"
         ret.__session__ = map[1]
-        ret.attrid = map[46]-- 建筑配置id int
-        ret.pos = map[33]-- 位置 int
+        ret.callback = map[3]
+        ret.attrid = map[17]-- 建筑配置id int
+        ret.pos = map[19]-- 位置 int
         return ret
     end,
     -- 登陆
@@ -301,10 +305,11 @@ do
         local ret = {}
         ret.cmd = "login"
         ret.__session__ = map[1]
-        ret.uidx = map[17]-- 用户id
-        ret.channel = map[18]-- 渠道号
-        ret.deviceID = map[19]-- 机器码
-        ret.isEditMode = map[78]-- 编辑模式
+        ret.callback = map[3]
+        ret.uidx = map[49]-- 用户id
+        ret.channel = map[50]-- 渠道号
+        ret.deviceID = map[51]-- 机器码
+        ret.isEditMode = map[52]-- 编辑模式
         return ret
     end,
     -- 当完成建造部分舰艇的通知
@@ -312,7 +317,8 @@ do
         local ret = {}
         ret.cmd = "onFinishBuildOneShip"
         ret.__session__ = map[1]
-        ret.buildingIdx = map[90]-- 造船厂的idx int
+        ret.callback = map[3]
+        ret.buildingIdx = map[15]-- 造船厂的idx int
         return ret
     end,
     -- 取得建筑
@@ -320,7 +326,8 @@ do
         local ret = {}
         ret.cmd = "getBuilding"
         ret.__session__ = map[1]
-        ret.idx = map[12]-- 建筑idx int
+        ret.callback = map[3]
+        ret.idx = map[16]-- 建筑idx int
         return ret
     end,
     -- 移除地块
@@ -328,7 +335,8 @@ do
         local ret = {}
         ret.cmd = "rmTile"
         ret.__session__ = map[1]
-        ret.idx = map[12]-- 地块idx int
+        ret.callback = map[3]
+        ret.idx = map[16]-- 地块idx int
         return ret
     end,
     -- 资源变化时推送
@@ -336,6 +344,7 @@ do
         local ret = {}
         ret.cmd = "onResChg"
         ret.__session__ = map[1]
+        ret.callback = map[3]
         return ret
     end,
     -- 移动建筑
@@ -343,8 +352,9 @@ do
         local ret = {}
         ret.cmd = "moveBuilding"
         ret.__session__ = map[1]
-        ret.idx = map[12]-- 建筑idx int
-        ret.pos = map[33]-- 位置 int
+        ret.callback = map[3]
+        ret.idx = map[16]-- 建筑idx int
+        ret.pos = map[19]-- 位置 int
         return ret
     end,
     -- 登出
@@ -352,6 +362,7 @@ do
         local ret = {}
         ret.cmd = "logout"
         ret.__session__ = map[1]
+        ret.callback = map[3]
         return ret
     end,
     -- 造船
@@ -359,9 +370,10 @@ do
         local ret = {}
         ret.cmd = "buildShip"
         ret.__session__ = map[1]
-        ret.buildingIdx = map[90]-- 造船厂的idx int
-        ret.shipAttrID = map[94]-- 舰船配置id int
-        ret.num = map[95]-- 数量 int
+        ret.callback = map[3]
+        ret.buildingIdx = map[15]-- 造船厂的idx int
+        ret.shipAttrID = map[58]-- 舰船配置id int
+        ret.num = map[67]-- 数量 int
         return ret
     end,
     -- 立即升级建筑
@@ -369,7 +381,8 @@ do
         local ret = {}
         ret.cmd = "upLevBuildingImm"
         ret.__session__ = map[1]
-        ret.idx = map[12]-- 建筑idx int
+        ret.callback = map[3]
+        ret.idx = map[16]-- 建筑idx int
         return ret
     end,
     -- 新建地块
@@ -377,7 +390,8 @@ do
         local ret = {}
         ret.cmd = "newTile"
         ret.__session__ = map[1]
-        ret.pos = map[33]-- 位置 int
+        ret.callback = map[3]
+        ret.pos = map[19]-- 位置 int
         return ret
     end,
     -- 建筑变化时推送
@@ -385,6 +399,7 @@ do
         local ret = {}
         ret.cmd = "onBuildingChg"
         ret.__session__ = map[1]
+        ret.callback = map[3]
         return ret
     end,
     -- 玩家信息变化时推送
@@ -392,6 +407,7 @@ do
         local ret = {}
         ret.cmd = "onPlayerChg"
         ret.__session__ = map[1]
+        ret.callback = map[3]
         return ret
     end,
     -- 心跳
@@ -399,6 +415,7 @@ do
         local ret = {}
         ret.cmd = "heart"
         ret.__session__ = map[1]
+        ret.callback = map[3]
         return ret
     end,
     -- 取得一屏的在地图数据
@@ -406,7 +423,8 @@ do
         local ret = {}
         ret.cmd = "getMapDataByPageIdx"
         ret.__session__ = map[1]
-        ret.pageIdx = map[83]-- 一屏所在的网格index
+        ret.callback = map[3]
+        ret.pageIdx = map[13]-- 一屏所在的网格index
         return ret
     end,
     -- 移动地块
@@ -414,8 +432,9 @@ do
         local ret = {}
         ret.cmd = "moveTile"
         ret.__session__ = map[1]
-        ret.idx = map[12]-- 地块idx int
-        ret.pos = map[33]-- 位置 int
+        ret.callback = map[3]
+        ret.idx = map[16]-- 地块idx int
+        ret.pos = map[19]-- 位置 int
         return ret
     end,
     -- 收集资源
@@ -423,7 +442,8 @@ do
         local ret = {}
         ret.cmd = "collectRes"
         ret.__session__ = map[1]
-        ret.idx = map[12]-- 资源建筑的idx int
+        ret.callback = map[3]
+        ret.idx = map[16]-- 资源建筑的idx int
         return ret
     end,
     -- 建筑升级完成
@@ -431,221 +451,243 @@ do
         local ret = {}
         ret.cmd = "onFinishBuildingUpgrade"
         ret.__session__ = map[1]
+        ret.callback = map[3]
         return ret
     end,
     }
     --==============================
     NetProtoIsland.send = {
-    getShipsByBuildingIdx = function(retInfor, dockyardShips)
+    getShipsByBuildingIdx = function(retInfor, dockyardShips, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
-        ret[0] = 91
+        ret[0] = 42
+        ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[92] = NetProtoIsland.ST_dockyardShips.toMap(dockyardShips); -- 造船厂的idx int
+        ret[43] = NetProtoIsland.ST_dockyardShips.toMap(dockyardShips); -- 造船厂的idx int
         return ret
     end,
-    upLevBuilding = function(retInfor, building)
+    upLevBuilding = function(retInfor, building, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
-        ret[0] = 54
+        ret[0] = 44
+        ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
+        ret[45] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
         return ret
     end,
-    rmBuilding = function(retInfor, idx)
+    rmBuilding = function(retInfor, idx, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
-        ret[0] = 76
+        ret[0] = 46
+        ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
         if type(idx) == "number" then
-            ret[12] = BioUtl.number2bio(idx); -- 被移除建筑的idx int
+            ret[16] = BioUtl.number2bio(idx); -- 被移除建筑的idx int
         else
-            ret[12] = idx; -- 被移除建筑的idx int
+            ret[16] = idx; -- 被移除建筑的idx int
         end
         return ret
     end,
-    newBuilding = function(retInfor, building)
+    newBuilding = function(retInfor, building, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
-        ret[0] = 52
+        ret[0] = 47
+        ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息对象
+        ret[45] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息对象
         return ret
     end,
-    login = function(retInfor, player, city, systime, session)
+    login = function(retInfor, player, city, systime, session, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
-        ret[0] = 16
+        ret[0] = 48
+        ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[20] = NetProtoIsland.ST_player.toMap(player); -- 玩家信息
-        ret[44] = NetProtoIsland.ST_city.toMap(city); -- 主城信息
+        ret[53] = NetProtoIsland.ST_player.toMap(player); -- 玩家信息
+        ret[54] = NetProtoIsland.ST_city.toMap(city); -- 主城信息
         if type(systime) == "number" then
-            ret[21] = BioUtl.number2bio(systime); -- 系统时间 long
+            ret[55] = BioUtl.number2bio(systime); -- 系统时间 long
         else
-            ret[21] = systime; -- 系统时间 long
+            ret[55] = systime; -- 系统时间 long
         end
         if type(session) == "number" then
-            ret[22] = BioUtl.number2bio(session); -- 会话id
+            ret[56] = BioUtl.number2bio(session); -- 会话id
         else
-            ret[22] = session; -- 会话id
+            ret[56] = session; -- 会话id
         end
         return ret
     end,
-    onFinishBuildOneShip = function(retInfor, buildingIdx, shipAttrID, shipNum)
-        local ret = {}
-        ret[0] = 96
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        if type(buildingIdx) == "number" then
-            ret[90] = BioUtl.number2bio(buildingIdx); -- 造船厂的idx int
-        else
-            ret[90] = buildingIdx; -- 造船厂的idx int
-        end
-        if type(shipAttrID) == "number" then
-            ret[94] = BioUtl.number2bio(shipAttrID); -- 航船的配置id
-        else
-            ret[94] = shipAttrID; -- 航船的配置id
-        end
-        if type(shipNum) == "number" then
-            ret[97] = BioUtl.number2bio(shipNum); -- 航船的数量
-        else
-            ret[97] = shipNum; -- 航船的数量
-        end
-        return ret
-    end,
-    getBuilding = function(retInfor, building)
-        local ret = {}
-        ret[0] = 55
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息对象
-        return ret
-    end,
-    rmTile = function(retInfor, idx)
-        local ret = {}
-        ret[0] = 75
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        if type(idx) == "number" then
-            ret[12] = BioUtl.number2bio(idx); -- 被移除地块的idx int
-        else
-            ret[12] = idx; -- 被移除地块的idx int
-        end
-        return ret
-    end,
-    onResChg = function(retInfor, resInfor)
-        local ret = {}
-        ret[0] = 69
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[70] = NetProtoIsland.ST_resInfor.toMap(resInfor); -- 资源信息
-        return ret
-    end,
-    moveBuilding = function(retInfor, building)
-        local ret = {}
-        ret[0] = 56
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
-        return ret
-    end,
-    logout = function(retInfor)
-        local ret = {}
-        ret[0] = 15
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        return ret
-    end,
-    buildShip = function(retInfor, building)
-        local ret = {}
-        ret[0] = 93
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 造船厂信息
-        return ret
-    end,
-    upLevBuildingImm = function(retInfor, building)
-        local ret = {}
-        ret[0] = 77
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
-        return ret
-    end,
-    newTile = function(retInfor, tile)
-        local ret = {}
-        ret[0] = 74
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[58] = NetProtoIsland.ST_tile.toMap(tile); -- 地块信息对象
-        return ret
-    end,
-    onBuildingChg = function(retInfor, building)
-        local ret = {}
-        ret[0] = 71
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
-        return ret
-    end,
-    onPlayerChg = function(retInfor, player)
-        local ret = {}
-        ret[0] = 72
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[20] = NetProtoIsland.ST_player.toMap(player); -- 玩家信息
-        return ret
-    end,
-    heart = function()
-        local ret = {}
-        ret[0] = 59
-        return ret
-    end,
-    getMapDataByPageIdx = function(retInfor, mapPage)
-        local ret = {}
-        ret[0] = 88
-        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[87] = NetProtoIsland.ST_mapPage.toMap(mapPage); -- 在地图一屏数据 map
-        return ret
-    end,
-    moveTile = function(retInfor, tile)
+    onFinishBuildOneShip = function(retInfor, buildingIdx, shipAttrID, shipNum, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 57
+        ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[58] = NetProtoIsland.ST_tile.toMap(tile); -- 地块信息
+        if type(buildingIdx) == "number" then
+            ret[15] = BioUtl.number2bio(buildingIdx); -- 造船厂的idx int
+        else
+            ret[15] = buildingIdx; -- 造船厂的idx int
+        end
+        if type(shipAttrID) == "number" then
+            ret[58] = BioUtl.number2bio(shipAttrID); -- 航船的配置id
+        else
+            ret[58] = shipAttrID; -- 航船的配置id
+        end
+        if type(shipNum) == "number" then
+            ret[59] = BioUtl.number2bio(shipNum); -- 航船的数量
+        else
+            ret[59] = shipNum; -- 航船的数量
+        end
         return ret
     end,
-    collectRes = function(retInfor, resType, resVal, building)
+    getBuilding = function(retInfor, building, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
-        ret[0] = 79
+        ret[0] = 60
+        ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        if type(resType) == "number" then
-            ret[80] = BioUtl.number2bio(resType); -- 收集的资源类型 int
-        else
-            ret[80] = resType; -- 收集的资源类型 int
-        end
-        if type(resVal) == "number" then
-            ret[81] = BioUtl.number2bio(resVal); -- 收集到的资源量 int
-        else
-            ret[81] = resVal; -- 收集到的资源量 int
-        end
-        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
+        ret[45] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息对象
         return ret
     end,
-    onFinishBuildingUpgrade = function(retInfor, building)
+    rmTile = function(retInfor, idx, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 61
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        if type(idx) == "number" then
+            ret[16] = BioUtl.number2bio(idx); -- 被移除地块的idx int
+        else
+            ret[16] = idx; -- 被移除地块的idx int
+        end
+        return ret
+    end,
+    onResChg = function(retInfor, resInfor, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 62
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[63] = NetProtoIsland.ST_resInfor.toMap(resInfor); -- 资源信息
+        return ret
+    end,
+    moveBuilding = function(retInfor, building, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 64
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[45] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
+        return ret
+    end,
+    logout = function(retInfor, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 65
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        return ret
+    end,
+    buildShip = function(retInfor, building, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 66
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[45] = NetProtoIsland.ST_building.toMap(building); -- 造船厂信息
+        return ret
+    end,
+    upLevBuildingImm = function(retInfor, building, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 68
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[45] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
+        return ret
+    end,
+    newTile = function(retInfor, tile, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 69
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[70] = NetProtoIsland.ST_tile.toMap(tile); -- 地块信息对象
+        return ret
+    end,
+    onBuildingChg = function(retInfor, building, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 71
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[45] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
+        return ret
+    end,
+    onPlayerChg = function(retInfor, player, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 72
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[53] = NetProtoIsland.ST_player.toMap(player); -- 玩家信息
+        return ret
+    end,
+    heart = function(mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 73
+        ret[3] = mapOrig and mapOrig.callback or nil
+        return ret
+    end,
+    getMapDataByPageIdx = function(retInfor, mapPage, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 74
+        ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[53] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
+        ret[75] = NetProtoIsland.ST_mapPage.toMap(mapPage); -- 在地图一屏数据 map
+        return ret
+    end,
+    moveTile = function(retInfor, tile, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 76
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[70] = NetProtoIsland.ST_tile.toMap(tile); -- 地块信息
+        return ret
+    end,
+    collectRes = function(retInfor, resType, resVal, building, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 77
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        if type(resType) == "number" then
+            ret[78] = BioUtl.number2bio(resType); -- 收集的资源类型 int
+        else
+            ret[78] = resType; -- 收集的资源类型 int
+        end
+        if type(resVal) == "number" then
+            ret[79] = BioUtl.number2bio(resVal); -- 收集到的资源量 int
+        else
+            ret[79] = resVal; -- 收集到的资源量 int
+        end
+        ret[45] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
+        return ret
+    end,
+    onFinishBuildingUpgrade = function(retInfor, building, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 80
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[45] = NetProtoIsland.ST_building.toMap(building); -- 建筑信息
         return ret
     end,
     }
     --==============================
-    NetProtoIsland.dispatch[91]={onReceive = NetProtoIsland.recive.getShipsByBuildingIdx, send = NetProtoIsland.send.getShipsByBuildingIdx, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[54]={onReceive = NetProtoIsland.recive.upLevBuilding, send = NetProtoIsland.send.upLevBuilding, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[76]={onReceive = NetProtoIsland.recive.rmBuilding, send = NetProtoIsland.send.rmBuilding, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[52]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[16]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login, logicName = "cmd4player"}
-    NetProtoIsland.dispatch[96]={onReceive = NetProtoIsland.recive.onFinishBuildOneShip, send = NetProtoIsland.send.onFinishBuildOneShip, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[55]={onReceive = NetProtoIsland.recive.getBuilding, send = NetProtoIsland.send.getBuilding, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[75]={onReceive = NetProtoIsland.recive.rmTile, send = NetProtoIsland.send.rmTile, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[69]={onReceive = NetProtoIsland.recive.onResChg, send = NetProtoIsland.send.onResChg, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[56]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[15]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout, logicName = "cmd4player"}
-    NetProtoIsland.dispatch[93]={onReceive = NetProtoIsland.recive.buildShip, send = NetProtoIsland.send.buildShip, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[77]={onReceive = NetProtoIsland.recive.upLevBuildingImm, send = NetProtoIsland.send.upLevBuildingImm, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[74]={onReceive = NetProtoIsland.recive.newTile, send = NetProtoIsland.send.newTile, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[42]={onReceive = NetProtoIsland.recive.getShipsByBuildingIdx, send = NetProtoIsland.send.getShipsByBuildingIdx, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[44]={onReceive = NetProtoIsland.recive.upLevBuilding, send = NetProtoIsland.send.upLevBuilding, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[46]={onReceive = NetProtoIsland.recive.rmBuilding, send = NetProtoIsland.send.rmBuilding, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[47]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[48]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login, logicName = "cmd4player"}
+    NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.onFinishBuildOneShip, send = NetProtoIsland.send.onFinishBuildOneShip, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[60]={onReceive = NetProtoIsland.recive.getBuilding, send = NetProtoIsland.send.getBuilding, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[61]={onReceive = NetProtoIsland.recive.rmTile, send = NetProtoIsland.send.rmTile, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[62]={onReceive = NetProtoIsland.recive.onResChg, send = NetProtoIsland.send.onResChg, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[64]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[65]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout, logicName = "cmd4player"}
+    NetProtoIsland.dispatch[66]={onReceive = NetProtoIsland.recive.buildShip, send = NetProtoIsland.send.buildShip, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[68]={onReceive = NetProtoIsland.recive.upLevBuildingImm, send = NetProtoIsland.send.upLevBuildingImm, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[69]={onReceive = NetProtoIsland.recive.newTile, send = NetProtoIsland.send.newTile, logicName = "cmd4city"}
     NetProtoIsland.dispatch[71]={onReceive = NetProtoIsland.recive.onBuildingChg, send = NetProtoIsland.send.onBuildingChg, logicName = "cmd4city"}
     NetProtoIsland.dispatch[72]={onReceive = NetProtoIsland.recive.onPlayerChg, send = NetProtoIsland.send.onPlayerChg, logicName = "cmd4player"}
-    NetProtoIsland.dispatch[59]={onReceive = NetProtoIsland.recive.heart, send = NetProtoIsland.send.heart, logicName = "cmd4com"}
-    NetProtoIsland.dispatch[88]={onReceive = NetProtoIsland.recive.getMapDataByPageIdx, send = NetProtoIsland.send.getMapDataByPageIdx, logicName = "LDSWorld"}
-    NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.moveTile, send = NetProtoIsland.send.moveTile, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[79]={onReceive = NetProtoIsland.recive.collectRes, send = NetProtoIsland.send.collectRes, logicName = "cmd4city"}
-    NetProtoIsland.dispatch[73]={onReceive = NetProtoIsland.recive.onFinishBuildingUpgrade, send = NetProtoIsland.send.onFinishBuildingUpgrade, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[73]={onReceive = NetProtoIsland.recive.heart, send = NetProtoIsland.send.heart, logicName = "cmd4com"}
+    NetProtoIsland.dispatch[74]={onReceive = NetProtoIsland.recive.getMapDataByPageIdx, send = NetProtoIsland.send.getMapDataByPageIdx, logicName = "LDSWorld"}
+    NetProtoIsland.dispatch[76]={onReceive = NetProtoIsland.recive.moveTile, send = NetProtoIsland.send.moveTile, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[77]={onReceive = NetProtoIsland.recive.collectRes, send = NetProtoIsland.send.collectRes, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[80]={onReceive = NetProtoIsland.recive.onFinishBuildingUpgrade, send = NetProtoIsland.send.onFinishBuildingUpgrade, logicName = "cmd4city"}
     --==============================
     NetProtoIsland.cmds = {
         getShipsByBuildingIdx = "getShipsByBuildingIdx", -- 取得造船厂所有舰艇列表,

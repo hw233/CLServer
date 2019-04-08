@@ -57,7 +57,7 @@ cmd4user.CMD = {
         if CLUtl.isNilOrEmpty(m.userId) or CLUtl.isNilOrEmpty(m.password) then
             ret.msg = "用户名和密码不能为空";
             ret.code = Errcode.error
-            return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS())
+            return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS(), m)
         end
         ---@type dbuser
         local myself = dbuser.instanse(m.userId, nil)
@@ -65,7 +65,7 @@ cmd4user.CMD = {
             ret.msg = "用户名已经存在";
             ret.code = Errcode.uidregisted
             myself:release()
-            return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS())
+            return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS(), m)
         end
         --处理一个设备最大注册数量
         local list = dbuser.getListBydeviceid(m.deviceID)
@@ -73,7 +73,7 @@ cmd4user.CMD = {
             ret.msg = "同一设备注册账号超上限";
             ret.code = Errcode.toomanydevice
             myself:release()
-            return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS())
+            return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS(), m)
         end
 
         local newuser = {}
@@ -91,7 +91,7 @@ cmd4user.CMD = {
         if not myself:init(newuser, true) then
             ret.msg = "注册失败";
             ret.code = Errcode.error
-            return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS())
+            return skynet.call(NetProto, "lua", "send", "registAccount", ret, nil, 0, dateEx.nowMS(), m)
         end
 
         ret.msg = nil;
@@ -104,7 +104,7 @@ cmd4user.CMD = {
         if m.appid ~= 1001 then
             serveridx = getServerid(newuser.idx, m.appid, m.channel)
         end
-        local ret = skynet.call(NetProto, "lua", "send", "registAccount", ret, user, serveridx, dateEx.nowMS())
+        local ret = skynet.call(NetProto, "lua", "send", "registAccount", ret, user, serveridx, dateEx.nowMS(), m)
         myself:release()
         return ret;
     end,
@@ -115,7 +115,7 @@ cmd4user.CMD = {
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return skynet.call(NetProto, "lua", "send", "loginAccount", ret)
+            return skynet.call(NetProto, "lua", "send", "loginAccount", ret, nil, 0, dateEx.nowMS(), m)
         end
         ---@type dbuser
         local myself = dbuser.instanse(m.userId, nil)
@@ -124,14 +124,14 @@ cmd4user.CMD = {
             local ret = {}
             ret.msg = "用户不存在";
             ret.code = Errcode.needregist
-            return skynet.call(NetProto, "lua", "send", "loginAccount", ret, nil, 0, dateEx.nowMS())
+            return skynet.call(NetProto, "lua", "send", "loginAccount", ret, nil, 0, dateEx.nowMS(), m)
         elseif m.password ~= myself:get_password() then
             -- 说明密码错误
             local ret = {}
             ret.msg = "密码错误";
             ret.code = Errcode.psderror
             myself:release()
-            return skynet.call(NetProto, "lua", "send", "loginAccount", ret, nil, 0, dateEx.nowMS())
+            return skynet.call(NetProto, "lua", "send", "loginAccount", ret, nil, 0, dateEx.nowMS(), m)
         else
             local ret = {}
             ret.msg = nil;
@@ -146,7 +146,7 @@ cmd4user.CMD = {
                 -- 1001:咪宝
                 serveridx = getServerid(user.idx, m.appid, m.channel)
             end
-            local ret = skynet.call(NetProto, "lua", "send", "loginAccount", ret, user, serveridx, dateEx.nowMS())
+            local ret = skynet.call(NetProto, "lua", "send", "loginAccount", ret, user, serveridx, dateEx.nowMS(), m)
             myself:release()
             return ret
         end
@@ -158,7 +158,7 @@ cmd4user.CMD = {
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return skynet.call(NetProto, "lua", "send", "loginAccountChannel", ret)
+            return skynet.call(NetProto, "lua", "send", "loginAccountChannel", ret, 0, dateEx.nowMS(), m)
         end
         local ret = {}
         ---@type dbuser
@@ -185,7 +185,7 @@ cmd4user.CMD = {
             if not myself:init(newuser, true) then
                 ret.msg = "注册失败";
                 ret.code = Errcode.error
-                return skynet.call(NetProto, "lua", "send", "loginAccountChannel", ret, 0, dateEx.nowMS())
+                return skynet.call(NetProto, "lua", "send", "loginAccountChannel", ret, 0, dateEx.nowMS(), m)
             end
         end
         ret.msg = nil;
@@ -200,7 +200,7 @@ cmd4user.CMD = {
             -- 1001:咪宝
             serveridx = getServerid(user.idx, m.appid, m.channel)
         end
-        local ret = skynet.call(NetProto, "lua", "send", "loginAccountChannel", ret, user, serveridx, dateEx.nowMS())
+        local ret = skynet.call(NetProto, "lua", "send", "loginAccountChannel", ret, user, serveridx, dateEx.nowMS(), m)
         myself:release()
         return ret
     end,

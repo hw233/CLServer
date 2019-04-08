@@ -54,6 +54,8 @@ do
             add(content, "    map[1] = \"__session__\"")
             add(content, "    map.retInfor = 2")
             add(content, "    map[2] = \"retInfor\"")
+            add(content, "    map.callback = 3")
+            add(content, "    map[3] = \"callback\"")
             add(content, "    map.__currIndex__ = 10")
         end
 
@@ -279,8 +281,33 @@ do
         add(strsServer, "    local skynet = require \"skynet\"\n")
         add(strsServer, "    require \"skynet.manager\"    -- import skynet.register")
         add(strsServer, "    require(\"BioUtl\")\n")
-        add(strsClient, "    " .. defProtocol.name .. ".__sessionID = 0; -- 会话ID");
+        add(strsClient, "    " .. defProtocol.name .. ".__sessionID = 0 -- 会话ID");
         add(strsClient, "    " .. defProtocol.name .. ".dispatch = {}");
+        add(strsClient, "    local __callbackInfor = {} -- 回调信息")
+        add(strsClient, "    local __callTimes = 1")
+
+        add(strsClient, "    ---@public 设计回调信息")
+        add(strsClient, "    local setCallback = function (callback, orgs, ret)")
+        add(strsClient, "       if callback then")
+        add(strsClient, "           local callbackKey = os.time() + __callTimes")
+        add(strsClient, "           __callTimes = __callTimes + 1")
+        add(strsClient, "           __callbackInfor[callbackKey] = {callback, orgs}")
+        add(strsClient, "           ret[3] = callbackKey")
+        add(strsClient, "        end")
+        add(strsClient, "    end")
+
+        add(strsClient, "    ---@public 处理回调")
+        add(strsClient, "    local doCallback = function(map, result)")
+        add(strsClient, "        local callbackKey = map[3]")
+        add(strsClient, "        if callbackKey then")
+        add(strsClient, "            local cbinfor = __callbackInfor[callbackKey]")
+        add(strsClient, "            if cbinfor then")
+        add(strsClient, "                pcall(cbinfor[1], cbinfor[2], result)")
+        add(strsClient, "            end")
+        add(strsClient, "            __callbackInfor[callbackKey] = nil")
+        add(strsClient, "        end")
+        add(strsClient, "    end")
+
         add(strsServer, "    " .. defProtocol.name .. ".dispatch = {}");
         add(strsClient, "    --==============================");
         add(strsServer, "    --==============================");
@@ -425,22 +452,23 @@ do
 
             if #inputParams == 0 then
                 -- 没有入参数
-                add(clientSend, "    " .. cmd .. " = function()");
+                add(clientSend, "    " .. cmd .. " = function(__callback, __orgs) -- __callback:接口回调, __orgs:回调参数");
             else
-                add(clientSend, "    " .. cmd .. " = function(" .. table.concat(inputParams, ", ") .. ")");
+                add(clientSend, "    " .. cmd .. " = function(" .. table.concat(inputParams, ", ") .. ", __callback, __orgs) -- __callback:接口回调, __orgs:回调参数");
             end
 
             if #outputParams == 0 then
                 -- 没有入参数
-                add(serverSend, "    " .. cmd .. " = function()");
+                add(serverSend, "    " .. cmd .. " = function(mapOrig) -- mapOrig:客户端原始入参");
             else
-                add(serverSend, "    " .. cmd .. " = function(" .. table.concat(outputParams, ", ") .. ")");
+                add(serverSend, "    " .. cmd .. " = function(" .. table.concat(outputParams, ", ") .. ", mapOrig) -- mapOrig:客户端原始入参");
             end
 
             add(clientSend, "        local ret = {}");
             add(serverSend, "        local ret = {}");
             add(clientSend, "        ret[" .. getKeyCode("cmd") .. "] = " .. getKeyCode(cmd));
             add(serverSend, "        ret[" .. getKeyCode("cmd") .. "] = " .. getKeyCode(cmd));
+            add(serverSend, "        ret[" .. getKeyCode("callback") .. "] = mapOrig and mapOrig.callback or nil");
             add(clientSend, "        ret[" .. getKeyCode("__session__") .. "] = " .. defProtocol.name .. ".__sessionID");
             if #toMapStrClient > 0 then
                 add(clientSend, table.concat(toMapStrClient, "\n"));
@@ -449,6 +477,8 @@ do
             if #toMapStrServer > 0 then
                 add(serverSend, table.concat(toMapStrServer, "\n"));
             end
+
+            add(clientSend, "        setCallback(__callback, __orgs, ret)")
             add(clientSend, "        return ret");
             add(serverSend, "        return ret");
             add(clientSend, "    end,");
@@ -461,6 +491,8 @@ do
             if #clientReciveParams > 0 then
                 add(clientRecive, table.concat(clientReciveParams, "\n"));
             end
+
+            add(clientRecive, "        doCallback(map, ret)")
             add(clientRecive, "        return ret");
             add(clientRecive, "    end,");
 
@@ -469,6 +501,7 @@ do
             add(serverRecive, "        local ret = {}");
             add(serverRecive, "        ret.cmd = \"" .. cmd .. "\"");
             add(serverRecive, "        ret.__session__ = map[" .. getKeyCode("__session__") .. "]");
+            add(serverRecive, "        ret.callback = map[" .. getKeyCode("callback") .. "]");
             if #serverReciveParams > 0 then
                 add(serverRecive, table.concat(serverReciveParams, "\n"));
             end

@@ -856,7 +856,7 @@ end
 function cmd4city.onFinishBuildShip(b, shipAttrid, num)
     local shipsMap
     local jsonstr = b:get_valstr()
-    if not CLUtl.isNilOrEmpty(jsonstr) then
+    if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
         shipsMap = json.decode(jsonstr)
     end
     shipsMap = shipsMap or {}
@@ -1465,7 +1465,7 @@ cmd4city.CMD = {
         local totalSpace = cfgUtl.getGrowingVal(buildingAttr.ComVal1Min, buildingAttr.ComVal1Max, buildingAttr.ComVal1Curve, b:get_lev() / buildingAttr.MaxLev)
         local shipsMap
         local jsonstr = b:get_valstr()
-        if not CLUtl.isNilOrEmpty(jsonstr) then
+        if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
             shipsMap = json.decode(jsonstr)
         end
         local usedSpace = 0
@@ -1533,7 +1533,7 @@ cmd4city.CMD = {
         end
         local shipsMap
         local jsonstr = b:get_valstr()
-        if not CLUtl.isNilOrEmpty(jsonstr) then
+        if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
             shipsMap = json.decode(jsonstr)
         end
         local dockyardShips = {}
@@ -1555,7 +1555,7 @@ cmd4city.CMD = {
         dockyardShips.buildingIdx = bidx
 
         local jsonstr = b:get_valstr()
-        if not CLUtl.isNilOrEmpty(jsonstr) then
+        if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil")  then
             dockyardShips.shipsMap = json.decode(jsonstr)
         end
         -- 推送给客户端
