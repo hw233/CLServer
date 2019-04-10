@@ -46,7 +46,6 @@ function CLLStack:contains(obj)
     return false
 end
 
-
 function CLLStack:isEmpty()
     local size = self:size()
     if size == 0 then

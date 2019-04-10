@@ -53,6 +53,18 @@ function CLLQueue:deQueue()
     --return value
 end
 
+function CLLQueue:contains(obj)
+    if self:isEmpty() then
+        return false
+    end
+    for i, v in ipairs(self.queue) do
+        if v == obj then
+            return true
+        end
+    end
+    return false
+end
+
 function CLLQueue:clear()
     self.queue = nil
     self.queue = {}
