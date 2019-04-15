@@ -68,7 +68,7 @@
         INT32B = "int32b",
     }
 
-    -- 取得数据的类型，主要是对number做了处理
+    ---@public 取得数据的类型，主要是对number做了处理
     function BioOutputStream.getDataType(obj)
         --nil, boolean, number, string, userdata, function, thread, table
         local val = nil;
@@ -103,7 +103,7 @@
         return val;
     end
 
-    -- 返回table是否为一个array， 第二返回值是table的count
+    ---@public 返回table是否为一个array， 第二返回值是table的count
     function BioOutputStream.isArray(t)
         if t == nil then
             return false, 0;
@@ -145,7 +145,7 @@
             BioOutputStream.writeBoolean(os, obj);
         else
             --//throw new IOException("unsupported obj then" + obj);
-            print("B2IO unsupported error then type=[" .. tostring(objType) .. "] val=[" + obj .. "]");
+            print("B2IO unsupported error then type=[" .. tostring(objType) .. "] val=[" .. obj .. "]");
         end
     end
 
