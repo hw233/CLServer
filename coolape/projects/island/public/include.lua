@@ -7,6 +7,7 @@ require("CLLStack")
 json = require("json")
 require("BioUtl")
 
+require("BitUtl")
 require("DBUtl")
 require("numEx")
 require("CLUtl")
