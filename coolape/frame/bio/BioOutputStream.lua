@@ -2,6 +2,7 @@
     require("class")
     require("BioType")
 
+    ---@class BioOutputStream
     BioOutputStream = {}
 
     local B2Type = BioType.B2Type;
@@ -20,6 +21,7 @@
     --===================================================
     --===================================================
     -- 数据流
+    ---@class LuaB2OutputStream
     LuaB2OutputStream = class("LuaB2OutputStream");
     function LuaB2OutputStream:ctor(v)
         self.content = {}

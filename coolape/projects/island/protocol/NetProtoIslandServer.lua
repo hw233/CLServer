@@ -168,9 +168,9 @@ do
             r[29] =  BioUtl.number2bio(m.val1)  -- 值1 int
             r[18] =  BioUtl.number2bio(m.cidx)  -- 主城idx int
             r[21] =  BioUtl.number2bio(m.val3)  -- 值3 int
-            r[30] =  BioUtl.number2bio(m.type)  -- 地块类型 1：玩家，2：npc int
-            r[22] =  BioUtl.number2bio(m.val2)  -- 值2 int
             r[13] =  BioUtl.number2bio(m.pageIdx)  -- 所在屏的index int
+            r[22] =  BioUtl.number2bio(m.val2)  -- 值2 int
+            r[30] =  BioUtl.number2bio(m.type)  -- 地块类型 1：玩家，2：npc int
             return r;
         end,
         parse = function(m)
@@ -180,9 +180,9 @@ do
             r.val1 = m[29] --  int
             r.cidx = m[18] --  int
             r.val3 = m[21] --  int
-            r.type = m[30] --  int
-            r.val2 = m[22] --  int
             r.pageIdx = m[13] --  int
+            r.val2 = m[22] --  int
+            r.type = m[30] --  int
             return r;
         end,
     }
@@ -231,6 +231,23 @@ do
             r.status = m[37] --  int
             r.pos = m[19] --  int
             r.pidx = m[38] --  int
+            return r;
+        end,
+    }
+    ---@class NetProtoIsland.ST_netCfg 网络协议解析配置
+    NetProtoIsland.ST_netCfg = {
+        toMap = function(m)
+            local r = {}
+            if m == nil then return r end
+            r[14] = m.shipsMap  -- key=舰船的配置id, val=舰船数量 map
+            r[15] =  BioUtl.number2bio(m.buildingIdx)  -- 造船厂的idx int
+            return r;
+        end,
+        parse = function(m)
+            local r = {}
+            if m == nil then return r end
+            r.shipsMap = m[14] --  table
+            r.buildingIdx = m[15] --  int
             return r;
         end,
     }
@@ -312,13 +329,12 @@ do
         ret.isEditMode = map[52]-- 编辑模式
         return ret
     end,
-    -- 当完成建造部分舰艇的通知
-    onFinishBuildOneShip = function(map)
+    -- 网络协议配置
+    sendNetCfg = function(map)
         local ret = {}
-        ret.cmd = "onFinishBuildOneShip"
+        ret.cmd = "sendNetCfg"
         ret.__session__ = map[1]
         ret.callback = map[3]
-        ret.buildingIdx = map[15]-- 造船厂的idx int
         return ret
     end,
     -- 取得建筑
@@ -345,6 +361,15 @@ do
         ret.cmd = "onResChg"
         ret.__session__ = map[1]
         ret.callback = map[3]
+        return ret
+    end,
+    -- 当完成建造部分舰艇的通知
+    onFinishBuildOneShip = function(map)
+        local ret = {}
+        ret.cmd = "onFinishBuildOneShip"
+        ret.__session__ = map[1]
+        ret.callback = map[3]
+        ret.buildingIdx = map[15]-- 造船厂的idx int
         return ret
     end,
     -- 移动建筑
@@ -512,26 +537,12 @@ do
         end
         return ret
     end,
-    onFinishBuildOneShip = function(retInfor, buildingIdx, shipAttrID, shipNum, mapOrig) -- mapOrig:客户端原始入参
+    sendNetCfg = function(retInfor, netCfg, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
-        ret[0] = 57
+        ret[0] = 81
         ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        if type(buildingIdx) == "number" then
-            ret[15] = BioUtl.number2bio(buildingIdx); -- 造船厂的idx int
-        else
-            ret[15] = buildingIdx; -- 造船厂的idx int
-        end
-        if type(shipAttrID) == "number" then
-            ret[58] = BioUtl.number2bio(shipAttrID); -- 航船的配置id
-        else
-            ret[58] = shipAttrID; -- 航船的配置id
-        end
-        if type(shipNum) == "number" then
-            ret[59] = BioUtl.number2bio(shipNum); -- 航船的数量
-        else
-            ret[59] = shipNum; -- 航船的数量
-        end
+        ret[82] = NetProtoIsland.ST_netCfg.toMap(netCfg); -- 网络协议解析配置
         return ret
     end,
     getBuilding = function(retInfor, building, mapOrig) -- mapOrig:客户端原始入参
@@ -560,6 +571,28 @@ do
         ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[63] = NetProtoIsland.ST_resInfor.toMap(resInfor); -- 资源信息
+        return ret
+    end,
+    onFinishBuildOneShip = function(retInfor, buildingIdx, shipAttrID, shipNum, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 57
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        if type(buildingIdx) == "number" then
+            ret[15] = BioUtl.number2bio(buildingIdx); -- 造船厂的idx int
+        else
+            ret[15] = buildingIdx; -- 造船厂的idx int
+        end
+        if type(shipAttrID) == "number" then
+            ret[58] = BioUtl.number2bio(shipAttrID); -- 航船的配置id
+        else
+            ret[58] = shipAttrID; -- 航船的配置id
+        end
+        if type(shipNum) == "number" then
+            ret[59] = BioUtl.number2bio(shipNum); -- 航船的数量
+        else
+            ret[59] = shipNum; -- 航船的数量
+        end
         return ret
     end,
     moveBuilding = function(retInfor, building, mapOrig) -- mapOrig:客户端原始入参
@@ -672,10 +705,11 @@ do
     NetProtoIsland.dispatch[46]={onReceive = NetProtoIsland.recive.rmBuilding, send = NetProtoIsland.send.rmBuilding, logicName = "cmd4city"}
     NetProtoIsland.dispatch[47]={onReceive = NetProtoIsland.recive.newBuilding, send = NetProtoIsland.send.newBuilding, logicName = "cmd4city"}
     NetProtoIsland.dispatch[48]={onReceive = NetProtoIsland.recive.login, send = NetProtoIsland.send.login, logicName = "cmd4player"}
-    NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.onFinishBuildOneShip, send = NetProtoIsland.send.onFinishBuildOneShip, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[81]={onReceive = NetProtoIsland.recive.sendNetCfg, send = NetProtoIsland.send.sendNetCfg, logicName = ""}
     NetProtoIsland.dispatch[60]={onReceive = NetProtoIsland.recive.getBuilding, send = NetProtoIsland.send.getBuilding, logicName = "cmd4city"}
     NetProtoIsland.dispatch[61]={onReceive = NetProtoIsland.recive.rmTile, send = NetProtoIsland.send.rmTile, logicName = "cmd4city"}
     NetProtoIsland.dispatch[62]={onReceive = NetProtoIsland.recive.onResChg, send = NetProtoIsland.send.onResChg, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[57]={onReceive = NetProtoIsland.recive.onFinishBuildOneShip, send = NetProtoIsland.send.onFinishBuildOneShip, logicName = "cmd4city"}
     NetProtoIsland.dispatch[64]={onReceive = NetProtoIsland.recive.moveBuilding, send = NetProtoIsland.send.moveBuilding, logicName = "cmd4city"}
     NetProtoIsland.dispatch[65]={onReceive = NetProtoIsland.recive.logout, send = NetProtoIsland.send.logout, logicName = "cmd4player"}
     NetProtoIsland.dispatch[66]={onReceive = NetProtoIsland.recive.buildShip, send = NetProtoIsland.send.buildShip, logicName = "cmd4city"}
@@ -695,10 +729,11 @@ do
         rmBuilding = "rmBuilding", -- 移除建筑,
         newBuilding = "newBuilding", -- 新建建筑,
         login = "login", -- 登陆,
-        onFinishBuildOneShip = "onFinishBuildOneShip", -- 当完成建造部分舰艇的通知,
+        sendNetCfg = "sendNetCfg", -- 网络协议配置,
         getBuilding = "getBuilding", -- 取得建筑,
         rmTile = "rmTile", -- 移除地块,
         onResChg = "onResChg", -- 资源变化时推送,
+        onFinishBuildOneShip = "onFinishBuildOneShip", -- 当完成建造部分舰艇的通知,
         moveBuilding = "moveBuilding", -- 移动建筑,
         logout = "logout", -- 登出,
         buildShip = "buildShip", -- 造船,
