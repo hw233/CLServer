@@ -2,15 +2,18 @@
 local CLNetSerialize = {}
 local BioUtl = require("BioUtl")
 local BitUtl = require("BitUtl")
-local strLen = string.len;
-local strSub = string.sub;
+local strLen = string.len
+local strSub = string.sub
 local strPack = string.pack
 local strbyte = string.byte
 local strchar = string.char
 local insert = table.insert
-local maxPackSize = 64 * 1024 - 1;
-local subPackSize = 64 * 1024 - 1 - 50;
+local concat = table.concat
+local floor = math.floor
+local maxPackSize = 64 * 1024 - 1
+local subPackSize = 64 * 1024 - 1 - 50
 
+--============================================================
 ---@public 组包，返回的是list
 function CLNetSerialize.package(pack)
     if pack == nil then
@@ -20,7 +23,7 @@ function CLNetSerialize.package(pack)
     local bytes = BioUtl.writeObject(pack)
     local len = strLen(bytes)
     if len > maxPackSize then
-        local subPackgeCount = math.floor(len / subPackSize)
+        local subPackgeCount = floor(len / subPackSize)
         local left = len % subPackSize
         local count = subPackgeCount
         if left > 0 then
@@ -30,10 +33,10 @@ function CLNetSerialize.package(pack)
             local subPackg = {}
             subPackg.__isSubPack = true
             subPackg.count = count
-            subPackg.i = i;
+            subPackg.i = i
             subPackg.content = strSub(bytes, ((i - 1) * subPackSize) + 1, i * subPackSize)
             local package = strPack(">s2", BioUtl.writeObject(subPackg))
-            table.insert(packList, package)
+            insert(packList, package)
             -- socket.write(client_fd, package)
         end
         if left > 0 then
@@ -43,17 +46,16 @@ function CLNetSerialize.package(pack)
             subPackg.i = count
             subPackg.content = strSub(bytes, (subPackgeCount * subPackSize) + 1, subPackgeCount * subPackSize + left)
             local package = strPack(">s2", BioUtl.writeObject(subPackg))
-            table.insert(packList, package)
+            insert(packList, package)
             -- socket.write(client_fd, package)
         end
     else
         local package = strPack(">s2", bytes)
         -- socket.write(client_fd, package)
-        table.insert(packList, package)
+        insert(packList, package)
     end
     return packList
 end
-
 
 -- 完整的接口都是table，当有分包的时候会收到list。list[1]=共有几个分包，list[2]＝第几个分包，list[3]＝ 内容
 local isSubPackage = function (m)
@@ -64,15 +66,25 @@ local isSubPackage = function (m)
     return false
 end
 
---[[ 处理分包的情况
+--============================================================
+---@public 处理分包的情况
+--[[ 
 -- 完整的接口都是table，当有分包的时候会收到list。list[1]=共有几个分包，list[2]＝第几个分包，list[3]＝ 内容
 --]]
-local currPack = {};
-function CLNetSerialize.unPackage(m)
+local currPack = {}
+function CLNetSerialize.unPackage(bytes)
+    local bytes2
+    if needDecrypt then
+        bytes2 = CLNetSerialize.decrypt(bytes)
+    else
+        bytes2 = bytes
+    end
+
+    local m = BioUtl.readObject(bytes2)
     if m == nil then
         return nil
     end
-    local map = m
+    local map
     if isSubPackage(m) then
         -- 是分包
         local count = m.count
@@ -80,11 +92,13 @@ function CLNetSerialize.unPackage(m)
         currPack[index]= m.content
         if (#currPack == count) then
             -- 说明分包已经取完整
-            local bytes = table.concat(currPack, "")
+            local bytes = concat(currPack)
             map = BioUtl.readObject(bytes)
             currPack = {}
             -- procCmd(map)
         end
+    else
+        map = m
     end
     return map
 end
@@ -113,6 +127,6 @@ function CLNetSerialize.xor(bytes, key)
         byte2 = BitUtl.xorOp(byte, strbyte(key, keyIdx))
         insert(result, strchar(byte2))
     end
-    return table.concat(result)
+    return concat(result)
 end
 return CLNetSerialize

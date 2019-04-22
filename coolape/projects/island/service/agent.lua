@@ -14,6 +14,9 @@ local client_fd     -- socket fd
 local mysql
 
 local function procCmd(map)
+    if map == nil then
+        return
+    end
     local result = skynet.call("NetProtoIsland", "lua", "dispatcher", skynet.self(), map, client_fd)
     if result then
         local list = CLNetSerialize.package(result)
@@ -25,17 +28,18 @@ local function procCmd(map)
     end
 end
 
+---@public 注册协议
 skynet.register_protocol {
     name = "client",
     id = skynet.PTYPE_CLIENT,
     unpack = function(msg, sz)
         local bytes = skynet.tostring(msg, sz);
-        return BioUtl.readObject(bytes)
+        return CLNetSerialize.unPackage(bytes)
+        -- return BioUtl.readObject(bytes)
     end,
     dispatch = function(_, _, map, ...)
         skynet.call(WATCHDOG, "lua", "alivefd", client_fd)
-        local obj = CLNetSerialize.unPackage(map)
-        procCmd(obj)
+        procCmd(map)
     end
 }
 
