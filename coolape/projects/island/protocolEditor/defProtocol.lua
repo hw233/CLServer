@@ -143,8 +143,9 @@ defProtocol.structs.dockyardShips = {
 defProtocol.structs.netCfg = {
     "网络协议解析配置",
     {
-        buildingIdx = {0, "造船厂的idx"},
-        shipsMap = {{skipAttrid = 0}, "key=舰船的配置id, val=舰船数量 map"}
+        encryptType = {0, "加密类别，1：只加密客户端，2：只加密服务器，3：前后端都加密，0及其它情况：不加密"},
+        secretKey = {"", "密钥"},
+        checkTimeStamp = {true, "检测时间戳"},
     }
 }
 --===================================================
@@ -160,8 +161,8 @@ defProtocol.cmds = {
         desc = "网络协议配置", -- 接口说明
         input = {}, -- 入参
         inputDesc = {}, -- 入参说明
-        output = {structs.retInfor, defProtocol.structs.netCfg}, -- 出参
-        outputDesc = {"返回信息", "网络协议解析配置"}, -- 出参说明
+        output = {structs.retInfor, defProtocol.structs.netCfg, "systime"}, -- 出参
+        outputDesc = {"返回信息", "网络协议解析配置", "系统时间 long"}, -- 出参说明
         logic = ""
     },
     heart = {

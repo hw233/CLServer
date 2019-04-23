@@ -36,9 +36,10 @@ skynet.register_protocol {
     unpack = function(msg, sz)
         local bytes = skynet.tostring(msg, sz)
         return CLNetSerialize.unPackage(bytes)
-        -- return BioUtl.readObject(bytes)
+        -- skynet.tostring will copy msg to a string, so we must free msg here.
+        -- skynet.trash(msg, sz)
     end,
-    dispatch = function(_, _, map, ...)
+    dispatch = function(session, source, map, ...)
         skynet.call(WATCHDOG, "lua", "alivefd", client_fd)
         procCmd(map)
     end
@@ -99,7 +100,7 @@ function CMD.notifyNetCfg()
     local cfg = CLNetSerialize.getCfg()
     local ret = {}
     ret.code = Errcode.ok
-    local package = skynet.call("NetProtoIsland", "lua", "send", "sendNetCfg", ret, cfg)
+    local package = skynet.call("NetProtoIsland", "lua", "send", "sendNetCfg", ret, cfg, dateEx.nowMS())
     CMD.sendPackage(package)
 end
 

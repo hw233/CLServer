@@ -25,12 +25,13 @@ local EncryptType = {
     none = 0
 }
 
+---@public 设置通信相关的配置
+--[[
+cfg.encryptType:加密类别，1：只加密客户端，2：只加密服务器，3：前后端都加密，0及其它情况：不加密
+cfg.secretKey:密钥
+cfg.checkTimeStamp:检测时间戳
+--]]
 function CLNetSerialize.setCfg()
-    --[[
-        cfg.encryptType:加密类别，1：只加密客户端，2：只加密服务器，3：前后端都加密，0及其它情况：不加密
-        cfg.secretKey:密钥
-        cfg.checkTimeStamp:检测时间戳
-    ]]
     netCfg = {}
     local len = numEx.nextInt(10, 30)
     local secretKey = {}
@@ -57,6 +58,9 @@ function CLNetSerialize.addTimestamp(bytes)
         return nil
     end
     index = index + 1
+    if index > 100 then
+        index = 0
+    end
     local ts = dateEx.nowMS() + index
     return BioUtl.number2bio(ts) .. bytes
 end
