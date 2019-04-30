@@ -1,6 +1,6 @@
 -- 世界地图网格
 local skynet = require "skynet"
-require "skynet.manager"    -- import skynet.register
+require "skynet.manager" -- import skynet.register
 require("Errcode")
 ---@type Grid
 require("Grid")
@@ -11,10 +11,10 @@ require("db.dbworldmap")
 local constCfg  -- 常量配置
 ---@type Grid
 local grid
-local gridSize -- 网格size
-local screenSize = 10   -- 大地图一屏size
+local gridSize  -- 网格size
+local screenSize = 10 -- 大地图一屏size
 local cellSize = 1
-local screenCells = {}  -- 每屏的网格信息
+local screenCells = {} -- 每屏的网格信息
 local screenCneterIndexs = {}
 local currScreenOrder = 1
 local NetProtoIsland = "NetProtoIsland"
@@ -32,7 +32,6 @@ local pauseFork = false
 --        currScreenOrder = 1
 --    end
 --end
-
 
 ---@public 启动一个线路处理超时数据（应该有多线程数据同步问题）
 local procTimeoutData = function()
@@ -173,24 +172,68 @@ function CMD.getMapDataByPageIdx(map)
     mapPage.cells = list
     skynet.error("=================" .. #list)
     pauseFork = false
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, { code = Errcode.ok }, mapPage, map)
+    return skynet.call(NetProtoIsland, "lua", "send", cmd, {code = Errcode.ok}, mapPage, map)
 end
 
-skynet.start(function()
-    constCfg = cfgUtl.getConstCfg()
-    gridSize = constCfg.GridWorld
+---@public 搬迁
+function CMD.moveCity(cidx, fromPos, toPos)
+    if not grid:IsInBounds(toPos) then
+        return Errcode.notInGridBounds
+    end
+    local toCell = dbworldmap.instanse(toPos)
+    if not toCell:isEmpty() then
+        toCell:release()
+        return Errcode.worldCellNotIdel
+    end
+    local fromCell = dbworldmap.instanse(fromPos)
+    if fromCell:isEmpty() then
+        fromCell:release()
+        return Errcode.notFoundInWorld
+    end
 
-    -- 初始化网格
-    grid = Grid.new()
-    grid:init(Vector3.zero, gridSize, gridSize, cellSize)
+    local data = fromCell:value2copy()
+    data[dbworldmap.keys.idx] = toPos
+    data[dbworldmap.keys.cidx] = cidx
+    data[dbworldmap.keys.pageIdx] = CMD.getPageIdx(toPos)
+    -- 重新设置地块数据
+    toCell:init(data, true)
+    --推送给在线的客户端
+    local map = skynet.call(NetProtoIsland, "lua", "send", "onMapCellChg", {code = Errcode.ok}, toCell:value2copy())
+    skynet.call("watchdog", "lua", "notifyAll", map)
+    -- 旧地块也推送
+    local d = toCell:value2copy()
+    d[dbworldmap.keys.cidx] = 0
+    d[dbworldmap.keys.type] = 0
+    map = skynet.call(NetProtoIsland, "lua", "send", "onMapCellChg", {code = Errcode.ok}, d)
+    skynet.call("watchdog", "lua", "notifyAll", map)
 
-    skynet.dispatch("lua", function(_, _, command, ...)
-        local f = CMD[command]
-        skynet.ret(skynet.pack(f(...)))
-    end)
+    -- 删除旧的地块
+    fromCell:delete()
+    fromCell:release()
+    toCell:release()
+    return Errcode.ok
+end
 
-    -- 启动一个线路处理超时数据（应该有多线程数据同步问题）
-    skynet.fork(procTimeoutData);
+skynet.start(
+    function()
+        constCfg = cfgUtl.getConstCfg()
+        gridSize = constCfg.GridWorld
 
-    skynet.register "LDSWorld"
-end)
+        -- 初始化网格
+        grid = Grid.new()
+        grid:init(Vector3.zero, gridSize, gridSize, cellSize)
+
+        skynet.dispatch(
+            "lua",
+            function(_, _, command, ...)
+                local f = CMD[command]
+                skynet.ret(skynet.pack(f(...)))
+            end
+        )
+
+        -- 启动一个线路处理超时数据（应该有多线程数据同步问题）
+        skynet.fork(procTimeoutData)
+
+        skynet.register "LDSWorld"
+    end
+)

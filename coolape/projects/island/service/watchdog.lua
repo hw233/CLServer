@@ -1,5 +1,6 @@
 local skynet = require "skynet"
 require "skynet.manager"    -- import skynet.register
+require("Errcode")
 
 local CMD = {}
 local SOCKET = {}
@@ -56,7 +57,7 @@ function SOCKET.warning(fd, size)
 end
 
 function SOCKET.data(fd, msg)
-    -- cannot gointo this logic
+    -- cannot go into this logic
 end
 
 function CMD.start(conf)
@@ -74,6 +75,14 @@ end
 -- 标志某个fd还活着
 function CMD.alivefd(fd)
     fdLastMsgTime[fd] = skynet.time()
+end
+
+---@public 通知所有用户
+function CMD.notifyAll(map)
+    for k, agentServer in pairs(agent) do
+        skynet.call(agentServer, "lua", "sendPackage", map)
+    end
+    return Errcode.ok
 end
 
 -- 停服

@@ -145,7 +145,7 @@ defProtocol.structs.netCfg = {
     {
         encryptType = {0, "加密类别，1：只加密客户端，2：只加密服务器，3：前后端都加密，0及其它情况：不加密"},
         secretKey = {"", "密钥"},
-        checkTimeStamp = {true, "检测时间戳"},
+        checkTimeStamp = {true, "检测时间戳"}
     }
 }
 --===================================================
@@ -246,6 +246,14 @@ defProtocol.cmds = {
         outputDesc = {"返回信息", "建筑信息"}, -- 出参说明
         logic = "cmd4city"
     },
+    moveCity = {
+        desc = "搬迁", -- 接口说明
+        input = {"pos"}, -- 入参
+        inputDesc = {"位置 int"}, -- 入参说明
+        output = {structs.retInfor}, -- 出参
+        outputDesc = {"返回信息"}, -- 出参说明
+        logic = "cmd4city"
+    },
     upLevBuilding = {
         desc = "升级建筑", -- 接口说明
         input = {"idx"}, -- 入参
@@ -285,6 +293,14 @@ defProtocol.cmds = {
         output = {structs.retInfor, defProtocol.structs.player}, -- 出参
         outputDesc = {"返回信息", "玩家信息"}, -- 出参说明
         logic = "cmd4player"
+    },
+    onMapCellChg = {
+        desc = "当地块发生变化时推送", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {structs.retInfor, defProtocol.structs.mapCell}, -- 出参
+        outputDesc = {"返回信息", "地块"}, -- 出参说明
+        logic = "LDSWorld"
     },
     onFinishBuildingUpgrade = {
         desc = "建筑升级完成", -- 接口说明

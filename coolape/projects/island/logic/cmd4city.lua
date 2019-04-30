@@ -1573,6 +1573,20 @@ cmd4city.CMD = {
             skynet.call(agent, "lua", "sendPackage", package)
         end
     end,
+    ---@public 搬迁
+    moveCity = function(map, fd, agent)
+        --//TODO:需要判断是否可以迁城，暂时没有想到，可能会有
+        local toPos = map.pos
+        local retCode = skynet.call("LDSWorld", "lua", "moveCity", myself:get_idx(), myself:get_pos(), toPos)
+        if retCode ~= Errcode.ok then
+            local ret = {}
+            ret.code = retCode
+            return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, map)
+        end
+        myself:set_pos(toPos)
+        return skynet.call(NetProtoIsland, "lua", "send", map.cmd, {code=Errcode.ok}, map)
+    end,
+
 }
 
 skynet.start(function()

@@ -28,4 +28,7 @@ Errcode.numError = 23 -- 数量错误
 Errcode.cfgIsNil = 24 -- 取得配置数据为空
 Errcode.shipIsLocked = 25 -- 航船未解锁
 Errcode.dockyardSpaceNotEnough = 26 -- 船坞空间不足
+Errcode.notInGridBounds = 27 -- 无效的世界坐标
+Errcode.worldCellNotIdel = 28 -- 当前坐标不是空闲
+Errcode.notFoundInWorld = 29 -- 世界地图中没找到玩家城
 return Errcode
