@@ -15,7 +15,7 @@ local IDConstVals = require("IDConstVals")
 local math = math
 local table = table
 
-local constCfg -- 常量配置
+local constCfg  -- 常量配置
 local gridSize  -- 网格size
 local cellSize = 1
 local tileSize = 2
@@ -31,18 +31,18 @@ local agent
 
 ---@type dbcity
 local myself
-local tiles = {}        -- 地块信息 key=idx, val=dbtile
-local buildings = {}    -- 建筑信息 key=idx, val=dbbuilding
+local tiles = {} -- 地块信息 key=idx, val=dbtile
+local buildings = {} -- 建筑信息 key=idx, val=dbbuilding
 ---@type dbbuilding
-local headquarters -- 主基地
-local buildingCountMap = {}  -- key=buildingAttrid;value=count
-local hadTileCount = 0  -- 地块总量
+local headquarters  -- 主基地
+local buildingCountMap = {} -- key=buildingAttrid;value=count
+local hadTileCount = 0 -- 地块总量
 
 --======================================================
 --======================================================
-function cmd4city.new (uidx)
-    tiles = {}        -- 地块信息 key=idx
-    buildings = {}    -- 建筑信息 key=idx
+function cmd4city.new(uidx)
+    tiles = {} -- 地块信息 key=idx
+    buildings = {} -- 建筑信息 key=idx
 
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
 
@@ -57,18 +57,26 @@ function cmd4city.new (uidx)
     d.status = 1
     d.lev = 1
     myself:init(d, true)
+    myself:setTrigger(skynet.self(), "onMyselfCityChg")
 
     --TODO: 初始化建筑
     -- add base buildings
     ---@type dbbuilding
-    local building = cmd4city.newBuilding(1, grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), idx)
+    local building =
+        cmd4city.newBuilding(
+        1,
+        grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)),
+        idx
+    )
     if building then
-        building:refreshData({
-            [dbbuilding.keys.lev] = 1, -- 初始成一级
-            [dbbuilding.keys.val] = IDConstVals.baseRes, -- 粮
-            [dbbuilding.keys.val2] = IDConstVals.baseRes, -- 金
-            [dbbuilding.keys.val3] = IDConstVals.baseRes, -- 油
-        })
+        building:refreshData(
+            {
+                [dbbuilding.keys.lev] = 1, -- 初始成一级
+                [dbbuilding.keys.val] = IDConstVals.baseRes, -- 粮
+                [dbbuilding.keys.val2] = IDConstVals.baseRes, -- 金
+                [dbbuilding.keys.val3] = IDConstVals.baseRes -- 油
+            }
+        )
         buildings[building:get_idx()] = building
         headquarters = building
     end
@@ -237,7 +245,8 @@ function cmd4city.initTiles(city)
     local tileCount = headquartersLevsAttr.Tiles
     --local range = headquartersLevsAttr.Range
     local range = math.ceil(math.sqrt(tileCount * 4))
-    local gridCells = grid:getCells(grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range)
+    local gridCells =
+        grid:getCells(grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range)
     local counter = 0
     local treeCounter = 0
     local maxTree = math.random(10, 20)
@@ -289,18 +298,19 @@ function cmd4city.setTilesAttr(tiles)
         up = tiles[up]
         down = grid:Down(tile:get_pos())
         down = tiles[down]
-        attrid = cmd4city.getTileAttrWithAround(
-                left and left:get_attrid() or 0,
-                right and right:get_attrid() or 0,
-                up and up:get_attrid() or 0,
-                down and down:get_attrid() or 0
+        attrid =
+            cmd4city.getTileAttrWithAround(
+            left and left:get_attrid() or 0,
+            right and right:get_attrid() or 0,
+            up and up:get_attrid() or 0,
+            down and down:get_attrid() or 0
         )
         tile:set_attrid(attrid)
     end
 end
 
 function cmd4city.getTileAttrWithAround(leftAttrId, righAttrId, upAttrId, downAttrId)
-    local all = { 1, 2, 3, 4, 5, 6, 7 }
+    local all = {1, 2, 3, 4, 5, 6, 7}
     local ret1 = all
     local ret2 = all
     local ret3 = all
@@ -635,7 +645,7 @@ end
 ---@return { type = resType, stored = 当前存储的量, maxstore = 最大存储量 }
 function cmd4city.getResInforByType(resType)
     local attrid = 0
-    local hadRes = 0  -- 已有资源
+    local hadRes = 0 -- 已有资源
     local maxstore = 0
     if resType == IDConstVals.ResType.food then
         attrid = IDConstVals.foodStorageBuildingID
@@ -652,7 +662,7 @@ function cmd4city.getResInforByType(resType)
         hadRes = hadRes + stored
         maxstore = _maxstore + IDConstVals.baseRes
     end
-    return { type = resType, stored = hadRes, maxstore = maxstore }
+    return {type = resType, stored = hadRes, maxstore = maxstore}
 end
 
 ---@public 取得仓库建筑列表
@@ -676,7 +686,9 @@ function cmd4city.getStoreBuildings(attrid)
             if attr == nil then
                 attr = cfgUtl.getBuildingByID(b:get_attrid())
             end
-            maxStore = maxStore + cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, b:get_lev() / attr.MaxLev)
+            maxStore =
+                maxStore +
+                cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, b:get_lev() / attr.MaxLev)
         end
     end
 
@@ -693,22 +705,23 @@ local consumeOneRes = function(val, list)
             b = v
             tmpval = b:get_val() - val
             if tmpval < 0 then
+                -- 通知服务器建筑有变化，已经增加了触发器
+                --cmd4city.CMD.onBuildingChg(b:value2copy())
                 -- 说明是扣除
                 b:set_val(0)
                 val = -tmpval
-                -- 通知服务器建筑有变化，已经增加了触发器
-                --cmd4city.CMD.onBuildingChg(b:value2copy())
             else
                 -- 说明是存储
                 if attr == nil then
                     attr = cfgUtl.getBuildingByID(b:get_attrid())
                 end
-                maxStore = cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, b:get_lev() / attr.MaxLev)
+                maxStore =
+                    cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, b:get_lev() / attr.MaxLev)
                 if tmpval > maxStore then
-                    b:set_val(maxStore)
-                    val = maxStore - tmpval
                     -- 通知服务器建筑有变化，已经增加了触发器
                     --cmd4city.CMD.onBuildingChg(b:value2copy())
+                    b:set_val(maxStore)
+                    val = maxStore - tmpval
                 else
                     b:set_val((tmpval))
                     -- 通知服务器建筑有变化，已经增加了触发器
@@ -717,7 +730,6 @@ local consumeOneRes = function(val, list)
                 end
             end
         end
-
     end
 end
 
@@ -843,7 +855,7 @@ function cmd4city.onFinishBuildingUpgrade(b)
     v[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
     v[dbbuilding.keys.lev] = b:get_lev() + 1
     v[dbbuilding.keys.starttime] = b:get_endtime()
-    b:refreshData(v)  -- 这样处理的目的是保证不会多次触发通知客户端
+    b:refreshData(v) -- 这样处理的目的是保证不会多次触发通知客户端
 
     -- 通知客户端
     cmd4city.CMD.onBuildingChg(b:value2copy(), "onFinishBuildingUpgrade")
@@ -887,7 +899,7 @@ function cmd4city.procDockyardBuildShip(b)
         local attr = cfgUtl.getRoleByID(roleAttrId)
         -- 建船时间
         local BuildTimeS = attr.BuildTimeS / 10
-        local starttime = b:get_val3()  -- 保存的是上次造船的开始时间
+        local starttime = b:get_val3() -- 保存的是上次造船的开始时间
         local diffSec = (dateEx.nowMS() - starttime) / 1000
         local finishBuildNum = numEx.getIntPart(diffSec / BuildTimeS)
         if finishBuildNum > 0 then
@@ -942,6 +954,7 @@ function cmd4city.release()
     tiles = {}
 
     if myself and (not myself:isEmpty()) then
+        myself:unsetTrigger(skynet.self(), "onMyselfCityChg")
         myself:release()
         myself = nil
     end
@@ -1032,9 +1045,12 @@ cmd4city.CMD = {
         local isEditMode = cmd4city.isEditMode()
         if not isEditMode then
             -- 扣除资源
-            local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
-            local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
-            local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
+            local food =
+                cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
+            local gold =
+                cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
+            local oil =
+                cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
             local succ, code = cmd4city.consumeRes(food, gold, oil)
             if not succ then
                 ret.code = code
@@ -1058,7 +1074,7 @@ cmd4city.CMD = {
             local _v = {
                 [dbbuilding.keys.starttime] = dateEx.nowMS(),
                 [dbbuilding.keys.endtime] = endTime,
-                [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade,
+                [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade
             }
             building:refreshData(_v)
             buildQueue.addBuildQueue(building, cmd4city.onFinishBuildingUpgrade)
@@ -1115,7 +1131,6 @@ cmd4city.CMD = {
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", "moveBuilding", ret, b:value2copy(), m)
     end,
-
     upLevBuilding = function(m, fd, agent)
         -- 建筑升级
         local ret = {}
@@ -1165,9 +1180,12 @@ cmd4city.CMD = {
         local isEditMode = cmd4city.isEditMode()
         if not isEditMode then
             -- 扣除资源
-            local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
-            local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
-            local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
+            local food =
+                cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
+            local gold =
+                cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
+            local oil =
+                cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
             local succ, code = cmd4city.consumeRes(food, gold, oil)
             if not succ then
                 ret.code = code
@@ -1183,7 +1201,7 @@ cmd4city.CMD = {
             local v = {
                 [dbbuilding.keys.starttime] = dateEx.nowMS(),
                 [dbbuilding.keys.endtime] = endTime,
-                [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade,
+                [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade
             }
             b:refreshData(v)
             buildQueue.addBuildQueue(b, cmd4city.onFinishBuildingUpgrade)
@@ -1197,7 +1215,6 @@ cmd4city.CMD = {
 
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy(), m)
     end,
-
     upLevBuildingImm = function(m, fd, agent)
         -- 立即完成升级
         local cmd = m.cmd
@@ -1245,9 +1262,12 @@ cmd4city.CMD = {
             leftMinutes = math.ceil(leftMinutes)
             needDiam = cfgUtl.minutes2Diam(leftMinutes)
 
-            local food = cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
-            local gold = cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
-            local oil = cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
+            local food =
+                cfgUtl.getGrowingVal(attr.BuildCostFoodMin, attr.BuildCostFoodMax, attr.BuildCostFoodCurve, persent)
+            local gold =
+                cfgUtl.getGrowingVal(attr.BuildCostGoldMin, attr.BuildCostGoldMax, attr.BuildCostGoldCurve, persent)
+            local oil =
+                cfgUtl.getGrowingVal(attr.BuildCostOilMin, attr.BuildCostOilMax, attr.BuildCostOilCurve, persent)
             needDiam = needDiam + cfgUtl.res2Diam(food + gold + oil)
         else
             ret.code = Errcode.buildingIsBusy
@@ -1279,11 +1299,9 @@ cmd4city.CMD = {
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, m)
     end,
-
     release = function(m, fd)
         cmd4city.release()
     end,
-
     onBuildingChg = function(data, cmd)
         -- 当建筑数据有变化，这个接口是内部触发的
         cmd = cmd or "onBuildingChg"
@@ -1301,7 +1319,6 @@ cmd4city.CMD = {
             end
         end
     end,
-
     newTile = function(m, fd, agent)
         -- 扩建地块
         local cmd = "newTile"
@@ -1331,7 +1348,13 @@ cmd4city.CMD = {
         local constcfg = cfgUtl.getConstCfg()
         -- 扣除资源
         local persent = hadTileCount / constcfg.TilesTotal
-        local food = cfgUtl.getGrowingVal(constcfg.ExtenTileCostMin, constcfg.ExtenTileCostMax, constcfg.ExtenTileCostCurve, persent)
+        local food =
+            cfgUtl.getGrowingVal(
+            constcfg.ExtenTileCostMin,
+            constcfg.ExtenTileCostMax,
+            constcfg.ExtenTileCostCurve,
+            persent
+        )
         local succ, code = cmd4city.consumeRes(food, 0, 0)
         if not succ then
             ret.code = code
@@ -1383,7 +1406,8 @@ cmd4city.CMD = {
         local val = 0
         if b:get_state() == IDConstVals.BuildingState.normal then
             local proTime = dateEx.nowMS() - (b:get_starttime() or 0)
-            proTime = numEx.getIntPart(proTime / 60000)-- 转成分钟
+            proTime = numEx.getIntPart(proTime / 60000)
+             -- 转成分钟
             if proTime > 0 then
                 local constcfg = cfgUtl.getConstCfg()
                 -- 判断时长是否超过最大生产时长(目前配置的时最大只可生产8小时产量)
@@ -1395,7 +1419,8 @@ cmd4city.CMD = {
                 local maxLev = attr.MaxLev
                 local persent = b:get_lev() / maxLev
                 -- 每分钟产量
-                local yieldsPerMinutes = cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, persent)
+                local yieldsPerMinutes =
+                    cfgUtl.getGrowingVal(attr.ComVal1Min, attr.ComVal1Max, attr.ComVal1Curve, persent)
                 val = yieldsPerMinutes * proTime
                 -- 判断仓库空间能否装下
                 local resinfor = cmd4city.getResInforByType(resType)
@@ -1412,11 +1437,13 @@ cmd4city.CMD = {
                     val = emptySpace
                 end
 
-                cmd4city.consumeRes2({ [resType] = -val }) --负数就是增加资源
-                b:refreshData({
-                    [dbbuilding.keys.starttime] = dateEx.nowMS(),
-                    [dbbuilding.keys.endtime] = dateEx.nowMS(),
-                })
+                cmd4city.consumeRes2({[resType] = -val}) --负数就是增加资源
+                b:refreshData(
+                    {
+                        [dbbuilding.keys.starttime] = dateEx.nowMS(),
+                        [dbbuilding.keys.endtime] = dateEx.nowMS()
+                    }
+                )
             end
         end
 
@@ -1463,7 +1490,13 @@ cmd4city.CMD = {
         end
         -- 空间是否够
         local buildingAttr = cfgUtl.getBuildingByID(b:get_attrid())
-        local totalSpace = cfgUtl.getGrowingVal(buildingAttr.ComVal1Min, buildingAttr.ComVal1Max, buildingAttr.ComVal1Curve, b:get_lev() / buildingAttr.MaxLev)
+        local totalSpace =
+            cfgUtl.getGrowingVal(
+            buildingAttr.ComVal1Min,
+            buildingAttr.ComVal1Max,
+            buildingAttr.ComVal1Curve,
+            b:get_lev() / buildingAttr.MaxLev
+        )
         local shipsMap
         local jsonstr = b:get_valstr()
         if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
@@ -1519,7 +1552,6 @@ cmd4city.CMD = {
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy(), map)
     end,
-
     ---@public 取得造船厂所有舰艇列表
     getShipsByBuildingIdx = function(map, fd, agent)
         local ret = {}
@@ -1543,7 +1575,6 @@ cmd4city.CMD = {
         ret.code = Errcode.ok
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, dockyardShips, map)
     end,
-
     ---@public 当造船厂的舰艇数量发化变化时
     onDockyardShipsChg = function(bidx, shipAttrid, num)
         local cmd = ""
@@ -1556,7 +1587,7 @@ cmd4city.CMD = {
         dockyardShips.buildingIdx = bidx
 
         local jsonstr = b:get_valstr()
-        if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil")  then
+        if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
             dockyardShips.shipsMap = json.decode(jsonstr)
         end
         -- 推送给客户端
@@ -1584,23 +1615,36 @@ cmd4city.CMD = {
             return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, map)
         end
         myself:set_pos(toPos)
-        return skynet.call(NetProtoIsland, "lua", "send", map.cmd, {code=Errcode.ok}, map)
+        return skynet.call(NetProtoIsland, "lua", "send", map.cmd, {code = Errcode.ok}, map)
     end,
-
+    onMyselfCityChg = function(data)
+        local cmd = "onMyselfCityChg"
+        local ret = {}
+        ret.code = Errcode.ok
+        local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy())
+        if skynet.address(agent) ~= nil then
+            skynet.call(agent, "lua", "sendPackage", package)
+        end
+    end
 }
 
-skynet.start(function()
-    constCfg = cfgUtl.getConstCfg()
-    gridSize = constCfg.GridCity
-    grid = Grid.new()
-    grid:init(Vector3.zero, gridSize, gridSize, cellSize)
+skynet.start(
+    function()
+        constCfg = cfgUtl.getConstCfg()
+        gridSize = constCfg.GridCity
+        grid = Grid.new()
+        grid:init(Vector3.zero, gridSize, gridSize, cellSize)
 
-    skynet.dispatch("lua", function(_, _, command, ...)
-        local f = cmd4city.CMD[command]
-        if f == nil then
-            error("func is nill.cmd =" .. command)
-        else
-            skynet.ret(skynet.pack(f(...)))
-        end
-    end)
-end)
+        skynet.dispatch(
+            "lua",
+            function(_, _, command, ...)
+                local f = cmd4city.CMD[command]
+                if f == nil then
+                    error("func is nill.cmd =" .. command)
+                else
+                    skynet.ret(skynet.pack(f(...)))
+                end
+            end
+        )
+    end
+)

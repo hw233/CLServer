@@ -1,6 +1,7 @@
 -- 世界地图网格
 local skynet = require "skynet"
 require "skynet.manager" -- import skynet.register
+require("public.include")
 require("Errcode")
 ---@type Grid
 require("Grid")
@@ -180,13 +181,15 @@ function CMD.moveCity(cidx, fromPos, toPos)
     if not grid:IsInBounds(toPos) then
         return Errcode.notInGridBounds
     end
+    printe(fromPos)
+    printe(toPos)
     local toCell = dbworldmap.instanse(toPos)
-    if not toCell:isEmpty() then
+    if (not toCell:isEmpty()) and toCell:get_cidx() > 0 then
         toCell:release()
         return Errcode.worldCellNotIdel
     end
     local fromCell = dbworldmap.instanse(fromPos)
-    if fromCell:isEmpty() then
+    if fromCell:isEmpty() or fromCell:get_cidx() <= 0 then
         fromCell:release()
         return Errcode.notFoundInWorld
     end

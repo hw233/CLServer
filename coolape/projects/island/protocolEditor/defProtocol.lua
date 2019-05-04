@@ -270,6 +270,14 @@ defProtocol.cmds = {
         outputDesc = {"返回信息", "建筑信息"}, -- 出参说明
         logic = "cmd4city"
     },
+    onMyselfCityChg = {
+        desc = "自己的城变化时推送", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {structs.retInfor, defProtocol.structs.city}, -- 出参
+        outputDesc = {"返回信息", "主城信息"}, -- 出参说明
+        logic = "cmd4city"
+    },
     onResChg = {
         desc = "资源变化时推送", -- 接口说明
         input = {}, -- 入参
