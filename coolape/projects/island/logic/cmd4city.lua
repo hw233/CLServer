@@ -355,6 +355,8 @@ function cmd4city.getSelf(idx)
             printe("[cmd4city.get].get city data is nil. idx==" .. idx)
             return nil
         end
+        --设置触发器
+        myself:setTrigger(skynet.self(), "onMyselfCityChg")
         -- 设置一次
         cmd4city.setSelfTiles()
         cmd4city.setSelfBuildings()
