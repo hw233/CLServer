@@ -181,15 +181,15 @@ function CMD.moveCity(cidx, fromPos, toPos)
     if not grid:IsInBounds(toPos) then
         return Errcode.notInGridBounds
     end
-    printe(fromPos)
-    printe(toPos)
     local toCell = dbworldmap.instanse(toPos)
     if (not toCell:isEmpty()) and toCell:get_cidx() > 0 then
+        printe(toPos)
         toCell:release()
         return Errcode.worldCellNotIdel
     end
     local fromCell = dbworldmap.instanse(fromPos)
     if fromCell:isEmpty() or fromCell:get_cidx() <= 0 then
+        printe(fromPos)
         fromCell:release()
         return Errcode.notFoundInWorld
     end
