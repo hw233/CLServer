@@ -31,4 +31,5 @@ Errcode.dockyardSpaceNotEnough = 26 -- 船坞空间不足
 Errcode.notInGridBounds = 27 -- 无效的世界坐标
 Errcode.worldCellNotIdel = 28 -- 当前坐标不是空闲
 Errcode.notFoundInWorld = 29 -- 世界地图中没找到玩家城
+Errcode.protectedCannotAttack = 30 -- 玩家处在免战保护中，不可攻击
 return Errcode

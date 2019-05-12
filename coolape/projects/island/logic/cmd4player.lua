@@ -117,12 +117,12 @@ cmd4player.CMD = {
     end,
     release = function(m, fd)
         print("player release")
-        --TODO:把相关处理入库
         if myself then
             myself:unsetTrigger(skynet.self(), "onPlayerChg")
             myself:release();
             myself = nil;
         end
+        skynet.exit()
     end,
 
     logout = function(m, fd)

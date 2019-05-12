@@ -17,6 +17,7 @@ cmd4com.CMD = {
     -- 释放
     release = function(map)
         --todo:
+        skynet.exit()
     end,
 
 }

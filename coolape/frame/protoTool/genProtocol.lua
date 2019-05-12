@@ -338,6 +338,17 @@ do
             local toMapStrServer = {};
             local clientReciveParams = {}
             local serverReciveParams = {}
+            local parmasTimes_ = {} -- 因为可能出现参数名相同的情况
+            local getParamName = function(paramName)
+                local times = parmasTimes_[paramName] or 1
+                local ret = paramName
+                if times > 1 then
+                    ret = paramName .. times
+                end
+                parmasTimes_[paramName] = times + 1
+                return ret
+            end
+            -- 入参处理
             if cfg.input then
                 local inputDesList = {}
                 if cfg.inputDesc then
@@ -346,6 +357,7 @@ do
 
                 for i, v2 in ipairs(cfg.input) do
                     local pname = v2;
+                    local paramName = ""
                     local isList = false
                     if type(v2) == "table" then
                         pname = getKeyByVal(defProtocol.structs, v2)
@@ -357,46 +369,50 @@ do
                                 if type2 == "table" then
                                     pname = getKeyByVal(defProtocol.structs, v2[1])
                                     assert(pname, "get key by val is null==" .. i)
-                                    add(toMapStrClient, "        ret[" .. getKeyCode(pname .. "s") .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. pname .. "s" .. ")  -- " .. (inputDesList[i] or ""));
+                                    paramName = getParamName(pname.. "s")
+                                    add(toMapStrClient, "        ret[" .. getKeyCode(paramName) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. paramName .. ")  -- " .. (inputDesList[i] or ""));
                                 else
-                                    add(toMapStrClient, "        ret[" .. getKeyCode("list") .. "] = list -- " .. (inputDesList[i] or ""));
+                                    paramName = getParamName("list")
+                                    add(toMapStrClient, "        ret[" .. getKeyCode(paramName) .. "] = " .. paramName .. " -- " .. (inputDesList[i] or ""));
                                 end
                             end
                         else
-                            add(toMapStrClient, "        ret[" .. getKeyCode(pname) .. "] = " .. defProtocol.name .. "." .. StructHead .. pname .. ".toMap(" .. pname .. "); -- " .. (inputDesList[i] or ""));
+                            paramName = getParamName(pname)
+                            add(toMapStrClient, "        ret[" .. getKeyCode(paramName) .. "] = " .. defProtocol.name .. "." .. StructHead .. pname .. ".toMap(" .. paramName .. "); -- " .. (inputDesList[i] or ""));
                         end
                     else
-                        add(toMapStrClient, "        ret[" .. getKeyCode(pname) .. "] = " .. pname .. "; -- " .. (inputDesList[i] or ""));
+                        paramName = getParamName(pname)
+                        add(toMapStrClient, "        ret[" .. getKeyCode(paramName) .. "] = " .. paramName .. "; -- " .. (inputDesList[i] or ""));
                     end
 
-                    if isList then
-                        table.insert(inputParams, pname .. "s")
-                    else
-                        table.insert(inputParams, pname)
-                    end
+                    -- if isList then
+                    --     table.insert(inputParams, paramName)
+                    -- else
+                        table.insert(inputParams, paramName)
+                    -- end
 
                     -- recive
                     if type(v2) == "table" then
                         if isList then
-                            local stName = pname .. "s"
-                            add(serverReciveParams, "        ret." .. stName .. " = " .. defProtocol.name .. "._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(stName) .. "]) -- " .. (inputDesList[i] or ""))
+                            add(serverReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(paramName) .. "]) -- " .. (inputDesList[i] or ""))
                         else
-                            add(serverReciveParams, "        ret." .. pname .. " = " .. defProtocol.name .. "." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(pname) .. "]) -- " .. (inputDesList[i] or ""));
+                            add(serverReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(paramName) .. "]) -- " .. (inputDesList[i] or ""));
                         end
                     else
-                        add(serverReciveParams, "        ret." .. pname .. " = " .. "map[" .. getKeyCode(pname) .. "]-- " .. (inputDesList[i] or ""));
+                        add(serverReciveParams, "        ret." .. paramName .. " = " .. "map[" .. getKeyCode(paramName) .. "]-- " .. (inputDesList[i] or ""));
                     end
                 end
             end
-
+            --出参处理
+            parmasTimes_ = {} -- 清空
             if cfg.output then
                 local inputDesList = {}
                 if cfg.outputDesc then
                     inputDesList = cfg.outputDesc
                 end
-
                 for i, v2 in ipairs(cfg.output) do
                     local pname = v2;
+                    local paramName = ""
                     local isList = false
                     if type(v2) == "table" then
                         pname = getKeyByVal(defProtocol.structs, v2)
@@ -408,44 +424,48 @@ do
                                 if type2 == "table" then
                                     pname = getKeyByVal(defProtocol.structs, v2[1])
                                     assert(pname, "get key by val is null==" .. i)
-                                    add(toMapStrServer, "        ret[" .. getKeyCode(pname .. "s") .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. pname .. "s" .. ")  -- " .. (inputDesList[i] or ""));
+                                    paramName = getParamName(pname .. "s")
+                                    add(toMapStrServer, "        ret[" .. getKeyCode(paramName) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. paramName .. ")  -- " .. (inputDesList[i] or ""));
                                 else
-                                    add(toMapStrServer, "        ret[" .. getKeyCode("list") .. "] = list -- " .. (inputDesList[i] or ""));
+                                    paramName = getParamName("list")
+                                    add(toMapStrServer, "        ret[" .. getKeyCode(paramName) .. "] = "..paramName.." -- " .. (inputDesList[i] or ""));
                                 end
                             else
-                                print("not support this case")
+                                print("err err err:not support this case!!!!!!!!!!!!!!!!")
                             end
                         else
+                            paramName = getParamName(pname)
                             add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = " .. defProtocol.name .. "." .. StructHead .. pname .. ".toMap(" .. pname .. "); -- " .. (inputDesList[i] or ""));
                         end
                     else
+                        paramName = getParamName(pname)
                         if defProtocol.isSendClientInt2bio then
-                            add(toMapStrServer, "        if type(" .. pname .. ") == \"number\" then")
-                            add(toMapStrServer, "            ret[" .. getKeyCode(pname) .. "] = BioUtl.number2bio(" .. pname .. "); -- " .. (inputDesList[i] or ""));
+                            add(toMapStrServer, "        if type(" .. paramName .. ") == \"number\" then")
+                            add(toMapStrServer, "            ret[" .. getKeyCode(paramName) .. "] = BioUtl.number2bio(" .. paramName .. "); -- " .. (inputDesList[i] or ""));
                             add(toMapStrServer, "        else")
-                            add(toMapStrServer, "            ret[" .. getKeyCode(pname) .. "] = " .. pname .. "; -- " .. (inputDesList[i] or ""));
+                            add(toMapStrServer, "            ret[" .. getKeyCode(paramName) .. "] = " .. paramName .. "; -- " .. (inputDesList[i] or ""));
                             add(toMapStrServer, "        end")
                         else
-                            add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = " .. pname .. "; -- " .. (inputDesList[i] or ""));
+                            add(toMapStrServer, "        ret[" .. getKeyCode(paramName) .. "] = " .. paramName .. "; -- " .. (inputDesList[i] or ""));
                         end
                     end
 
-                    if isList then
-                        table.insert(outputParams, pname .. "s")
-                    else
-                        table.insert(outputParams, pname)
-                    end
+                    -- if isList then
+                    --     table.insert(outputParams, pname .. "s")
+                    -- else
+                        table.insert(outputParams, paramName)
+                    -- end
 
                     -- recive
                     if type(v2) == "table" then
                         if isList then
-                            local stName = pname .. "s"
-                            add(clientReciveParams, "        ret." .. stName .. " = " .. defProtocol.name .. "._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(stName) .. "]) -- " .. (inputDesList[i] or ""))
+                            -- local stName = pname .. "s"
+                            add(clientReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(paramName) .. "]) -- " .. (inputDesList[i] or ""))
                         else
-                            add(clientReciveParams, "        ret." .. pname .. " = " .. defProtocol.name .. "." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(pname) .. "]) -- " .. (inputDesList[i] or ""))
+                            add(clientReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(paramName) .. "]) -- " .. (inputDesList[i] or ""))
                         end
                     else
-                        add(clientReciveParams, "        ret." .. pname .. " = " .. "map[" .. getKeyCode(pname) .. "]-- " .. (inputDesList[i] or ""));
+                        add(clientReciveParams, "        ret." .. paramName .. " = " .. "map[" .. getKeyCode(paramName) .. "]-- " .. (inputDesList[i] or ""));
                     end
                 end
             end

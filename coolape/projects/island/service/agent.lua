@@ -14,6 +14,7 @@ local CMD = {}
 local client_fd  -- socket fd
 local mysql
 
+---@public 处理接口指令
 local function procCmd(map)
     if map == nil then
         return
@@ -60,6 +61,7 @@ function CMD.start(conf)
     CMD.notifyNetCfg()
 end
 
+---@public 客户端连接断开
 function CMD.disconnect()
     print("agent disconnect. fd==" .. client_fd)
     for k, v in pairs(LogicMap) do
@@ -70,20 +72,30 @@ function CMD.disconnect()
     skynet.exit()
 end
 
--- 取得逻辑处理类
+---@public 取得逻辑处理类
 function CMD.getLogic(logicName)
     if logicName == "LDSWorld" then
+        -- 全局服务器（已经启动了），直接返回
         return logicName
     end
     local logic = LogicMap[logicName]
-    if logic == nil then
+    if logic == nil or skynet.address(logic) == nil then
         logic = skynet.newservice(logicName)
         LogicMap[logicName] = logic
     end
     return logic
 end
 
--- 发送一个数据包给客户端
+---@public 关闭某个逻辑服务
+function CMD.stopLogic(logicName)
+    local logic = LogicMap[logicName]
+    if logic then
+        skynet.call(logic, "lua", "release")
+    end
+    LogicMap[logicName] = nil
+end
+
+---@public 发送一个数据包给客户端
 function CMD.sendPackage(map)
     local list = CLNetSerialize.package(map)
     if list then

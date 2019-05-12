@@ -355,8 +355,16 @@ defProtocol.cmds = {
         input = {"buildingIdx"}, -- 入参
         inputDesc = {"造船厂的idx int"}, -- 入参说明
         output = {structs.retInfor, "buildingIdx", "shipAttrID", "shipNum"}, -- 出参
-        outputDesc = {"返回信息", "造船厂的idx int", "航船的配置id", "航船的数量"}, -- 出参说明
+        outputDesc = {"返回信息", "造船厂的idx int", "舰船的配置id", "舰船的数量"}, -- 出参说明
         logic = "cmd4city"
+    },
+    attack = {
+        desc = "攻击", -- 接口说明
+        input = {"pos"}, -- 入参
+        inputDesc = {"世界地图坐标idx int"}, -- 入参说明
+        output = {structs.retInfor, structs.player, structs.city, {structs.dockyardShips,structs.dockyardShips}, {structs.dockyardShips,structs.dockyardShips}}, -- 出参
+        outputDesc = {"返回信息", "被攻击玩家信息", "被攻击主城信息", "被攻击航船的数据", "进攻击方航船的数据"}, -- 出参说明
+        logic = "cmd4battle"
     }
 }
 

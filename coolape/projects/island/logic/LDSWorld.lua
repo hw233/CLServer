@@ -34,7 +34,7 @@ local pauseFork = false
 --    end
 --end
 
----@public 启动一个线路处理超时数据（应该有多线程数据同步问题）
+---@public 启动一个线路处理超时数据（//TODO:可能有多线程数据同步问题）
 local procTimeoutData = function()
     while (true) do
         if not pauseFork then
@@ -61,7 +61,7 @@ local procTimeoutData = function()
 end
 
 --============================================
--- 初始化
+---@public 初始化
 function CMD.init()
     local center
     local x, y
@@ -94,7 +94,7 @@ function CMD.getPageIdx(gidx)
     return grid:GetCellIndex(cellPosition)
 end
 
--- 取得空闲位置的index
+---@public 取得空闲位置的index
 function CMD.getIdleIdx(creenIdx)
     --if screenOrder then
     --    currScreenOrder = screenOrder
