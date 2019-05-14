@@ -1299,7 +1299,6 @@ CMD.upLevBuildingImm = function(m, fd, agent)
 end
 CMD.release = function(m, fd)
     cmd4city.release()
-    skynet.exit()
 end
 CMD.onBuildingChg = function(data, cmd)
     -- 当建筑数据有变化，这个接口是内部触发的
@@ -1584,7 +1583,7 @@ CMD.getAllShips = function()
     ---@param building dbbuilding
     for idx, building in pairs(buildings) do
         if building:get_attrid() == IDConstVals.dockyardBuildingID then
-            local shipMap = CMD.getShipsByBuildingIdx({buildingIdx=idx})
+            local shipMap = CMD.getShipsByBuildingIdx({buildingIdx = idx})
             if shipMap then
                 table.insert(shipList, shipMap)
             end

@@ -1,7 +1,8 @@
+local skynet = require "skynet"
+require "skynet.manager"    -- import skynet.register
+local socket = require "skynet.socket"
 require("public.include")
 require("Errcode")
-local skynet = require "skynet"
-local socket = require "skynet.socket"
 local BioUtl = require("BioUtl")
 local CLUtl = require("CLUtl")
 ---@type CLNetSerialize
@@ -65,10 +66,12 @@ end
 function CMD.disconnect()
     print("agent disconnect. fd==" .. client_fd)
     for k, v in pairs(LogicMap) do
-        skynet.call(v, "lua", "release")
+        if skynet.address(v) then
+            skynet.call(v, "lua", "release")
+            skynet.kill(v)
+        end
     end
     LogicMap = {}
-
     skynet.exit()
 end
 

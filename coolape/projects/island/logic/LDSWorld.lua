@@ -212,7 +212,6 @@ function CMD.moveCity(cidx, fromPos, toPos)
 
     -- 删除旧的地块
     fromCell:delete()
-    fromCell:release()
     toCell:release()
     return Errcode.ok
 end

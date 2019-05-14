@@ -1,11 +1,15 @@
 ---@class cmd4city
 local cmd4battle = {}
 local skynet = require("skynet")
+require "skynet.manager" -- import skynet.register
 require("public.include")
 require("Errcode")
 require("dbworldmap")
 require("dbcity")
+require("dbtile")
+require("dbbuilding")
 require("dbplayer")
+local IDConstVals = require("IDConstVals")
 local CMD = {}
 local NetProtoIsland = "NetProtoIsland"
 
@@ -28,36 +32,47 @@ CMD.attack = function(map, fd, agent)
         return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, nil, nil, nil, nil, map)
     end
 
-    local cityServer = skynet.newservice("cmd4city")
-    local targetCity = skynet.call(cityServer, "lua", "getSelf", cidx)
-    local pidx = targetCity[dbcity.keys.pidx]
+    local targetCity = dbcity.instanse(cidx)
+    local pidx = targetCity:get_pidx()
     local targetPlayer = dbplayer.instanse(pidx)
     --//TODO:判断能否攻击该玩家，比如是免战状态
     if targetPlayer:get_status() == IDConstVals.PlayerState.protect then
         targetCity:release()
         targetPlayer:release()
-        skynet.call(cityServer, "lua", "release")
         ret.code = Errcode.protectedCannotAttack
         ret.msg = "玩家处在免战保护中，不可攻击"
         return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, nil, nil, nil, nil, map)
     end
-    local tiles = skynet.call(cityServer, "lua", "getSelfTiles")
-    targetCity.tiles = tiles
-    local buildings = skynet.call(cityServer, "lua", "getSelfBuildings")
-    targetCity.buildings = buildings
-    -- 取得舰船数据
-    local targetShips = skynet.call(cityServer, "lua", "getAllShips")
+    targetCity.tiles = dbtile.getListBycidx(cidx)
+    targetCity.buildings = dbbuilding.getListBycidx(cidx)
+
+    -- -- 取得舰船数据
+    local targetShips = {}
+    for idx, building in pairs(targetCity.buildings) do
+        if building[dbbuilding.keys.attrid] == IDConstVals.dockyardBuildingID then
+            local jsonstr = building[dbbuilding.keys.valstr]
+            if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
+                local shipsMap = json.decode(jsonstr)
+                if shipsMap then
+                    table.insert(targetShips, shipsMap)
+                end
+            end
+        end
+    end
+
     local myCityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
     local selfShips = skynet.call(myCityServer, "lua", "getAllShips")
 
+    ret.code = Errcode.ok
     local retMsg =
         skynet.call(
         NetProtoIsland,
         "lua",
         "send",
         map.cmd,
+        ret,
         targetPlayer:value2copy(),
-        targetCity,
+        targetCity:value2copy(),
         targetShips,
         selfShips,
         map
@@ -65,12 +80,11 @@ CMD.attack = function(map, fd, agent)
     -- 释放资源
     targetCity:release()
     targetPlayer:release()
-    skynet.call(cityServer, "lua", "release") -- 关闭服务
     return retMsg
 end
 
 CMD.release = function()
-    skynet.exit()
+    
 end
 
 skynet.start(

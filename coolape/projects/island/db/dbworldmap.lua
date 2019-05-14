@@ -46,6 +46,7 @@ end
 function dbworldmap:init(data, isNew)
     data = dbworldmap.validData(data)
     self.__key__ = data.idx
+    local hadCacheData = false
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbworldmap.name, self.__key__)
         if d == nil then
@@ -56,6 +57,7 @@ function dbworldmap:init(data, isNew)
                 self.__isNew__ = true
             end
         else
+            hadCacheData = true
             self.__isNew__ = false
         end
     else
@@ -71,7 +73,9 @@ function dbworldmap:init(data, isNew)
             return false
         end
     end
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
+    if not hadCacheData then
+        skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
+    end
     skynet.call("CLDB", "lua", "SETUSE", self.__name__, self.__key__)
     return true
 end

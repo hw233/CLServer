@@ -1,7 +1,7 @@
 -- cache db
 local skynet = require "skynet"
 local sharedata = require "skynet.sharedata"
-require "skynet.manager"    -- import skynet.register
+require "skynet.manager" -- import skynet.register
 local tablesdesign = "tablesdesign"
 require("CLGlobal")
 require("CLLQueue")
@@ -13,62 +13,18 @@ local db4Group = {}
 local dbTimeout = {}
 local dbUsedTimes = {}
 local command = {}
-local needUpdateData = CLLQueue.new(100)  -- 需要更新的数据
-local triggerData = {}  -- 数据触发器， key:tableName + dataKey
-local timeoutsec = 30 * 60;   -- 数据超时时间（秒）
-local refreshsec = 1 * 60 * 100;   -- 数据更新时间（秒*100）
+local needUpdateData = CLLQueue.new(100) -- 需要更新的数据
+local triggerData = {} -- 数据触发器， key:tableName + dataKey
+local timeoutsec = 30 * 60 -- 数据超时时间（秒）
+local refreshsec = 1 * 60 * 100 -- 数据更新时间（秒*100）
 local insert = table.insert
 local concat = table.concat
 local tostring = tostring
 
 -- 处理超时的数据，把数据写入mysql
-local function checktimeout(db, dbTimeout)
+local function checktimeout()
     while true do
-        local now = skynet.time();
-        local hasTimeout = false;
-        local d, data
-        local sql
-        local hadUpdated = {}
-        local key2
-        -- 把有变化的数据更新
-        for i = 1, needUpdateData:size() do
-            d = needUpdateData:deQueue()
-            key2 = d.tableName .. "_" .. d.key
-            if not hadUpdated[key2] then
-                -- 为了不要频繁更新表
-                data = command.GET(d.tableName, d.key)
-                -- 说明是设置某个字段的值，这个时候才需要考虑更新到表
-                if data then
-                    sql = command.GETUPDATESQL(d.tableName, data)
-                    skynet.call("CLMySQL", "lua", "save", sql)
-                end
-                hadUpdated[key2] = true
-            end
-        end
-        hadUpdated = {}
-
-        -- 把超时的数据去掉
-        for tName, timoutList in pairs(dbTimeout) do
-            for key, time in pairs(timoutList) do
-                if now > time then
-                    -- 超时数据
-                    local val = command.GET(tName, key)
-                    if val then
-                        -- 数据更新到mysql（目前来看不需要更新，因为每次更新时都已经更新了）
-                        --local sql = command.GETUPDATESQL(tName, val)
-                        --skynet.call("CLMySQL", "lua", "save", sql)
-                        timoutList[key] = nil;
-                        command.REMOVE(tName, key)
-                        hasTimeout = true;
-                    end
-                end
-            end
-        end
-
-        --if hasTimeout then
-        --    skynet.call("CLMySQL", "lua", "FLUSHAll")
-        --end
-
+        command.FLUSHALL(false)
         skynet.sleep(refreshsec)
     end
 end
@@ -97,7 +53,7 @@ end
 function command.GETGROUP(tableName, groupKey)
     local t = db4Group[tableName] or {}
     local cacheGroup = t[tostring(groupKey)]
-    return cacheGroup;
+    return cacheGroup
 end
 
 -- 取得数据.支持多个key
@@ -111,7 +67,7 @@ function command.GET(tableName, key, ...)
     if t == nil then
         return nil
     end
-    local params = { ... }
+    local params = {...}
     if #params > 0 then
         for i, k in ipairs(params) do
             t = t[k]
@@ -120,7 +76,7 @@ function command.GET(tableName, key, ...)
             end
         end
     end
-    return t;
+    return t
 end
 
 ---@public 设置当数据变化时的触发回调（单条记录）
@@ -138,7 +94,7 @@ function command.ADDTRIGGER(tableName, key, server, funcName, fieldKey)
     else
         _key2 = server .. "_" .. funcName
     end
-    list[_key2] = { tableName = tableName, key = key, server = server, funcName = funcName, fieldKey = fieldKey }
+    list[_key2] = {tableName = tableName, key = key, server = server, funcName = funcName, fieldKey = fieldKey}
     triggerData[_key] = list
 end
 
@@ -192,10 +148,10 @@ end
 
 ---@public 设置数据.支持多个key，最后一个参数是要设置的value,例如：command.SET("user", "u001", "name", "小张"), 更新user表的key＝"u001"记录的，字段为name的值为"小张"
 function command.SET(tableName, key, ...)
-    local params = { ... }
+    local params = {...}
     if #params < 1 then
         printe("[CLDB.SET] parmas error")
-        return nil;
+        return nil
     end
 
     local t = db[tableName]
@@ -208,7 +164,7 @@ function command.SET(tableName, key, ...)
     local val = params[count]
     local last = t[key]
     if count > 1 then
-        local subt = nil;
+        local subt = nil
         for i = 1, count - 1 do
             subt = last
             if subt == nil then
@@ -216,7 +172,7 @@ function command.SET(tableName, key, ...)
             end
             last = subt[params[i]] -- 取得old数据
         end
-        subt[params[count - 1]] = val   -- 设置成新数据
+        subt[params[count - 1]] = val -- 设置成新数据
     else
         t[key] = val
     end
@@ -243,14 +199,13 @@ function command.SET(tableName, key, ...)
             end
         end
 
-        needUpdateData:enQueue({ tableName = tableName, key = key })
+        needUpdateData:enQueue({tableName = tableName, key = key})
         -- 触发回调
         if count > 1 then
             --说明是更新某个字段， 记录下需要更新
             local fieldKey = params[1]
             onTrigger(tableName, key, fieldKey)
         else
-
             onTrigger(tableName, key, nil)
         end
     end
@@ -317,10 +272,10 @@ function command.SETUSE(tableName, key)
         dbUsedTimes[tableName] = t2
     end
     local last = t2[tostring(key)] or 0
-    t2[tostring(key)] = last + 1;
+    t2[tostring(key)] = last + 1
     dbUsedTimes[tableName] = t2
     --print(tableName .. "=SETUSE=" .. key .. "==" .. t2[key])
-    return last;
+    return last
 end
 
 -- 移除数据超时
@@ -352,7 +307,7 @@ function command.SETUNUSE(tableName, key)
         t2[key] = skynet.time() + timeoutsec
         dbTimeout[tableName] = t2
     end
-    return last;
+    return last
 end
 
 -- 数据写入mysql，immd＝true,表时立即生效
@@ -371,19 +326,60 @@ end
 
 -- 全部数据写入mysql，immd＝true,表时立即生效
 function command.FLUSHALL(immd)
+    -- for tName, timoutList in pairs(dbTimeout) do
+    --     for key, time in pairs(timoutList) do
+    --         -- 超时数据
+    --         local val = command.GET(tName, key)
+    --         if val then
+    --             skynet.call("CLMySQL", "lua", "save", command.GETUPDATESQL(tName, val))
+    --             timoutList[key] = nil;
+    --             command.REMOVE(tName, key)
+    --         end
+    --     end
+    -- end
+
+    local now = skynet.time()
+    local hasTimeout = false
+    local d, data
+    local sql
+    local hadUpdated = {}
+    local key2
+    -- 把有变化的数据更新
+    for i = 1, needUpdateData:size() do
+        d = needUpdateData:deQueue()
+        key2 = d.tableName .. "_" .. d.key
+        if not hadUpdated[key2] then
+            -- 为了不要频繁更新表
+            data = command.GET(d.tableName, d.key)
+            -- 说明是设置某个字段的值，这个时候才需要考虑更新到表
+            if data then
+                sql = command.GETUPDATESQL(d.tableName, data)
+                skynet.call("CLMySQL", "lua", "save", sql)
+            end
+            hadUpdated[key2] = true
+        end
+    end
+    hadUpdated = {}
+
+    -- 把超时的数据去掉
     for tName, timoutList in pairs(dbTimeout) do
         for key, time in pairs(timoutList) do
-            -- 超时数据
-            local val = command.GET(tName, key)
-            if val then
-                skynet.call("CLMySQL", "lua", "save", command.GETUPDATESQL(tName, val))
-                timoutList[key] = nil;
-                command.REMOVE(tName, key)
+            if now > time then
+                -- 超时数据
+                local val = command.GET(tName, key)
+                if val then
+                    -- 数据更新到mysql（目前来看不需要更新，因为每次更新时都已经更新了）
+                    --local sql = command.GETUPDATESQL(tName, val)
+                    --skynet.call("CLMySQL", "lua", "save", sql)
+                    timoutList[key] = nil
+                    command.REMOVE(tName, key)
+                    hasTimeout = true
+                end
             end
         end
     end
     if immd then
-        skynet.call("CLMySQL", "lua", "FLUSHAll");
+        skynet.call("CLMySQL", "lua", "FLUSHAll")
     end
 end
 
@@ -417,9 +413,9 @@ function command.GETINSERTSQL(tableName, data)
         insert(columns, "`" .. v[1] .. "`")
         local types = v[2]:upper()
         if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
-            insert(dataInsert, (data[v[1]] and data[v[1]] or 0));
+            insert(dataInsert, (data[v[1]] and data[v[1]] or 0))
         else
-            insert(dataInsert, (data[v[1]] and "'" .. data[v[1]] .. "'" or "NULL"));
+            insert(dataInsert, (data[v[1]] and "'" .. data[v[1]] .. "'" or "NULL"))
         end
     end
 
@@ -444,9 +440,9 @@ function command.GETUPDATESQL(tableName, data)
     for i, v in ipairs(tableCfg.columns) do
         local types = v[2]:upper()
         if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
-            insert(dataUpdate, "`" .. v[1] .. "`=" .. (data[v[1]] and data[v[1]] or 0));
+            insert(dataUpdate, "`" .. v[1] .. "`=" .. (data[v[1]] and data[v[1]] or 0))
         else
-            insert(dataUpdate, "`" .. v[1] .. "`=" .. (data[v[1]] and "'" .. data[v[1]] .. "'" or "NULL"));
+            insert(dataUpdate, "`" .. v[1] .. "`=" .. (data[v[1]] and "'" .. data[v[1]] .. "'" or "NULL"))
         end
     end
 
@@ -460,10 +456,13 @@ function command.GETUPDATESQL(tableName, data)
                 end
             end
 
-            if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
-                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and data[pkey] or 0));
+            if
+                types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or
+                    types:find("BOOL")
+             then
+                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and data[pkey] or 0))
             else
-                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and "'" .. data[pkey] .. "'" or "NULL"));
+                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and "'" .. data[pkey] .. "'" or "NULL"))
             end
         end
     end
@@ -495,10 +494,13 @@ function command.GETDELETESQL(tableName, data)
                 end
             end
 
-            if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
-                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and data[pkey] or 0));
+            if
+                types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or
+                    types:find("BOOL")
+             then
+                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and data[pkey] or 0))
             else
-                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and "'" .. data[pkey] .. "'" or "NULL"));
+                insert(where, "`" .. pkey .. "`=" .. (data[pkey] and "'" .. data[pkey] .. "'" or "NULL"))
             end
         end
     end
@@ -507,7 +509,7 @@ function command.GETDELETESQL(tableName, data)
 end
 
 function command.STOP(exit)
-    --command.FLUSHALL(false)
+    command.FLUSHALL(false)
     if exit then
         skynet.exit()
     end
@@ -518,17 +520,22 @@ function command.SETTIMEOUT(v)
     timeoutsec = v
 end
 -- ============================================================
-skynet.start(function()
-    skynet.dispatch("lua", function(session, address, cmd, ...)
-        cmd = cmd:upper()
-        local f = command[cmd]
-        if f then
-            skynet.ret(skynet.pack(f(...)))
-        else
-            error(string.format("Unknown command %s", tostring(cmd)))
-        end
-    end)
+skynet.start(
+    function()
+        skynet.dispatch(
+            "lua",
+            function(session, address, cmd, ...)
+                cmd = cmd:upper()
+                local f = command[cmd]
+                if f then
+                    skynet.ret(skynet.pack(f(...)))
+                else
+                    error(string.format("Unknown command %s", tostring(cmd)))
+                end
+            end
+        )
 
-    skynet.fork(checktimeout, db, dbTimeout);
-    skynet.register "CLDB"
-end)
+        skynet.fork(checktimeout)
+        skynet.register "CLDB"
+    end
+)

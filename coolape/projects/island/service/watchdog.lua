@@ -94,8 +94,10 @@ function CMD.stop()
     -- 把网关停掉，以免有新的fd进来
     skynet.kill(gate)
 
-    skynet.call("CLDB", "lua", "stop")
-    skynet.call("CLMySQL", "lua", "stop")
+    skynet.call("CLDB", "lua", "stop", false)
+    skynet.kill("CLDB")
+    skynet.call("CLMySQL", "lua", "stop", false)
+    skynet.kill("CLMySQL")
     -- kill进程
     local projectname = skynet.getenv("projectName")
     local stopcmd = "ps -ef|grep config_" .. projectname .. "|grep -v grep |awk '{print $2}'|xargs -n1 kill -9"

@@ -40,6 +40,7 @@ function dateEx.str2Seconds(srcDateTime)
     return dt1
 end
 
+---@public 取得当前时间(可能是小数，单位是：秒)
 function dateEx.now()
     return skynet.time()
 end
