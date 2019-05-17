@@ -269,13 +269,18 @@ function dbworldmap.querySql(idx)
     end
 end
 
--- 取得一个组
-function dbworldmap.getListBypageIdx(pageIdx, orderby, limitOffset, limitNum)
+---@public 取得一个组
+---@param forceSelect boolean 强制从mysql取数据
+---@param orderby string 排序
+function dbworldmap.getListBypageIdx(pageIdx, forceSelect, orderby, limitOffset, limitNum)
+    if orderby and orderby ~= "" then
+        forceSelect = true
+    end
     local cachlist, isFullCached, list
     local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbworldmap.name, pageIdx) or {}
     isFullCached = groupInfor[1]
     cachlist = groupInfor[2] or {}
-    if isFullCached then
+    if isFullCached and (not forceSelect) then
         list = cachlist
     else
         local sql = "SELECT * FROM worldmap WHERE pageIdx=" .. pageIdx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"

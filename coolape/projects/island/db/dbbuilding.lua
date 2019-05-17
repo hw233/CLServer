@@ -412,13 +412,18 @@ function dbbuilding.querySql(idx, cidx)
     end
 end
 
--- 取得一个组
-function dbbuilding.getListBycidx(cidx, orderby, limitOffset, limitNum)
+---@public 取得一个组
+---@param forceSelect boolean 强制从mysql取数据
+---@param orderby string 排序
+function dbbuilding.getListBycidx(cidx, forceSelect, orderby, limitOffset, limitNum)
+    if orderby and orderby ~= "" then
+        forceSelect = true
+    end
     local cachlist, isFullCached, list
     local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbbuilding.name, cidx) or {}
     isFullCached = groupInfor[1]
     cachlist = groupInfor[2] or {}
-    if isFullCached then
+    if isFullCached and (not forceSelect) then
         list = cachlist
     else
         local sql = "SELECT * FROM building WHERE cidx=" .. cidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
