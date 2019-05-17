@@ -42,7 +42,7 @@ local procTimeoutData = function()
                 if not pauseFork then
                     if lastUseTime and (dateEx.nowMS() - lastUseTime > ConstTimeOut) then
                         -- 已经超时了
-                        local list = skynet.call("CLDB", "lua", "GETGROUP", dbworldmap.name, pageIdx)
+                        local list = dbworldmap.getListBypageIdx(pageIdx)
                         if list then
                             local cell = nil
                             for i, v in ipairs(list) do
@@ -157,7 +157,7 @@ function CMD.getMapDataByPageIdx(map)
     local cmd = map.cmd
 
     -- 先从缓存里取
-    local list = skynet.call("CLDB", "lua", "GETGROUP", dbworldmap.name, pageIdx)
+    local list = dbworldmap.getListBypageIdx(pageIdx)
     if list == nil or cachePages[pageIdx] == nil then
         -- 缓存里没有，那就从数据库里取
         list = dbworldmap.getListBypageIdx(pageIdx)

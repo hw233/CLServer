@@ -10,6 +10,7 @@ require("CLLQueue")
 local CLUtl = require("CLUtl")
 local db = {}
 local db4Group = {}
+local db4GroupState = {} -- 记录组是否是全的
 local dbTimeout = {}
 local dbUsedTimes = {}
 local command = {}
@@ -41,19 +42,40 @@ end
 
 -- 移除组里的数据
 local function removeGroup(tableName, groupKey, key)
-    local t = db4Group[tableName] or {}
-    local group = t[tostring(groupKey)] or {}
+    local t = db4Group[tableName]
+    if t == nil then
+        return
+    end
+    local group = t[tostring(groupKey)]
+    if group == nil then
+        return
+    end
     group[tostring(key)] = nil
     t[tostring(groupKey)] = group
     db4Group[tableName] = t
+    -- 设置组数据已经不全
+    local tGroupState = db4GroupState[tableName] or {}
+    tGroupState[groupKey] = false
 end
 
 -- ============================================================
--- 取得一个组，注意这个组不是list而是个table
+---@public 取得一个组，注意这个组不是list而是个table
+---@return isFullCached BOOL 是否已经缓存了全数据，当为false时，说明需要从mysql重新取得数据
+---@return cacheGroup table 组数据
 function command.GETGROUP(tableName, groupKey)
     local t = db4Group[tableName] or {}
     local cacheGroup = t[tostring(groupKey)]
-    return cacheGroup
+
+    local tGroupState = db4GroupState[tableName] or {}
+    local isFullCached = tGroupState[groupKey] or false
+    return {isFullCached, cacheGroup}
+end
+
+---@public 设置组数据是全的，不需要从mysql取得
+function command.SETGROUPISFULL(tableName, groupKey)
+    local tGroupState = db4GroupState[tableName] or {}
+    tGroupState[groupKey] = true
+    db4GroupState[tableName] = tGroupState
 end
 
 -- 取得数据.支持多个key

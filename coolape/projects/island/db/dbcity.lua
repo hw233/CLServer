@@ -241,26 +241,33 @@ end
 
 -- 取得一个组
 function dbcity.getListBypidx(pidx, orderby, limitOffset, limitNum)
-    local sql = "SELECT * FROM city WHERE pidx=" .. pidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
-    local list = skynet.call("CLMySQL", "lua", "exesql", sql)
-    if list and list.errno then
-        skynet.error("[dbcity.getGroup] sql error==" .. sql)
-        return nil
-     end
-     local cachlist = skynet.call("CLDB", "lua", "GETGROUP", dbcity.name, pidx) or {}
-     for i, v in ipairs(list) do
-         local key = tostring(v.idx)
-         local d = cachlist[key]
-         if d ~= nil then
-             -- 用缓存的数据才是最新的
-             list[i] = d
-             cachlist[key] = nil
+    local cachlist, isFullCached, list
+    local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbcity.name, pidx) or {}
+    isFullCached = groupInfor[1]
+    cachlist = groupInfor[2] or {}
+    if isFullCached then
+        list = cachlist
+    else
+        local sql = "SELECT * FROM city WHERE pidx=" .. pidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
+        list = skynet.call("CLMySQL", "lua", "exesql", sql)
+        if list and list.errno then
+            skynet.error("[dbcity.getGroup] sql error==" .. sql)
+            return nil
          end
+         for i, v in ipairs(list) do
+             local key = tostring(v.idx)
+             local d = cachlist[key]
+             if d ~= nil then
+                 -- 用缓存的数据才是最新的
+                 list[i] = d
+                 cachlist[key] = nil
+             end
+         end
+         for k ,v in pairs(cachlist) do
+             table.insert(list, v)
+         end
+         cachlist = nil
      end
-     for k ,v in pairs(cachlist) do
-         table.insert(list, v)
-     end
-     cachlist = nil
      local data
      local ret = {}
      for k, v in ipairs(list) do
@@ -269,6 +276,8 @@ function dbcity.getListBypidx(pidx, orderby, limitOffset, limitNum)
          data:release()
      end
      list = nil
+     -- 设置当前缓存数据是全的数据
+     skynet.call("CLDB", "lua", "SETGROUPISFULL", dbcity.name, pidx)
      return ret
 end
 
