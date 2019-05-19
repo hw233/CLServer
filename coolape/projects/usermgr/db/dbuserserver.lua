@@ -26,9 +26,9 @@ dbuserserver = class("dbuserserver")
 dbuserserver.name = "userserver"
 
 dbuserserver.keys = {
-    sidx = "sidx",
-    uidx = "uidx",
-    appid = "appid",
+    sidx = "sidx", -- 服务器id
+    uidx = "uidx", -- 用户id
+    appid = "appid", -- 应用id
 }
 
 function dbuserserver:ctor(v)
@@ -42,6 +42,7 @@ end
 function dbuserserver:init(data, isNew)
     data = dbuserserver.validData(data)
     self.__key__ = data.uidx .. "_" .. data.appid
+    local hadCacheData = false
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbuserserver.name, self.__key__)
         if d == nil then
@@ -52,6 +53,7 @@ function dbuserserver:init(data, isNew)
                 self.__isNew__ = true
             end
         else
+            hadCacheData = true
             self.__isNew__ = false
         end
     else
@@ -67,7 +69,9 @@ function dbuserserver:init(data, isNew)
             return false
         end
     end
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
+    if not hadCacheData then
+        skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
+    end
     skynet.call("CLDB", "lua", "SETUSE", self.__name__, self.__key__)
     return true
 end

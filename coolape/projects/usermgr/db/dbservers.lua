@@ -26,16 +26,16 @@ dbservers = class("dbservers")
 dbservers.name = "servers"
 
 dbservers.keys = {
-    idx = "idx",
-    appid = "appid",
-    channel = "channel",
-    name = "name",
-    status = "status",
-    isnew = "isnew",
-    host = "host",
-    port = "port",
-    androidVer = "androidVer",
-    iosVer = "iosVer",
+    idx = "idx", -- 唯一标识
+    appid = "appid", -- 应用id
+    channel = "channel", -- 渠道id
+    name = "name", -- 服务器名
+    status = "status", -- 状态 1:正常; 2:爆满; 3:维护
+    isnew = "isnew", -- 新服
+    host = "host", -- ip
+    port = "port", -- port
+    androidVer = "androidVer", -- 客户端android版本
+    iosVer = "iosVer", -- 客户端ios版本
 }
 
 function dbservers:ctor(v)
@@ -49,6 +49,7 @@ end
 function dbservers:init(data, isNew)
     data = dbservers.validData(data)
     self.__key__ = data.idx
+    local hadCacheData = false
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbservers.name, self.__key__)
         if d == nil then
@@ -59,6 +60,7 @@ function dbservers:init(data, isNew)
                 self.__isNew__ = true
             end
         else
+            hadCacheData = true
             self.__isNew__ = false
         end
     else
@@ -74,7 +76,9 @@ function dbservers:init(data, isNew)
             return false
         end
     end
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
+    if not hadCacheData then
+        skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
+    end
     skynet.call("CLDB", "lua", "SETUSE", self.__name__, self.__key__)
     return true
 end
@@ -334,36 +338,55 @@ function dbservers.querySql(idx, appid, channel)
     end
 end
 
--- 取得一个组
-function dbservers.getListByappid(appid, orderby, limitOffset, limitNum)
-    local sql = "SELECT * FROM servers WHERE appid=" .. appid ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
-    local list = skynet.call("CLMySQL", "lua", "exesql", sql)
-    if list and list.errno then
-        skynet.error("[dbservers.getGroup] sql error==" .. sql)
-        return nil
-     end
-     local cachlist = skynet.call("CLDB", "lua", "GETGROUP", dbservers.name, appid) or {}
-     for i, v in ipairs(list) do
-         local key = tostring(v.idx)
-         local d = cachlist[key]
-         if d ~= nil then
-             -- 用缓存的数据才是最新的
-             list[i] = d
-             cachlist[key] = nil
+---@public 取得一个组
+---@param forceSelect boolean 强制从mysql取数据
+---@param orderby string 排序
+function dbservers.getListByappid(appid, forceSelect, orderby, limitOffset, limitNum)
+    if orderby and orderby ~= "" then
+        forceSelect = true
+    end
+    local data
+    local ret = {}
+    local cachlist, isFullCached, list
+    local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbservers.name, appid) or {}
+    cachlist = groupInfor[1] or {}
+    isFullCached = groupInfor[2]
+    if isFullCached == true and (not forceSelect) then
+        list = cachlist
+        for k, v in pairs(list) do
+            data = dbservers.new(v, false)
+            table.insert(ret, data:value2copy())
+            data:release()
+        end
+    else
+        local sql = "SELECT * FROM servers WHERE appid=" .. appid ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
+        list = skynet.call("CLMySQL", "lua", "exesql", sql)
+        if list and list.errno then
+            skynet.error("[dbservers.getGroup] sql error==" .. sql)
+            return nil
+         end
+         for i, v in ipairs(list) do
+             local key = tostring(v.idx)
+             local d = cachlist[key]
+             if d ~= nil then
+                 -- 用缓存的数据才是最新的
+                 list[i] = d
+                 cachlist[key] = nil
+             end
+         end
+         for k ,v in pairs(cachlist) do
+             table.insert(list, v)
+         end
+         cachlist = nil
+         for k, v in ipairs(list) do
+             data = dbservers.new(v, false)
+             ret[k] = data:value2copy()
+             data:release()
          end
      end
-     for k ,v in pairs(cachlist) do
-         table.insert(list, v)
-     end
-     cachlist = nil
-     local data
-     local ret = {}
-     for k, v in ipairs(list) do
-         data = dbservers.new(v, false)
-         ret[k] = data:value2copy()
-         data:release()
-     end
      list = nil
+     -- 设置当前缓存数据是全的数据
+     skynet.call("CLDB", "lua", "SETGROUPISFULL", dbservers.name, appid)
      return ret
 end
 
@@ -376,8 +399,6 @@ function dbservers.validData(data)
     if type(data.appid) ~= "number" then
         data.appid = tonumber(data.appid) or 0
     end
-    data.channel = tostring(data.channel) or ""
-    data.name = tostring(data.name) or ""
     if type(data.status) ~= "number" then
         data.status = tonumber(data.status) or 0
     end
@@ -396,12 +417,9 @@ function dbservers.validData(data)
     else
         data.isnew = 0
     end
-    data.host = tostring(data.host) or ""
     if type(data.port) ~= "number" then
         data.port = tonumber(data.port) or 0
     end
-    data.androidVer = tostring(data.androidVer) or ""
-    data.iosVer = tostring(data.iosVer) or ""
     return data
 end
 

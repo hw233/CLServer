@@ -246,12 +246,19 @@ function dbcity.getListBypidx(pidx, forceSelect, orderby, limitOffset, limitNum)
     if orderby and orderby ~= "" then
         forceSelect = true
     end
+    local data
+    local ret = {}
     local cachlist, isFullCached, list
     local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbcity.name, pidx) or {}
-    isFullCached = groupInfor[1]
-    cachlist = groupInfor[2] or {}
-    if isFullCached and (not forceSelect) then
+    cachlist = groupInfor[1] or {}
+    isFullCached = groupInfor[2]
+    if isFullCached == true and (not forceSelect) then
         list = cachlist
+        for k, v in pairs(list) do
+            data = dbcity.new(v, false)
+            table.insert(ret, data:value2copy())
+            data:release()
+        end
     else
         local sql = "SELECT * FROM city WHERE pidx=" .. pidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
         list = skynet.call("CLMySQL", "lua", "exesql", sql)
@@ -272,13 +279,11 @@ function dbcity.getListBypidx(pidx, forceSelect, orderby, limitOffset, limitNum)
              table.insert(list, v)
          end
          cachlist = nil
-     end
-     local data
-     local ret = {}
-     for k, v in ipairs(list) do
-         data = dbcity.new(v, false)
-         ret[k] = data:value2copy()
-         data:release()
+         for k, v in ipairs(list) do
+             data = dbcity.new(v, false)
+             ret[k] = data:value2copy()
+             data:release()
+         end
      end
      list = nil
      -- 设置当前缓存数据是全的数据

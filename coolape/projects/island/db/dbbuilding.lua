@@ -419,12 +419,19 @@ function dbbuilding.getListBycidx(cidx, forceSelect, orderby, limitOffset, limit
     if orderby and orderby ~= "" then
         forceSelect = true
     end
+    local data
+    local ret = {}
     local cachlist, isFullCached, list
     local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbbuilding.name, cidx) or {}
-    isFullCached = groupInfor[1]
-    cachlist = groupInfor[2] or {}
-    if isFullCached and (not forceSelect) then
+    cachlist = groupInfor[1] or {}
+    isFullCached = groupInfor[2]
+    if isFullCached == true and (not forceSelect) then
         list = cachlist
+        for k, v in pairs(list) do
+            data = dbbuilding.new(v, false)
+            table.insert(ret, data:value2copy())
+            data:release()
+        end
     else
         local sql = "SELECT * FROM building WHERE cidx=" .. cidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
         list = skynet.call("CLMySQL", "lua", "exesql", sql)
@@ -445,13 +452,11 @@ function dbbuilding.getListBycidx(cidx, forceSelect, orderby, limitOffset, limit
              table.insert(list, v)
          end
          cachlist = nil
-     end
-     local data
-     local ret = {}
-     for k, v in ipairs(list) do
-         data = dbbuilding.new(v, false)
-         ret[k] = data:value2copy()
-         data:release()
+         for k, v in ipairs(list) do
+             data = dbbuilding.new(v, false)
+             ret[k] = data:value2copy()
+             data:release()
+         end
      end
      list = nil
      -- 设置当前缓存数据是全的数据

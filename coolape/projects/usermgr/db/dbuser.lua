@@ -26,19 +26,19 @@ dbuser = class("dbuser")
 dbuser.name = "user"
 
 dbuser.keys = {
-    idx = "idx",
-    uidChl = "uidChl",
-    uid = "uid",
-    password = "password",
-    crtTime = "crtTime",
-    lastEnTime = "lastEnTime",
-    status = "status",
-    email = "email",
-    appid = "appid",
-    channel = "channel",
-    deviceid = "deviceid",
-    deviceinfor = "deviceinfor",
-    groupid = "groupid",
+    idx = "idx", -- 唯一标识
+    uidChl = "uidChl", -- 用户id(第三方渠道用户)
+    uid = "uid", -- 用户id
+    password = "password", -- 用户密码
+    crtTime = "crtTime", -- 创建时间
+    lastEnTime = "lastEnTime", -- 最后登陆时间
+    status = "status", -- 状态 0:正常;
+    email = "email", -- 邮箱
+    appid = "appid", -- 应用id
+    channel = "channel", -- 渠道
+    deviceid = "deviceid", -- 机器id
+    deviceinfor = "deviceinfor", -- 机器信息
+    groupid = "groupid", -- 组id
 }
 
 function dbuser:ctor(v)
@@ -52,6 +52,7 @@ end
 function dbuser:init(data, isNew)
     data = dbuser.validData(data)
     self.__key__ = data.uid .. "_" .. data.uidChl
+    local hadCacheData = false
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbuser.name, self.__key__)
         if d == nil then
@@ -62,6 +63,7 @@ function dbuser:init(data, isNew)
                 self.__isNew__ = true
             end
         else
+            hadCacheData = true
             self.__isNew__ = false
         end
     else
@@ -77,7 +79,9 @@ function dbuser:init(data, isNew)
             return false
         end
     end
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
+    if not hadCacheData then
+        skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)
+    end
     skynet.call("CLDB", "lua", "SETUSE", self.__name__, self.__key__)
     return true
 end
@@ -374,69 +378,107 @@ function dbuser.querySql(idx, uid, uidChl)
     end
 end
 
--- 取得一个组
-function dbuser.getListBydeviceid(deviceid, orderby, limitOffset, limitNum)
-    local sql = "SELECT * FROM user WHERE deviceid=" .. "'" .. deviceid .. "'" ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
-    local list = skynet.call("CLMySQL", "lua", "exesql", sql)
-    if list and list.errno then
-        skynet.error("[dbuser.getGroup] sql error==" .. sql)
-        return nil
-     end
-     local cachlist = skynet.call("CLDB", "lua", "GETGROUP", dbuser.name, deviceid) or {}
-     for i, v in ipairs(list) do
-         local key = tostring(v.uid .. "_" .. v.uidChl)
-         local d = cachlist[key]
-         if d ~= nil then
-             -- 用缓存的数据才是最新的
-             list[i] = d
-             cachlist[key] = nil
+---@public 取得一个组
+---@param forceSelect boolean 强制从mysql取数据
+---@param orderby string 排序
+function dbuser.getListBydeviceid(deviceid, forceSelect, orderby, limitOffset, limitNum)
+    if orderby and orderby ~= "" then
+        forceSelect = true
+    end
+    local data
+    local ret = {}
+    local cachlist, isFullCached, list
+    local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbuser.name, deviceid) or {}
+    cachlist = groupInfor[1] or {}
+    isFullCached = groupInfor[2]
+    if isFullCached == true and (not forceSelect) then
+        list = cachlist
+        for k, v in pairs(list) do
+            data = dbuser.new(v, false)
+            table.insert(ret, data:value2copy())
+            data:release()
+        end
+    else
+        local sql = "SELECT * FROM user WHERE deviceid=" .. "'" .. deviceid .. "'" ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
+        list = skynet.call("CLMySQL", "lua", "exesql", sql)
+        if list and list.errno then
+            skynet.error("[dbuser.getGroup] sql error==" .. sql)
+            return nil
+         end
+         for i, v in ipairs(list) do
+             local key = tostring(v.uid .. "_" .. v.uidChl)
+             local d = cachlist[key]
+             if d ~= nil then
+                 -- 用缓存的数据才是最新的
+                 list[i] = d
+                 cachlist[key] = nil
+             end
+         end
+         for k ,v in pairs(cachlist) do
+             table.insert(list, v)
+         end
+         cachlist = nil
+         for k, v in ipairs(list) do
+             data = dbuser.new(v, false)
+             ret[k] = data:value2copy()
+             data:release()
          end
      end
-     for k ,v in pairs(cachlist) do
-         table.insert(list, v)
-     end
-     cachlist = nil
-     local data
-     local ret = {}
-     for k, v in ipairs(list) do
-         data = dbuser.new(v, false)
-         ret[k] = data:value2copy()
-         data:release()
-     end
      list = nil
+     -- 设置当前缓存数据是全的数据
+     skynet.call("CLDB", "lua", "SETGROUPISFULL", dbuser.name, deviceid)
      return ret
 end
 
--- 取得一个组
-function dbuser.getListBychannel_groupid(channel, groupid, orderby, limitOffset, limitNum)
-    local sql = "SELECT * FROM user WHERE channel=" .. "'" .. channel .. "'" .. " AND groupid=" .. groupid ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
-    local list = skynet.call("CLMySQL", "lua", "exesql", sql)
-    if list and list.errno then
-        skynet.error("[dbuser.getGroup] sql error==" .. sql)
-        return nil
-     end
-     local cachlist = skynet.call("CLDB", "lua", "GETGROUP", dbuser.name, channel .. "_" .. groupid) or {}
-     for i, v in ipairs(list) do
-         local key = tostring(v.uid .. "_" .. v.uidChl)
-         local d = cachlist[key]
-         if d ~= nil then
-             -- 用缓存的数据才是最新的
-             list[i] = d
-             cachlist[key] = nil
+---@public 取得一个组
+---@param forceSelect boolean 强制从mysql取数据
+---@param orderby string 排序
+function dbuser.getListBychannel_groupid(channel, groupid, forceSelect, orderby, limitOffset, limitNum)
+    if orderby and orderby ~= "" then
+        forceSelect = true
+    end
+    local data
+    local ret = {}
+    local cachlist, isFullCached, list
+    local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbuser.name, channel .. "_" .. groupid) or {}
+    cachlist = groupInfor[1] or {}
+    isFullCached = groupInfor[2]
+    if isFullCached == true and (not forceSelect) then
+        list = cachlist
+        for k, v in pairs(list) do
+            data = dbuser.new(v, false)
+            table.insert(ret, data:value2copy())
+            data:release()
+        end
+    else
+        local sql = "SELECT * FROM user WHERE channel=" .. "'" .. channel .. "'" .. " AND groupid=" .. groupid ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
+        list = skynet.call("CLMySQL", "lua", "exesql", sql)
+        if list and list.errno then
+            skynet.error("[dbuser.getGroup] sql error==" .. sql)
+            return nil
+         end
+         for i, v in ipairs(list) do
+             local key = tostring(v.uid .. "_" .. v.uidChl)
+             local d = cachlist[key]
+             if d ~= nil then
+                 -- 用缓存的数据才是最新的
+                 list[i] = d
+                 cachlist[key] = nil
+             end
+         end
+         for k ,v in pairs(cachlist) do
+             table.insert(list, v)
+         end
+         cachlist = nil
+         for k, v in ipairs(list) do
+             data = dbuser.new(v, false)
+             ret[k] = data:value2copy()
+             data:release()
          end
      end
-     for k ,v in pairs(cachlist) do
-         table.insert(list, v)
-     end
-     cachlist = nil
-     local data
-     local ret = {}
-     for k, v in ipairs(list) do
-         data = dbuser.new(v, false)
-         ret[k] = data:value2copy()
-         data:release()
-     end
      list = nil
+     -- 设置当前缓存数据是全的数据
+     skynet.call("CLDB", "lua", "SETGROUPISFULL", dbuser.name, channel .. "_" .. groupid)
      return ret
 end
 
@@ -446,9 +488,6 @@ function dbuser.validData(data)
     if type(data.idx) ~= "number" then
         data.idx = tonumber(data.idx) or 0
     end
-    data.uidChl = tostring(data.uidChl) or ""
-    data.uid = tostring(data.uid) or ""
-    data.password = tostring(data.password) or ""
     if type(data.crtTime) == "number" then
         data.crtTime = dateEx.seconds2Str(data.crtTime/1000)
     end
@@ -458,13 +497,9 @@ function dbuser.validData(data)
     if type(data.status) ~= "number" then
         data.status = tonumber(data.status) or 0
     end
-    data.email = tostring(data.email) or ""
     if type(data.appid) ~= "number" then
         data.appid = tonumber(data.appid) or 0
     end
-    data.channel = tostring(data.channel) or ""
-    data.deviceid = tostring(data.deviceid) or ""
-    data.deviceinfor = tostring(data.deviceinfor) or ""
     if type(data.groupid) ~= "number" then
         data.groupid = tonumber(data.groupid) or 0
     end

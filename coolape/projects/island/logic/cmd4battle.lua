@@ -43,12 +43,13 @@ CMD.attack = function(map, fd, agent)
         ret.msg = "玩家处在免战保护中，不可攻击"
         return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, nil, nil, nil, nil, map)
     end
-    targetCity.tiles = dbtile.getListBycidx(cidx)
-    targetCity.buildings = dbbuilding.getListBycidx(cidx)
+    local targetCityVal = targetCity:value2copy()
+    targetCityVal.tiles = dbtile.getListBycidx(cidx)
+    targetCityVal.buildings = dbbuilding.getListBycidx(cidx)
 
     -- -- 取得舰船数据
     local targetShips = {}
-    for idx, building in pairs(targetCity.buildings) do
+    for idx, building in pairs(targetCityVal.buildings) do
         if building[dbbuilding.keys.attrid] == IDConstVals.dockyardBuildingID then
             local jsonstr = building[dbbuilding.keys.valstr]
             if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
@@ -72,7 +73,7 @@ CMD.attack = function(map, fd, agent)
         map.cmd,
         ret,
         targetPlayer:value2copy(),
-        targetCity:value2copy(),
+        targetCityVal,
         targetShips,
         selfShips,
         map

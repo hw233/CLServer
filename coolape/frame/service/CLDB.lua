@@ -34,9 +34,10 @@ end
 local function setGroup(tableName, groupKey, key)
     local d = command.GET(tableName, key)
     local t = db4Group[tableName] or {}
-    local group = t[tostring(groupKey)] or {}
+    groupKey = tostring(groupKey)
+    local group = t[groupKey] or {}
     group[tostring(key)] = d
-    t[tostring(groupKey)] = group
+    t[groupKey] = group
     db4Group[tableName] = t
 end
 
@@ -46,33 +47,38 @@ local function removeGroup(tableName, groupKey, key)
     if t == nil then
         return
     end
-    local group = t[tostring(groupKey)]
+    groupKey = tostring(groupKey)
+    local group = t[groupKey]
     if group == nil then
         return
     end
     group[tostring(key)] = nil
-    t[tostring(groupKey)] = group
+    t[groupKey] = group
     db4Group[tableName] = t
     -- 设置组数据已经不全
+
     local tGroupState = db4GroupState[tableName] or {}
     tGroupState[groupKey] = false
+    db4GroupState[tableName] = tGroupState
 end
 
 -- ============================================================
 ---@public 取得一个组，注意这个组不是list而是个table
----@return isFullCached BOOL 是否已经缓存了全数据，当为false时，说明需要从mysql重新取得数据
 ---@return cacheGroup table 组数据
+---@return isFullCached BOOL 是否已经缓存了全数据，当为false时，说明需要从mysql重新取得数据
 function command.GETGROUP(tableName, groupKey)
     local t = db4Group[tableName] or {}
-    local cacheGroup = t[tostring(groupKey)]
+    groupKey = tostring(groupKey)
+    local cacheGroup = t[groupKey]
 
     local tGroupState = db4GroupState[tableName] or {}
-    local isFullCached = tGroupState[groupKey] or false
-    return {isFullCached, cacheGroup}
+    local isFullCached = tGroupState[groupKey]
+    return {cacheGroup, isFullCached}
 end
 
 ---@public 设置组数据是全的，不需要从mysql取得
 function command.SETGROUPISFULL(tableName, groupKey)
+    groupKey = tostring(groupKey)
     local tGroupState = db4GroupState[tableName] or {}
     tGroupState[groupKey] = true
     db4GroupState[tableName] = tGroupState
