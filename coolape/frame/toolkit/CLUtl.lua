@@ -3,7 +3,10 @@
 CLUtl = {}
 local smatch = string.match
 local sfind = string.find
+local insert = table.insert
+local concat = table.concat
 
+---@public 分割字符串
 function CLUtl.strSplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -14,19 +17,20 @@ function CLUtl.strSplit(inputstr, sep)
         t[i] = str
         i = i + 1
     end
-    return t;
+    return t
 end
 
 function CLUtl.trim(s)
     -- return (s:gsub("^%s*(.-)%s*$", "%1"))
-    return smatch(s, '^()%s*$') and '' or smatch(s, '^%s*(.*%S)') -- 性能略优
+    return smatch(s, "^()%s*$") and "" or smatch(s, "^%s*(.*%S)") -- 性能略优
 end
 
+---@public 判断一个table是不是array
 function CLUtl.isArray(t)
     if t == nil then
-        return false;
+        return false
     end
-    local ret = true;
+    local ret = true
     if type(t) == "table" then
         local i = 0
         for _ in pairs(t) do
@@ -36,12 +40,12 @@ function CLUtl.isArray(t)
             end
         end
     else
-        ret = false;
+        ret = false
     end
-    return ret;
+    return ret
 end
 
--- 拼接两个路径
+---@public 拼接两个路径
 function CLUtl.combinePath(p1, p2)
     if p1 == nil then
         return p2
@@ -62,11 +66,25 @@ function CLUtl.combinePath(p1, p2)
     end
 end
 
+---@public 给定参数是nil或空字符串时，返回true
 function CLUtl.isNilOrEmpty(s)
     if s == nil or s == "" then
         return true
     end
     return false
+end
+
+---@public 拼接字符串
+function CLUtl.joinStr(...)
+    -- local paras = {...}
+    if ... == nil or #... == 0 then
+        return ""
+    end
+    local tb = {}
+    for i, v in ipairs(...) do
+        insert(tb, v or "")
+    end
+    return concat(tb)
 end
 
 function CLUtl.dump(obj)
@@ -114,4 +132,4 @@ function CLUtl.dump(obj)
 end
 
 --==========================================
-return CLUtl;
+return CLUtl

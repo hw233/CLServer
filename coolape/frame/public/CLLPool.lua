@@ -8,11 +8,15 @@ CLLPool = class("CLLPool")
 
 function CLLPool:ctor(classObj)
     self.queue = CLLQueue.new(100)
-    self.cloneClass = classObj
+    self.cloneClass = classObj -- 类型，当为ni时，返回空table
 end
 
 function CLLPool:createObj()
-    return self.cloneClass.new()
+    if self.cloneClass then
+        return self.cloneClass.new()
+    else
+        return {}
+    end
 end
 
 function CLLPool:borrow()
@@ -26,4 +30,4 @@ function CLLPool:retObj(obj)
     self.queue:enQueue(obj);
 end
 
-return CLLPool;
+return CLLPool
