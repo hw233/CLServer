@@ -1,6 +1,8 @@
 ﻿-- 工具
 ---@class CLUtl
 CLUtl = {}
+local table = table
+local select = select
 local smatch = string.match
 local sfind = string.find
 local insert = table.insert
@@ -74,17 +76,23 @@ function CLUtl.isNilOrEmpty(s)
     return false
 end
 
+function CLUtl.joinStrWithSep(sep, ...)
+    local tb = {}
+    local v
+    for i = 1, select("#", ...) do
+        v = select(i, ...)
+        if v then
+            insert(tb, tostring(v))
+        else
+            -- insert(tb, "")
+        end
+    end
+    return concat(tb, sep)
+end
+
 ---@public 拼接字符串
 function CLUtl.joinStr(...)
-    -- local paras = {...}
-    if ... == nil or #... == 0 then
-        return ""
-    end
-    local tb = {}
-    for i, v in ipairs(...) do
-        insert(tb, v or "")
-    end
-    return concat(tb)
+    CLUtl.joinStrWithSep("", ...)
 end
 
 function CLUtl.dump(obj)

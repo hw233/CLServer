@@ -1,3 +1,4 @@
+local table = table
 local skynet = require "skynet"
 local string = string
 local LogLev = {
@@ -25,17 +26,27 @@ function parseBackTrace(traceInfor, level)
     return traceInfor or ""
 end
 
+local wrapMsg = function (...)
+    local tb = {}
+    local v
+    for i = 1, select("#", ...) do
+        v = select(i, ...)
+        if v then
+            table.insert(tb, tostring(v))
+        else
+            table.insert(tb, "nil")
+        end
+    end
+    return table.concat(tb, "|")
+end
+
 function print(...)
     if logLev < LogLev.debug then
         return
     end
-    local params = {...}
-    if params == nil or #params == 0 then
-        return skynet.error(params)
-    end
-    local trace = debug.traceback("")
-    local msg = table.concat(params, "|")
+    local msg = wrapMsg(...)
     msg = msg or ""
+    local trace = debug.traceback("")
     skynet.error("[debug]:" .. msg .. "\n" .. parseBackTrace(trace, logTraceLev))
 end
 
@@ -43,12 +54,8 @@ function printw(...)
     if logLev < LogLev.warning then
         return
     end
-    local params = {...}
-    if params == nil or #params == 0 then
-        return skynet.error(params)
-    end
     local trace = debug.traceback("")
-    local msg = table.concat(params, "|")
+    local msg = wrapMsg(...)
     msg = msg or ""
     skynet.error("[warn]:" .. msg .. "\n" .. parseBackTrace(trace, logTraceLev))
 end
@@ -57,12 +64,8 @@ function printe(...)
     if logLev < LogLev.error then
         return
     end
-    local params = {...}
-    if params == nil or #params == 0 then
-        return skynet.error(params)
-    end
     local trace = debug.traceback("")
-    local msg = table.concat(params, "|")
+    local msg = wrapMsg(...)
     msg = msg or ""
     skynet.error("[err]:" .. msg .. "\n" .. parseBackTrace(trace, logTraceLev))
 end
