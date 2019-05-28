@@ -158,6 +158,23 @@ do
 
         for name, val in pairs(map) do
             add(ret, "    ---@class " .. getStName(name) .. " " .. val[1]);
+            for k,v in pairs(val[2]) do
+                local typeName = type(v[1])
+                if typeName == "table" then
+                    local stName = getKeyByVal(defProtocol.structs, v[1]);
+                    if stName then
+                        add(ret, "    ---@field public " .. k .. " " .. stName .. " " .. (v[2] or "" ));
+                    else
+                        add(ret, "    ---@field public " .. k .. " table " .. (v[2] or "" ));
+                    end
+                elseif typeName == "number" then
+                    add(ret, "    ---@field public " .. k .. " number " .. (v[2] or "" ));
+                elseif typeName == "string" then
+                    add(ret, "    ---@field public " .. k .. " string " .. (v[2] or "" ));
+                else
+                    add(ret, "    ---@field public " .. k .. " useData " .. (v[2] or "" ));
+                end
+            end
             add(ret, "    " .. getStName(name) .. " = {");
             add(ret, "        toMap = function(m)")
             add(ret, "            local r = {}")
@@ -337,6 +354,7 @@ do
             local toMapStrClient = {};
             local toMapStrServer = {};
             local clientReciveParams = {}
+            local clientReciveParamsFields = {}
             local serverReciveParams = {}
             local parmasTimes_ = {} -- 因为可能出现参数名相同的情况
             local getParamName = function(paramName)
@@ -460,11 +478,14 @@ do
                     if type(v2) == "table" then
                         if isList then
                             -- local stName = pname .. "s"
+                            add(clientReciveParamsFields, "    ---@field public " .. paramName .. " " .. getStName(pname) .. " Array List " .. (inputDesList[i] or ""))
                             add(clientReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(paramName) .. "]) -- " .. (inputDesList[i] or ""))
                         else
+                            add(clientReciveParamsFields, "    ---@field public " .. paramName .. " " .. getStName(pname) .. " " .. (inputDesList[i] or ""))
                             add(clientReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(paramName) .. "]) -- " .. (inputDesList[i] or ""))
                         end
                     else
+                        add(clientReciveParamsFields, "    ---@field public " .. paramName .. "  " .. (inputDesList[i] or ""))
                         add(clientReciveParams, "        ret." .. paramName .. " = " .. "map[" .. getKeyCode(paramName) .. "]-- " .. (inputDesList[i] or ""));
                     end
                 end
@@ -505,6 +526,11 @@ do
             add(serverSend, "    end,");
 
             -- recive
+            add(clientRecive, "    ---@class " .. defProtocol.name .. ".RC_" .. cmd)
+            if #clientReciveParamsFields > 0 then
+                add(clientRecive, table.concat(clientReciveParamsFields, "\n"));
+            end
+
             add(clientRecive, "    " .. cmd .. " = function(map)");
             add(clientRecive, "        local ret = {}");
             add(clientRecive, "        ret.cmd = \"" .. cmd .. "\"");
