@@ -874,6 +874,7 @@ function cmd4city.onFinishBuildShip(b, shipAttrid, num)
         shipsMap = json.decode(jsonstr)
     end
     shipsMap = shipsMap or {}
+    -- 保存数据，因为只能用string为key时json转为才不会报错
     shipsMap[tostring(shipAttrid)] = num + (shipsMap[tostring(shipAttrid)] or 0)
     local str = json.encode(shipsMap)
     b:set_valstr(str)
