@@ -36,6 +36,9 @@ dbservers.keys = {
     port = "port", -- port
     androidVer = "androidVer", -- 客户端android版本
     iosVer = "iosVer", -- 客户端ios版本
+    pcVer = "pcVer", -- 客户端PC版本
+    macVer = "macVer", -- 客户端Mac版本
+    note = "note", -- 备注说明
 }
 
 function dbservers:ctor(v)
@@ -273,6 +276,48 @@ end
 function dbservers:get_iosVer()
     -- 客户端ios版本
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "iosVer")
+end
+
+function dbservers:set_pcVer(v)
+    -- 客户端PC版本
+    if self:isEmpty() then
+        skynet.error("[dbservers:set_pcVer],please init first!!")
+        return nil
+    end
+    v = v or ""
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pcVer", v)
+end
+function dbservers:get_pcVer()
+    -- 客户端PC版本
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pcVer")
+end
+
+function dbservers:set_macVer(v)
+    -- 客户端Mac版本
+    if self:isEmpty() then
+        skynet.error("[dbservers:set_macVer],please init first!!")
+        return nil
+    end
+    v = v or ""
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "macVer", v)
+end
+function dbservers:get_macVer()
+    -- 客户端Mac版本
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "macVer")
+end
+
+function dbservers:set_note(v)
+    -- 备注说明
+    if self:isEmpty() then
+        skynet.error("[dbservers:set_note],please init first!!")
+        return nil
+    end
+    v = v or ""
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "note", v)
+end
+function dbservers:get_note()
+    -- 备注说明
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "note")
 end
 
 -- 把数据flush到mysql里， immd=true 立即生效

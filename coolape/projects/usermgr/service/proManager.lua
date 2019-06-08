@@ -79,7 +79,11 @@ end
 
 ---@public 取得服务器列表
 function CMD.getServerList(map)
-    local list = dbservers.getListByappid(map.appid)
+    local appid = map.appid and tonumber(map.appid) or 0
+    if appid <= 0 then
+        printe("appid错误！")
+    end
+    local list = dbservers.getListByappid()
     return list
 end
 

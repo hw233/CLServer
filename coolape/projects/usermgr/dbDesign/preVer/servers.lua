@@ -12,6 +12,9 @@ local tab = {
         { "port", "int(11) NOT NULL", "port" },
         { "androidVer", "varchar(24)", "客户端android版本" },
         { "iosVer", "varchar(24)", "客户端ios版本" },
+        { "pcVer", "varchar(24)", "客户端PC版本" },
+        { "macVer", "varchar(24)", "客户端Mac版本" },
+        { "note", "varchar(256)", "备注说明" },
     },
     primaryKey = {
         "idx",

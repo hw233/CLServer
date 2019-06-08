@@ -89,6 +89,9 @@ CREATE TABLE `servers` (
   `port` int(11) NOT NULL,
   `androidVer` varchar(24),
   `iosVer` varchar(24),
+  `pcVer` varchar(24),
+  `macVer` varchar(24),
+  `note` varchar(256),
   PRIMARY KEY (`idx`, `appid`, `channel`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------

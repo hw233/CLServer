@@ -49,6 +49,8 @@ do
   --==================================
   --==================================
     ---@class NetProtoUsermgr.ST_retInfor 返回信息
+    ---@field public msg string 返回消息
+    ---@field public code number 返回值
     NetProtoUsermgr.ST_retInfor = {
         toMap = function(m)
             local r = {}
@@ -66,6 +68,14 @@ do
         end,
     }
     ---@class NetProtoUsermgr.ST_server 服务器
+    ---@field public idx number id
+    ---@field public port number 端口
+    ---@field public name string 名称
+    ---@field public host string ip地址
+    ---@field public iosVer string 客户端ios版本
+    ---@field public androidVer string 客户端android版本
+    ---@field public isnew useData 新服
+    ---@field public status number 状态 1:正常; 2:爆满; 3:维护
     NetProtoUsermgr.ST_server = {
         toMap = function(m)
             local r = {}
@@ -95,6 +105,7 @@ do
         end,
     }
     ---@class NetProtoUsermgr.ST_userInfor 用户信息
+    ---@field public idx number 唯一标识
     NetProtoUsermgr.ST_userInfor = {
         toMap = function(m)
             local r = {}

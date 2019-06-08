@@ -68,6 +68,8 @@ do
   --==================================
   --==================================
     ---@class NetProtoUsermgr.ST_retInfor 返回信息
+    ---@field public msg string 返回消息
+    ---@field public code number 返回值
     NetProtoUsermgr.ST_retInfor = {
         toMap = function(m)
             local r = {}
@@ -85,6 +87,14 @@ do
         end,
     }
     ---@class NetProtoUsermgr.ST_server 服务器
+    ---@field public idx number id
+    ---@field public port number 端口
+    ---@field public name string 名称
+    ---@field public host string ip地址
+    ---@field public iosVer string 客户端ios版本
+    ---@field public androidVer string 客户端android版本
+    ---@field public isnew useData 新服
+    ---@field public status number 状态 1:正常; 2:爆满; 3:维护
     NetProtoUsermgr.ST_server = {
         toMap = function(m)
             local r = {}
@@ -114,6 +124,7 @@ do
         end,
     }
     ---@class NetProtoUsermgr.ST_userInfor 用户信息
+    ---@field public idx number 唯一标识
     NetProtoUsermgr.ST_userInfor = {
         toMap = function(m)
             local r = {}
@@ -203,6 +214,11 @@ do
     }
     --==============================
     NetProtoUsermgr.recive = {
+    ---@class NetProtoUsermgr.RC_registAccount
+    ---@field public retInfor NetProtoUsermgr.ST_retInfor 返回信息
+    ---@field public userInfor NetProtoUsermgr.ST_userInfor 用户信息
+    ---@field public serverid  服务器id int
+    ---@field public systime  系统时间 long
     registAccount = function(map)
         local ret = {}
         ret.cmd = "registAccount"
@@ -213,6 +229,9 @@ do
         doCallback(map, ret)
         return ret
     end,
+    ---@class NetProtoUsermgr.RC_getServers
+    ---@field public retInfor NetProtoUsermgr.ST_retInfor 返回信息
+    ---@field public servers NetProtoUsermgr.ST_server Array List 服务器列表
     getServers = function(map)
         local ret = {}
         ret.cmd = "getServers"
@@ -221,6 +240,9 @@ do
         doCallback(map, ret)
         return ret
     end,
+    ---@class NetProtoUsermgr.RC_getServerInfor
+    ---@field public retInfor NetProtoUsermgr.ST_retInfor 返回信息
+    ---@field public server NetProtoUsermgr.ST_server 服务器信息
     getServerInfor = function(map)
         local ret = {}
         ret.cmd = "getServerInfor"
@@ -229,6 +251,8 @@ do
         doCallback(map, ret)
         return ret
     end,
+    ---@class NetProtoUsermgr.RC_setEnterServer
+    ---@field public retInfor NetProtoUsermgr.ST_retInfor 返回信息
     setEnterServer = function(map)
         local ret = {}
         ret.cmd = "setEnterServer"
@@ -236,6 +260,11 @@ do
         doCallback(map, ret)
         return ret
     end,
+    ---@class NetProtoUsermgr.RC_loginAccount
+    ---@field public retInfor NetProtoUsermgr.ST_retInfor 返回信息
+    ---@field public userInfor NetProtoUsermgr.ST_userInfor 用户信息
+    ---@field public serverid  服务器id int
+    ---@field public systime  系统时间 long
     loginAccount = function(map)
         local ret = {}
         ret.cmd = "loginAccount"
@@ -246,6 +275,11 @@ do
         doCallback(map, ret)
         return ret
     end,
+    ---@class NetProtoUsermgr.RC_loginAccountChannel
+    ---@field public retInfor NetProtoUsermgr.ST_retInfor 返回信息
+    ---@field public userInfor NetProtoUsermgr.ST_userInfor 用户信息
+    ---@field public serverid  服务器id int
+    ---@field public systime  系统时间 long
     loginAccountChannel = function(map)
         local ret = {}
         ret.cmd = "loginAccountChannel"

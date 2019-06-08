@@ -42,6 +42,8 @@
             <h5>服务器列表
                 <button type="button" class="nav-item btn btn-info" onclick="getServerList()">刷新</button>
             </h5>
+            <h6>appid<input id='inputAppId' class='input' type='text'/>
+            </h6>
 
 
             <nav>
@@ -229,7 +231,12 @@
     }
 
     function getServerList() {
-        var params = {cmd: "getServerList", appid: 1002, uid: "000"};
+        var appid = $("#inputAppId").val()
+        if( appid == null || appid == "" ) {
+            alert("请输入appid")
+            appid = 1000
+        }
+        var params = {cmd: "getServerList", appid: appid, uid: "000"};
         myutl.ajaxJSONP(baseUrl, params,
             function (result, status, xhr) {
                 if (result == null || result.length < pagesize) {
