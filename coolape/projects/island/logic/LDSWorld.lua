@@ -18,7 +18,7 @@ local cellSize = 1
 local screenCells = {} -- 每屏的网格信息
 local screenCneterIndexs = {}
 local currScreenOrder = 1
-local NetProtoIsland = "NetProtoIsland"
+local NetProtoIsland = skynet.getenv("NetProtoName")
 
 local cachePages = {}
 local ConstTimeOut = 60 * 100 -- 60秒

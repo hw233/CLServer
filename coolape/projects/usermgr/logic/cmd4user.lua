@@ -9,7 +9,7 @@ local DBUtl = require "DBUtl"
 ---@type dateEx
 local dateEx = require("dateEx")
 ---@type NetProtoUsermgr
-local NetProto = "NetProtoUsermgr"
+local NetProto = skynet.getenv("NetProtoName")
 require("CLGlobal")
 local table = table
 

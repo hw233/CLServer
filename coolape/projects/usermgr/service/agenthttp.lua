@@ -9,6 +9,15 @@ local CLUtl = require("CLUtl")
 local json = require("json")
 local table = table
 local string = string
+local NetProtoName = skynet.getenv("NetProtoName")
+local projectName = skynet.getenv("projectName")
+local httpCMD = {
+    httpPostBio = "/" .. projectName .. "/postbio",
+    httpPost = "/" .. projectName .. "/post",
+    httpGet = "/" .. projectName .. "/get",
+    httpStopserver = "/" .. projectName .. "/stopserver",
+    httpManage = "/" .. projectName .. "/manage"
+}
 
 local CMD = {}
 local LogicMap = {}
@@ -49,10 +58,10 @@ function CMD.onrequset(url, method, header, body)
     printhttp(url, method, header, body) -- debug log
     local path, query = urllib.parse(url)
     if method:upper() == "POST" then
-        if path and path:lower() == "/usermgr/postbio" then
+        if path and path:lower() == httpCMD.httpPostBio then
             if body then
                 local map = BioUtl.readObject(body)
-                local result = skynet.call("NetProtoUsermgr", "lua", "dispatcher", skynet.self(), map, nil)
+                local result = skynet.call(NetProtoName, "lua", "dispatcher", skynet.self(), map, nil)
                 if result then
                     return BioUtl.writeObject(result)
                 else
@@ -61,7 +70,7 @@ function CMD.onrequset(url, method, header, body)
             else
                 printe("get post url, but body content id nil. url=" .. url)
             end
-        elseif path and path:lower() == "/usermgr/post" then
+        elseif path and path:lower() == httpCMD.httpPost then
             if body then
                 local content = parseStrBody(body)
                 local ret = { "menu1", "item2", "item3" }
@@ -73,12 +82,12 @@ function CMD.onrequset(url, method, header, body)
             local content = parseStrBody(body)
         end
     else
-        if path == "/usermgr/stopserver" then
+        if path == httpCMD.httpStopserver then
             -- 停服处理
             CMD.stop()
             return ""
-        elseif path == "/usermgr/get" then
-        elseif path == "/usermgr/manage" then
+        elseif path == httpCMD.httpGet then
+        elseif path == httpCMD.httpManage then
             -- 处理统一的get请求
             local requst = urllib.parse_query(query)
             local cmd = requst.cmd

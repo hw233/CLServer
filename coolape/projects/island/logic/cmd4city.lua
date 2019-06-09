@@ -20,7 +20,7 @@ local gridSize  -- 网格size
 local cellSize = 1
 local tileSize = 2
 
-local NetProtoIsland = "NetProtoIsland"
+local NetProtoIsland = skynet.getenv("NetProtoName")
 ---@type Grid
 local grid
 

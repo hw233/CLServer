@@ -1,10 +1,11 @@
 -- include "config.path"
 -- cd into  ./CLServer first
 projectDesc="账号管理"
+projectName = "usermgr"
+
 skynetRoot = "./skynet/"
 coolapeRoot = "./coolape/"
 projectRoot = "./coolape/projects/"
-projectName = "usermgr"
 projectPath = projectRoot .. projectName .."/"
 
 luaservice = skynetRoot .."service/?.lua;"
@@ -47,3 +48,7 @@ start = "main"	-- main script
 bootstrap = "snlua bootstrap"	-- The service for bootstrap
 -- snax_interface_g = "snax_g"
 -- daemon = "./skynet.pid"
+
+---others------------------------------
+--网络协议服务名
+NetProtoName = "NetProtoUsermgr"

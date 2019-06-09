@@ -78,10 +78,6 @@ end
 
 ---@public 取得逻辑处理类
 function CMD.getLogic(logicName)
-    if logicName == "LDSWorld" then
-        -- 全局服务器（已经启动了），直接返回
-        return logicName
-    end
     local logic = LogicMap[logicName]
     if logic == nil or skynet.address(logic) == nil then
         logic = skynet.newservice(logicName)

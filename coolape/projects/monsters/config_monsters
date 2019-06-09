@@ -1,7 +1,7 @@
 -- include "config.path"
 -- cd into  ./CLServer first
-projectDesc = "海岛大作战"
-projectName = "island"
+projectDesc = "萌怪大作战"
+projectName = "monsters"
 
 skynetRoot = "./skynet/"
 coolapeRoot = "./coolape/"
@@ -41,9 +41,9 @@ logTraceLev = 3
 logger = nil
 logpath = "."
 harbor = 0
-consolePort = 8003
-httpPort = 8803
-socketPort = 9000
+consolePort = 8015
+httpPort = 8815
+socketPort = 9015
 -- address = "127.0.0.1:2526"
 -- master = "127.0.0.1:2017"
 -- standalone = "0.0.0.0:2017"
@@ -54,4 +54,4 @@ bootstrap = "snlua bootstrap"	-- The service for bootstrap
 
 ---others------------------------------
 --网络协议服务名
-NetProtoName = "NetProtoIsland"
+NetProtoName = "NetPtMonsters"

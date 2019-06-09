@@ -10,7 +10,7 @@ require("CLGlobal")
 ---@type dateEx
 local dateEx = require("dateEx")
 
-local NetProto = "NetProtoUsermgr"
+local NetProto = skynet.getenv("NetProtoName")
 local table = table
 
 local cmd4server = {}

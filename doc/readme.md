@@ -9,7 +9,10 @@
 当然必须得有[skynet](https://github.com/cloudwu/skynet)。需要把skynet安装到与coolape同级目录。  
 **\*关于windows安装skynet，参见[skynet-mingw](https://github.com/dpull/skynet-mingw)**
 ##配置
-除了[skynet自己的配置](https://github.com/cloudwu/skynet/wiki/Config)外，项目的配置主要在./coolape/projects/xxxx(项目名)/service/main.lua有mysql的连接配置
+1.除了[skynet自己的配置](https://github.com/cloudwu/skynet/wiki/Config)外，项目的配置主要在./coolape/projects/xxxx(项目名)/service/main.lua有mysql的连接配置
+2.数据库建表
+- 第一次建表的sql语句在./coolape/projects/xxxx(项目名)/db/tables.sql
+- 增量修改表时会生成增量sql语句./coolape/projects/xxxx(项目名)/dbDesign/年_月_日_时_分_秒/tables.sql
 ##启动、停止
 进入命令行
 cd ./CLServer

@@ -11,7 +11,7 @@ require("dbbuilding")
 require("dbplayer")
 local IDConstVals = require("IDConstVals")
 local CMD = {}
-local NetProtoIsland = "NetProtoIsland"
+local NetProtoIsland = skynet.getenv("NetProtoName")
 
 ---@public 攻击
 CMD.attack = function(map, fd, agent)

@@ -13,7 +13,7 @@ local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"
 ---@type dateEx
 local dateEx = require("dateEx")
-local NetProtoIsland = skynet.getenv("NetProtoName")
+local NetProtoName = skynet.getenv("NetProtoName")
 require("dbplayer")
 
 local table = table
@@ -36,7 +36,7 @@ CMD.login = function(m, fd, _agent)
         local ret = {}
         ret.msg = "参数错误！"
         ret.code = Errcode.error
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
+        return skynet.call(NetProtoName, "lua", "send", cmd, ret, nil, dateEx.nowMS(), fd, m)
     end
     if myself == nil then
         myself = dbplayer.instanse(m.uidx)
@@ -56,64 +56,23 @@ CMD.login = function(m, fd, _agent)
         player.lastEnTime = dateEx.nowStr()
         player.channel = m.channel
         player.deviceid = m.deviceID
-        if myself:init(player, true) then
-            local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
-            city = skynet.call(cityServer, "lua", "new", m.uidx, agent)
-            myself:set_cityidx(city.idx)
-        else
+        if not myself:init(player, true) then
             printe("create player err==" .. m.uidx)
             local ret = {}
             ret.msg = "create player err"
             ret.code = Errcode.error
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
-        end
-    else
-        -- 取得主城信息
-        --city = cmd4city.getSelf(myself:getcityidx())
-        local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
-        city = skynet.call(cityServer, "lua", "getSelf", myself:get_cityidx(), agent)
-        if city == nil then
-            printe("get city is nil or empty==" .. m.uidx)
-            local ret = {}
-            ret.msg = "get city is nil or empty"
-            ret.code = Errcode.error
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
+            return skynet.call(NetProtoName, "lua", "send", cmd, ret, nil, dateEx.nowMS(), fd, m)
         end
     end
     -- 增加触发器
     myself:setTrigger(skynet.self(), "onPlayerChg")
 
-    local cityVal = city
-    cityVal.buildings = {}
-    cityVal.tiles = {}
-    --local tiles = cmd4city.getSelfTiles()
-    local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
-    local tiles = skynet.call(cityServer, "lua", "getSelfTiles")
-    if tiles == nil then
-        printe("get tiles is nil==" .. m.uidx)
-        local ret = {}
-        ret.msg = "get buildings is nil"
-        ret.code = Errcode.error
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
-    end
-    cityVal.tiles = tiles
-    local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
-    local buildings = skynet.call(cityServer, "lua", "getSelfBuildings")
-    --local buildings = cmd4city.getSelfBuildings()
-    if buildings == nil then
-        printe("get buildings is nil==" .. m.uidx)
-        local ret = {}
-        ret.msg = "get buildings is nil"
-        ret.code = Errcode.error
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
-    end
-    cityVal.buildings = buildings
-
     local ret = {}
     ret.msg = nil
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy(), cityVal, dateEx.nowMS(), fd, m)
+    return skynet.call(NetProtoName, "lua", "send", cmd, ret, myself:value2copy(), dateEx.nowMS(), fd, m)
 end
+
 CMD.release = function(m, fd)
     print("player release")
     if myself then
@@ -131,7 +90,7 @@ CMD.onPlayerChg = function(data, cmd)
     cmd = cmd or "onPlayerChg"
     local ret = {}
     ret.code = Errcode.ok
-    local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy())
+    local package = skynet.call(NetProtoName, "lua", "send", cmd, ret, myself:value2copy())
     skynet.call(agent, "lua", "sendPackage", package)
 end
 
@@ -139,6 +98,7 @@ CMD.getPlayer = function(m)
     -- 取得玩家信息
     return myself:value2copy()
 end
+
 CMD.chgDiam = function(m)
     -- 修改宝石数量
     if m.diam == nil then

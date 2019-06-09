@@ -30,7 +30,7 @@ skynet.start(
             })
 
             -- 网络接口
-            skynet.uniqueservice("NetProtoIslandServer")
+            skynet.uniqueservice(skynet.getenv("NetProtoName") .. "Server")
 
             -- 简单缓存数据库
             skynet.uniqueservice("CLDB")
