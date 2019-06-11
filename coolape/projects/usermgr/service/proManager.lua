@@ -83,7 +83,7 @@ function CMD.getServerList(map)
     if appid <= 0 then
         printe("appid错误！")
     end
-    local list = dbservers.getListByappid()
+    local list = dbservers.getListByappid(appid)
     return list
 end
 
