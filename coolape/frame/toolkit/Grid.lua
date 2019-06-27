@@ -279,7 +279,7 @@ function Grid:getCells (center, size)
         return ret
     end
     local tpindex
-    local numRows = self.m_numberOfRows
+    local numRows = self.m_numberOfColumns
     local half = numEx.getIntPart(size / 2)
     if (size % 2 == 0) then
         for row = 0, half do
