@@ -143,6 +143,7 @@ function genDB.genTables()
     -- 建库
     table.insert(sqlStr, "create database if not exists `" .. databaseName .. "`;")
     table.insert(sqlStr, "use `" .. databaseName .. "`;")
+    table.insert(sqlStr, "alter database " .. databaseName .. " character set utf8;")
     table.insert(incsqlStr, "create database if not exists `" .. databaseName .. "`;")
     table.insert(incsqlStr, "use `" .. databaseName .. "`;")
     --建序列

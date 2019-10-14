@@ -55,7 +55,10 @@ cfg={
 --]]
 function CMD.CONNECT(cfg)
     local function on_connect(db)
+        -- 数据库连接成功后，通过这句可以解决数据库中文乱码问题
+        db:query("SET NAMES UTF8");
         db:query("set charset utf8");
+        db:query("set character_set_server=utf8");
     end
     isDebugSql = cfg.isDebug
     cfg.on_connect = on_connect
@@ -66,8 +69,6 @@ function CMD.CONNECT(cfg)
         printe("failed to connect")
         return false
     end
-    -- 数据库连接成功后，通过这句可以解决数据库中文乱码问题
-    CMD.EXESQL("SET NAMES UTF8")
 
     -- 启动一个线路保存数据
     skynet.fork( storeData, db);
