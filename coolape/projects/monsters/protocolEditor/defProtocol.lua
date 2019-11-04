@@ -4,6 +4,8 @@
 defProtocol = {}
 defProtocol.name = "NetPtMonsters" -- 协议名字(好像最长只能是15个字符)
 defProtocol.isSendClientInt2bio = true -- 发送给客户端时是否把int转成bio
+defProtocol.isGenLuaClientFile = true -- 生成lua客户端接口文件
+defProtocol.isGenJsClientFile = false -- 生成js客户端接口文件
 --===================================================
 --===================================================
 --===================================================
