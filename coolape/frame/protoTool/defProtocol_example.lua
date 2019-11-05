@@ -4,6 +4,9 @@
 defProtocol = {}
 defProtocol.name = "NetProto";      -- 协议名字
 defProtocol.isSendClientInt2bio = true;     -- 发送给客户端时是否把int转成bio
+defProtocol.compatibleJsonp = true;     -- 是否考虑兼容json
+defProtocol.isGenLuaClientFile = false -- 生成lua客户端接口文件
+defProtocol.isGenJsClientFile = true -- 生成js客户端接口文件
 --===================================================
 --===================================================
 --===================================================

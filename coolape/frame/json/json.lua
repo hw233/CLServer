@@ -392,7 +392,7 @@ end
 -- @return boolean, number True if the table can be represented as an array, false otherwise. If true,
 -- the second returned value is the maximum
 -- number of indexed elements in the array. 
-function isArray(t)
+function isArray2(t)
   -- Next we count all the elements, ensuring that any non-indexed elements are not-encodable 
   -- (with the possible exception of 'n')
   if (t == json.EMPTY_ARRAY) then return true, 0 end
@@ -412,6 +412,29 @@ function isArray(t)
     end -- End of k,v not an indexed pair
   end  -- End of loop across all pairs
   return true, maxIndex
+end
+
+---@public 是否为list add by chenbin
+--[[如果采用上面的isArray2这个方法，当是number为键时，可能也认为是list,
+比如：map={}
+map[100]="abc"
+这种情况，如果采用isArray2这个方法的话，会认为是length=100的list
+]]
+function isArray(t)
+  if t == nil then
+      return false, 0;
+  end
+  local i = 0
+  local ret = true;
+  for _ in pairs(t) do
+      i = i + 1
+      if t[i] == nil then
+          ret = false
+      else
+        if (not isEncodable(t[i])) then return false end
+      end
+  end
+  return ret, i
 end
 
 --- Determines whether the given Lua object / table / variable can be JSON encoded. The only

@@ -233,22 +233,28 @@ do
             add(ret, "        parse = function(m)")
             add(ret, "            local r = {}")
             add(ret, "            if m == nil then return r end");
+            local valueStr = ""
             for k, v in pairs(val[2]) do
                 typeName = type(v[1])
+                if defProtocol.compatibleJsonp then
+                    valueStr = "m[" .. getKeyCode(k) .. "] or m[\"" .. getKeyCode(k) .. "\"]"
+                else
+                    valueStr = "m[" .. getKeyCode(k) .. "]"
+                end
                 if typeName == "table" then
                     local stName = getKeyByVal(defProtocol.structs, v[1]);
                     --assert(stName, "get struct name is null")
                     if stName then
-                        add(ret, "            r." .. k .. " = " .. defProtocol.name .. "." .. StructHead .. stName .. ".parse(m[" .. getKeyCode(k) .. "]) -- " .. " " .. typeName )
+                        add(ret, "            r." .. k .. " = " .. defProtocol.name .. "." .. StructHead .. stName .. ".parse(" .. valueStr .. ") -- " .. " " .. typeName )
                     else
                         local isList = isArray(v[1])
                         if isList then
                             stName = nil
                             stName = getKeyByVal(defProtocol.structs, v[1][1]);
                             if stName then
-                                add(ret, "            r." .. k .. " = " .. defProtocol.name .. "._parseList(" .. getStName(stName) .. ", m[" .. getKeyCode(k) .. "])  -- " .. (v[2] or ""))
+                                add(ret, "            r." .. k .. " = " .. defProtocol.name .. "._parseList(" .. getStName(stName) .. ", ".. valueStr .. ")  -- " .. (v[2] or ""))
                             else
-                                add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] -- " .. " " .. typeName )
+                                add(ret, "            r." .. k .. " = ".. valueStr .. " -- " .. " " .. typeName )
                             end
                         else
                             stName = nil;
@@ -257,21 +263,21 @@ do
                                 break;
                             end
                             if stName then
-                                add(ret, "            r." .. k .. " = " .. defProtocol.name .. "._parseMap(" .. getStName(stName) .. ", m[" .. getKeyCode(k) .. "])  -- " .. (v[2] or ""))
+                                add(ret, "            r." .. k .. " = " .. defProtocol.name .. "._parseMap(" .. getStName(stName) .. ", ".. valueStr .. ")  -- " .. (v[2] or ""))
                             else
-                                add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] -- " .. " " .. typeName )
+                                add(ret, "            r." .. k .. " = ".. valueStr .. " -- " .. " " .. typeName )
                             end
                         end
                     end
                 elseif typeName == "number" then
                     local minInt = math.floor(v[1]);
                     if minInt == v[1] then
-                        add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] -- " .. " int" )
+                        add(ret, "            r." .. k .. " = ".. valueStr .. " -- " .. " int" )
                     else
-                        add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] -- " .. " " .. typeName )
+                        add(ret, "            r." .. k .. " = ".. valueStr .. " -- " .. " " .. typeName )
                     end
                 else
-                    add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] -- " .. " " .. typeName )
+                    add(ret, "            r." .. k .. " = " .. valueStr .. " -- " .. " " .. typeName )
                 end
             end
             add(ret, "            return r;")
@@ -292,7 +298,7 @@ do
         add(ret, "            ret[k] = stuctobj.toMap(m[k]);");
         add(ret, "        }");
         add(ret, "        return ret;");
-        add(ret, "    }");
+        add(ret, "    };");
 
         add(ret, "    // public toList")
         add(ret, "    " .. defProtocol.name .. "._toList = function(stuctobj, m) {");
@@ -303,7 +309,7 @@ do
         add(ret, "            ret.push(stuctobj.toMap(m[i]));");
         add(ret, "        }");
         add(ret, "        return ret;");
-        add(ret, "    }");
+        add(ret, "    };");
 
 
         add(ret, "    // public parse")
@@ -314,7 +320,7 @@ do
         add(ret, "            ret[k] = stuctobj.parse(m[k]);");
         add(ret, "        }");
         add(ret, "        return ret;");
-        add(ret, "    }");
+        add(ret, "    };");
 
         add(ret, "    // public parse")
         add(ret, "    " .. defProtocol.name .. "._parseList = function(stuctobj, m) {");
@@ -325,7 +331,7 @@ do
         add(ret, "            ret.push(stuctobj.parse(m[i]));");
         add(ret, "        }");
         add(ret, "        return ret;");
-        add(ret, "    }");
+        add(ret, "    };");
         add(ret, "  //==================================")
         add(ret, "  //==================================")
 
@@ -349,7 +355,7 @@ do
                 end
             end
             add(ret, "    " .. getStName(name) .. " = {");
-            add(ret, "        toMap = function(m) {")
+            add(ret, "        toMap : function(m) {")
             add(ret, "            var r = {};")
             add(ret, "            if(m == null) { return r; }");
             local typeName = ""
@@ -402,9 +408,9 @@ do
             add(ret, "            return r;")
             add(ret, "        },")
 
-            add(ret, "        parse = function(m) {")
+            add(ret, "        parse : function(m) {")
             add(ret, "            var r = {};")
-            add(ret, "            if(m == nill) { return r; }");
+            add(ret, "            if(m == null) { return r; }");
             for k, v in pairs(val[2]) do
                 typeName = type(v[1])
                 if typeName == "table" then
@@ -513,6 +519,7 @@ do
         add(strsClientJS, "    //==============================");
         add(strsServer, "    --==============================");
         local dispatch = {}
+        local dispatchJS = {}
         local requires = {}
         local dispatchserver = {}
         local clientSend = {}
@@ -526,8 +533,9 @@ do
         for cmd, cfg in pairs(defProtocol.cmds) do
             requires[cfg.logic] = true;
             add(cmdMap, "        " .. cmd .. " = \"" .. cmd .. "\", -- " .. cfg.desc)
-            add(cmdMapJS, "        " .. cmd .. " = \"" .. cmd .. "\", // " .. cfg.desc)
+            add(cmdMapJS, "        " .. cmd .. " : \"" .. cmd .. "\", // " .. cfg.desc)
             add(dispatch, "    " .. defProtocol.name .. ".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = " .. defProtocol.name .. ".recive." .. cmd .. ", send = " .. defProtocol.name .. ".send." .. cmd .. "}")
+            add(dispatchJS, "    " .. defProtocol.name .. ".dispatch[" .. getKeyCode(cmd) .. "]={onReceive : " .. defProtocol.name .. ".recive." .. cmd .. ", send : " .. defProtocol.name .. ".send." .. cmd .. "}")
             add(dispatchserver, "    " .. defProtocol.name .. ".dispatch[" .. getKeyCode(cmd) .. "]={onReceive = " .. defProtocol.name .. ".recive." .. cmd .. ", send = " .. defProtocol.name .. ".send." .. cmd .. ", logicName = \"" .. cfg.logic .. "\"}")
             if cfg.desc then
                 add(clientSend, "    -- " .. cfg.desc);
@@ -602,14 +610,20 @@ do
                     -- end
 
                     -- recive
+                    local valueStr
+                    if defProtocol.compatibleJsonp then
+                        valueStr = "map[" .. getKeyCode(paramName) .. "] or map[\"" .. getKeyCode(paramName) .. "\"]"
+                    else
+                        valueStr = "map[" .. getKeyCode(paramName) .. "]"
+                    end
                     if type(v2) == "table" then
                         if isList then
-                            add(serverReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "._parseList(" .. getStName(pname) .. ", map[" .. getKeyCode(paramName) .. "]) -- " .. (inputDesList[i] or ""))
+                            add(serverReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "._parseList(" .. getStName(pname) .. ", " .. valueStr .. ") -- " .. (inputDesList[i] or ""))
                         else
-                            add(serverReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "." .. StructHead .. pname .. ".parse(map[" .. getKeyCode(paramName) .. "]) -- " .. (inputDesList[i] or ""));
+                            add(serverReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "." .. StructHead .. pname .. ".parse(" .. valueStr .. ") -- " .. (inputDesList[i] or ""));
                         end
                     else
-                        add(serverReciveParams, "        ret." .. paramName .. " = " .. "map[" .. getKeyCode(paramName) .. "]-- " .. (inputDesList[i] or ""));
+                        add(serverReciveParams, "        ret." .. paramName .. " = " .. valueStr .. " -- " .. (inputDesList[i] or ""));
                     end
                 end
             end
@@ -693,10 +707,10 @@ do
             if #inputParams == 0 then
                 -- 没有入参数
                 add(clientSend, "    " .. cmd .. " = function(__callback, __orgs) -- __callback:接口回调, __orgs:回调参数");
-                add(clientSendJS, "    " .. cmd .. " = function() {");
+                add(clientSendJS, "    " .. cmd .. " : function() {");
             else
                 add(clientSend, "    " .. cmd .. " = function(" .. table.concat(inputParams, ", ") .. ", __callback, __orgs) -- __callback:接口回调, __orgs:回调参数");
-                add(clientSendJS, "    " .. cmd .. " = function(" .. table.concat(inputParams, ", ") .. ") {");
+                add(clientSendJS, "    " .. cmd .. " : function(" .. table.concat(inputParams, ", ") .. ") {");
             end
 
             if #outputParams == 0 then
@@ -741,7 +755,7 @@ do
             end
 
             add(clientRecive, "    " .. cmd .. " = function(map)");
-            add(clientReciveJS, "    " .. cmd .. " = function(map) {");
+            add(clientReciveJS, "    " .. cmd .. " : function(map) {");
             add(clientRecive, "        local ret = {}");
             add(clientReciveJS, "        var ret = {};");
             add(clientRecive, "        ret.cmd = \"" .. cmd .. "\"");
@@ -760,7 +774,7 @@ do
             add(serverRecive, "    " .. cmd .. " = function(map)");
             add(serverRecive, "        local ret = {}");
             add(serverRecive, "        ret.cmd = \"" .. cmd .. "\"");
-            add(serverRecive, "        ret.__session__ = map[" .. getKeyCode("__session__") .. "]");
+            add(serverRecive, "        ret.__session__ = map[" .. getKeyCode("__session__") .. "] or map[\"" .. getKeyCode("__session__") .. "\"]");
             add(serverRecive, "        ret.callback = map[" .. getKeyCode("callback") .. "]");
             if #serverReciveParams > 0 then
                 add(serverRecive, table.concat(serverReciveParams, "\n"));
@@ -774,7 +788,7 @@ do
         add(strsClient, table.concat(clientSend, "\n"));
         add(strsClientJS, table.concat(clientSendJS, "\n"));
         add(strsClient, "    }");
-        add(strsClientJS, "    }");
+        add(strsClientJS, "    };");
 
         add(strsServer, "    " .. defProtocol.name .. ".recive = {");
         add(strsServer, table.concat(serverRecive, "\n"));
@@ -788,7 +802,7 @@ do
         add(strsClient, table.concat(clientRecive, "\n"));
         add(strsClientJS, table.concat(clientReciveJS, "\n"));
         add(strsClient, "    }");
-        add(strsClientJS, "    }");
+        add(strsClientJS, "    };");
 
         add(strsServer, "    " .. defProtocol.name .. ".send = {");
         add(strsServer, table.concat(serverSend, "\n"));
@@ -799,7 +813,7 @@ do
         add(strsServer, "    --==============================");
         -- dispatch
         add(strsClient, table.concat(dispatch, "\n"));
-        add(strsClientJS, table.concat(dispatch, "\n"));
+        add(strsClientJS, table.concat(dispatchJS, "\n"));
         add(strsServer, table.concat(dispatchserver, "\n"));
 
         add(strsClient, "    --==============================");
