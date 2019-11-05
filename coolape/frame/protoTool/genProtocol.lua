@@ -465,12 +465,50 @@ do
         local strsClient = {}
         local strsClientJS = {}
         local strsServer = {}
+
+        add(strsClientJS, "    var " .. defProtocol.name .. " = {}; // 网络协议");
+        add(strsClientJS, "    " .. defProtocol.name .. ".__sessionID = 0; // 会话ID");
+        add(strsClientJS, "    //==============================")
+        add(strsClientJS, "    " .. defProtocol.name .. ".init = function(url) {")
+        add(strsClientJS, "        " .. defProtocol.name .. ".url = url;")
+        add(strsClientJS, "    };")
+        add(strsClientJS, "    /*")
+        add(strsClientJS, "    * 跨域调用")
+        add(strsClientJS, "    * url:地址")
+        add(strsClientJS, "    * params：参数")
+        add(strsClientJS, "    * success：成功回调，（result, status, xhr）")
+        add(strsClientJS, "    * error：失败回调，（jqXHR, textStatus, errorThrown）")
+        add(strsClientJS, "    */")
+        add(strsClientJS, "    " .. defProtocol.name .. ".call = function ( params, callback) {")
+        add(strsClientJS, "        $.ajax({")
+        add(strsClientJS, "            url: " .. defProtocol.name .. ".url,")
+        add(strsClientJS, "            data: params,")
+        add(strsClientJS, "            dataType: 'jsonp',")
+        add(strsClientJS, "            crossDomain: true,")
+        add(strsClientJS, "            jsonp:'callback',  //Jquery生成验证参数的名称")
+        add(strsClientJS, "            success: function(result, status, xhr) { //成功的回调函数,")
+        add(strsClientJS, "                if(callback != null) {")
+        add(strsClientJS, "                    var cmd = result[0]")
+        add(strsClientJS, "                    var dispatch = " .. defProtocol.name .. ".dispatch[cmd]")
+        add(strsClientJS, "                    if(dispatch != null) {")
+        add(strsClientJS, "                        callback(dispatch.onReceive(result), status, xhr)")
+        add(strsClientJS, "                    }")
+        add(strsClientJS, "                }")
+        add(strsClientJS, "            },")
+        add(strsClientJS, "            error: function(jqXHR, textStatus, errorThrown) {")
+        add(strsClientJS, "                if(callback != null) {")
+        add(strsClientJS, "                    callback(nil, textStatus, jqXHR)")
+        add(strsClientJS, "                }")
+        add(strsClientJS, "                console.log(textStatus + \":\" + errorThrown)")
+        add(strsClientJS, "            }")
+        add(strsClientJS, "        });")
+        add(strsClientJS, "    }")
+
         add(strsClient, "do");
         add(strsServer, "do");
         add(strsClient, "    ---@class " .. defProtocol.name .. " 网络协议");
         add(strsServer, "    ---@class " .. defProtocol.name .. " 网络协议");
         add(strsClient, "    " .. defProtocol.name .. " = {}");
-        add(strsClientJS, "    var " .. defProtocol.name .. " = {}; // 网络协议");
         add(strsServer, "    local " .. defProtocol.name .. " = {}");
         add(strsClient, "    local table = table");
         add(strsServer, "    local table = table");
@@ -480,7 +518,6 @@ do
         add(strsServer, "    require \"skynet.manager\"    -- import skynet.register")
         add(strsServer, "    require(\"BioUtl\")\n")
         add(strsClient, "    " .. defProtocol.name .. ".__sessionID = 0 -- 会话ID");
-        add(strsClientJS, "    " .. defProtocol.name .. ".__sessionID = 0; // 会话ID");
         add(strsClient, "    " .. defProtocol.name .. ".dispatch = {}");
         add(strsClientJS, "    " .. defProtocol.name .. ".dispatch = {};");
         add(strsClient, "    local __callbackInfor = {} -- 回调信息")
@@ -707,10 +744,10 @@ do
             if #inputParams == 0 then
                 -- 没有入参数
                 add(clientSend, "    " .. cmd .. " = function(__callback, __orgs) -- __callback:接口回调, __orgs:回调参数");
-                add(clientSendJS, "    " .. cmd .. " : function() {");
+                add(clientSendJS, "    " .. cmd .. " : function(callback) {");
             else
                 add(clientSend, "    " .. cmd .. " = function(" .. table.concat(inputParams, ", ") .. ", __callback, __orgs) -- __callback:接口回调, __orgs:回调参数");
-                add(clientSendJS, "    " .. cmd .. " : function(" .. table.concat(inputParams, ", ") .. ") {");
+                add(clientSendJS, "    " .. cmd .. " : function(" .. table.concat(inputParams, ", ") .. ", callback) {");
             end
 
             if #outputParams == 0 then
@@ -740,7 +777,7 @@ do
 
             add(clientSend, "        setCallback(__callback, __orgs, ret)")
             add(clientSend, "        return ret");
-            add(clientSendJS, "        return ret;");
+            add(clientSendJS, "        " .. defProtocol.name .. ".call(ret, callback);");
             add(serverSend, "        return ret");
             add(clientSend, "    end,");
             add(clientSendJS, "    },");
