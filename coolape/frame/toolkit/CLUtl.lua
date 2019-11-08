@@ -1,5 +1,4 @@
-﻿-- 工具
----@class CLUtl
+﻿---@class CLUtl 工具
 CLUtl = {}
 local table = table
 local select = select

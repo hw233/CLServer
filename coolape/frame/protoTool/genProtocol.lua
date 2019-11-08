@@ -293,7 +293,7 @@ do
         add(ret, "    // public toMap")
         add(ret, "    " .. defProtocol.name .. "._toMap = function(stuctobj, m) {");
         add(ret, "        var ret = {};");
-        add(ret, "        if (m == null) { return ret; }");
+        add(ret, "        if (!m) { return ret; }");
         add(ret, "        for(k in m) {");
         add(ret, "            ret[k] = stuctobj.toMap(m[k]);");
         add(ret, "        }");
@@ -303,7 +303,7 @@ do
         add(ret, "    // public toList")
         add(ret, "    " .. defProtocol.name .. "._toList = function(stuctobj, m) {");
         add(ret, "        var ret = [];");
-        add(ret, "        if (m == null) { return ret; }");
+        add(ret, "        if (!m) { return ret; }");
         add(ret, "        var count = m.length;")
         add(ret, "        for (var i = 0; i < count; i++) {");
         add(ret, "            ret.push(stuctobj.toMap(m[i]));");
@@ -315,7 +315,7 @@ do
         add(ret, "    // public parse")
         add(ret, "    " .. defProtocol.name .. "._parseMap = function(stuctobj, m) {");
         add(ret, "        var ret = {};");
-        add(ret, "        if(m == null){ return ret; }");
+        add(ret, "        if(!m){ return ret; }");
         add(ret, "        for(k in m) {");
         add(ret, "            ret[k] = stuctobj.parse(m[k]);");
         add(ret, "        }");
@@ -325,7 +325,7 @@ do
         add(ret, "    // public parse")
         add(ret, "    " .. defProtocol.name .. "._parseList = function(stuctobj, m) {");
         add(ret, "        var ret = [];");
-        add(ret, "        if(m == null){return ret; }");
+        add(ret, "        if(!m){return ret; }");
         add(ret, "        var count = m.length;")
         add(ret, "        for(var i = 0; i < count; i++) {");
         add(ret, "            ret.push(stuctobj.parse(m[i]));");
@@ -357,7 +357,7 @@ do
             add(ret, "    " .. getStName(name) .. " = {");
             add(ret, "        toMap : function(m) {")
             add(ret, "            var r = {};")
-            add(ret, "            if(m == null) { return r; }");
+            add(ret, "            if(!m) { return r; }");
             local typeName = ""
             for k, v in pairs(val[2]) do
                 typeName = type(v[1])
@@ -410,7 +410,7 @@ do
 
             add(ret, "        parse : function(m) {")
             add(ret, "            var r = {};")
-            add(ret, "            if(m == null) { return r; }");
+            add(ret, "            if(!m) { return r; }");
             for k, v in pairs(val[2]) do
                 typeName = type(v[1])
                 if typeName == "table" then
@@ -488,7 +488,7 @@ do
         add(strsClientJS, "    * error：失败回调，（jqXHR, textStatus, errorThrown）")
         add(strsClientJS, "    */")
         add(strsClientJS, "    " .. defProtocol.name .. ".call = function ( params, callback) {")
-        add(strsClientJS, "        if(" .. defProtocol.name .. ".beforeCallFunc != null) {")
+        add(strsClientJS, "        if(" .. defProtocol.name .. ".beforeCallFunc) {")
         add(strsClientJS, "            " .. defProtocol.name .. ".beforeCallFunc();")
         add(strsClientJS, "        }")
         add(strsClientJS, "        $.ajax({")
@@ -498,19 +498,19 @@ do
         add(strsClientJS, "            crossDomain: true,")
         add(strsClientJS, "            jsonp:'callback',  //Jquery生成验证参数的名称")
         add(strsClientJS, "            success: function(result, status, xhr) { //成功的回调函数,")
-        add(strsClientJS, "                if(" .. defProtocol.name .. ".afterCallFunc != null) {")
+        add(strsClientJS, "                if(" .. defProtocol.name .. ".afterCallFunc) {")
         add(strsClientJS, "                    " .. defProtocol.name .. ".afterCallFunc();")
         add(strsClientJS, "                }")
-        add(strsClientJS, "                if(result == null) {")
+        add(strsClientJS, "                if(!result) {")
         add(strsClientJS, "                    console.log(\"result nil,cmd=\" + params[0]);")
         add(strsClientJS, "                } else {")
-        add(strsClientJS, "                    if(callback != null) {")
+        add(strsClientJS, "                    if(callback) {")
         add(strsClientJS, "                        var cmd = result[0];")
-        add(strsClientJS, "                        if(cmd == undefined || cmd == null) {")
+        add(strsClientJS, "                        if(!cmd) {")
         add(strsClientJS, "                            console.log(\"get cmd is nil\");")
         add(strsClientJS, "                        } else {")
         add(strsClientJS, "                            var dispatch = " .. defProtocol.name .. ".dispatch[cmd];")
-        add(strsClientJS, "                            if(dispatch != null && dispatch != undefined) {")
+        add(strsClientJS, "                            if(!!dispatch) {")
         add(strsClientJS, "                                callback(dispatch.onReceive(result), status, xhr);")
         add(strsClientJS, "                            } else {")
         add(strsClientJS, "                                console.log(\"get dispatcher is nil\");")
@@ -520,10 +520,10 @@ do
         add(strsClientJS, "                }")
         add(strsClientJS, "            },")
         add(strsClientJS, "            error: function(jqXHR, textStatus, errorThrown) {")
-        add(strsClientJS, "                if(" .. defProtocol.name .. ".afterCallFunc != null) {")
+        add(strsClientJS, "                if(" .. defProtocol.name .. ".afterCallFunc) {")
         add(strsClientJS, "                    " .. defProtocol.name .. ".afterCallFunc();")
         add(strsClientJS, "                }")
-        add(strsClientJS, "                if(callback != null) {")
+        add(strsClientJS, "                if(callback) {")
         add(strsClientJS, "                    callback(nil, textStatus, jqXHR);")
         add(strsClientJS, "                }")
         add(strsClientJS, "                console.log(textStatus + \":\" + errorThrown);")
@@ -616,6 +616,7 @@ do
             local clientReciveParamsFields = {}
             local clientReciveParamsFieldsJS = {}
             local serverReciveParams = {}
+            local serverReciveParamsFields = {}
             local parmasTimes_ = {} -- 因为可能出现参数名相同的情况
             local getParamName = function(paramName)
                 local times = parmasTimes_[paramName] or 1
@@ -682,11 +683,14 @@ do
                     end
                     if type(v2) == "table" then
                         if isList then
+                            add(serverReciveParamsFields, "    ---@field public " .. paramName .. " " .. getStName(pname) .. " Array List " .. (inputDesList[i] or ""))
                             add(serverReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "._parseList(" .. getStName(pname) .. ", " .. valueStr .. ") -- " .. (inputDesList[i] or ""))
                         else
+                            add(serverReciveParamsFields, "    ---@field public " .. paramName .. " " .. getStName(pname) .. " " .. (inputDesList[i] or ""))
                             add(serverReciveParams, "        ret." .. paramName .. " = " .. defProtocol.name .. "." .. StructHead .. pname .. ".parse(" .. valueStr .. ") -- " .. (inputDesList[i] or ""));
                         end
                     else
+                        add(serverReciveParamsFields, "    ---@field public " .. paramName .. "  " .. (inputDesList[i] or ""))
                         add(serverReciveParams, "        ret." .. paramName .. " = " .. valueStr .. " -- " .. (inputDesList[i] or ""));
                     end
                 end
@@ -835,6 +839,10 @@ do
             add(clientRecive, "    end,");
             add(clientReciveJS, "    },");
 
+            add(serverRecive, "    ---@class " .. defProtocol.name .. ".RC_" .. cmd)
+            if #serverReciveParamsFields > 0 then
+                add(serverRecive, table.concat(serverReciveParamsFields, "\n"));
+            end
             add(serverRecive, "    " .. cmd .. " = function(map)");
             add(serverRecive, "        local ret = {}");
             add(serverRecive, "        ret.cmd = \"" .. cmd .. "\"");
@@ -903,18 +911,40 @@ do
         add(strsServer, "            skynet.error(\"[dispatcher] map == nil\")")
         add(strsServer, "            return nil")
         add(strsServer, "        end")
-        add(strsServer, "        local cmd = map[0]")
+        add(strsServer, "        local cmd = map[0] or map[\"0\"]")
         add(strsServer, "        if cmd == nil then")
         add(strsServer, "            skynet.error(\"get cmd is nil\")")
         add(strsServer, "            return nil;")
         add(strsServer, "        end")
+        add(strsServer, "        cmd = tonumber(cmd)")
         add(strsServer, "        local dis = " .. defProtocol.name .. ".dispatch[cmd]")
         add(strsServer, "        if dis == nil then")
         add(strsServer, "            skynet.error(\"get protocol cfg is nil\")")
         add(strsServer, "            return nil;")
         add(strsServer, "        end")
         add(strsServer, "        local m = dis.onReceive(map)")
-        --add(strsServer, "        local logicCMD = assert(dis.logic.CMD)")
+        if defProtocol.isCheckSession then
+            add(strsServer, "        -- session超时检测")
+            local donotCheckSessionCMDs = {}
+            for i,v in ipairs(defProtocol.donotCheckSessionCMDs or {}) do
+                table.insert(donotCheckSessionCMDs, "m.cmd ~= " .. defProtocol.name .. ".cmds." .. v)
+            end
+            if #donotCheckSessionCMDs > 0 then
+                add(strsServer, "        if " .. table.concat(donotCheckSessionCMDs, " and ") .. " then")
+            else
+                add(strsServer, "        if true then")
+            end
+            add(strsServer, "            local session = m.__session__")
+            add(strsServer, "            if not skynet.call(\"CLSessionMgr\", \"lua\", \"VALID\", session) then")
+            add(strsServer, "                -- 失效")
+            add(strsServer, "                local ret = {}")
+            add(strsServer, "                ret.code = -10000")
+            add(strsServer, "                ret.msg = \"session is out of time!\"")
+            add(strsServer, "                return dis.send(ret)")
+            add(strsServer, "             end")
+            add(strsServer, "        end")
+        end
+        add(strsServer, "        -- 执行逻辑处理")
         add(strsServer, "        local logicProc = skynet.call(agent, \"lua\", \"getLogic\", dis.logicName)")
         add(strsServer, "        if logicProc == nil then")
         add(strsServer, "            skynet.error(\"get logicServe is nil. serverName=[\" .. dis.loginAccount ..\"]\")")
