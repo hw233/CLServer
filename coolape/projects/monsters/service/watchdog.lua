@@ -1,5 +1,5 @@
 local skynet = require "skynet"
-require "skynet.manager"    -- import skynet.register
+require "skynet.manager" -- import skynet.register
 require("Errcode")
 
 local CMD = {}
@@ -7,8 +7,8 @@ local SOCKET = {}
 local gate = nil
 local agent = {}
 local fdLastMsgTime = {}
-local mysql;
-local timeOutSec = 40;     -- socket超时时间(秒)
+local mysql
+local timeOutSec = 300 -- socket超时时间(秒)
 
 local function close_agent(fd)
     local a = agent[fd]
@@ -22,7 +22,7 @@ local function close_agent(fd)
 end
 
 local checkTimeOut = function(fdLastMsgTime)
-    local currTime;
+    local currTime
     while true do
         currTime = skynet.time()
         for fd, lasttime in pairs(fdLastMsgTime) do
@@ -30,7 +30,7 @@ local checkTimeOut = function(fdLastMsgTime)
                 close_agent(fd)
             end
         end
-        skynet.sleep(timeOutSec)
+        skynet.sleep(timeOutSec * 100)
     end
 end
 
@@ -38,7 +38,7 @@ function SOCKET.open(fd, addr)
     skynet.error("New client from : " .. addr .. " fd==" .. fd)
     agent[fd] = skynet.newservice("agent")
     CMD.alivefd(fd)
-    skynet.call(agent[fd], "lua", "start", { gate = gate, client = fd, mysql = mysql, watchdog = skynet.self() })
+    skynet.call(agent[fd], "lua", "start", {gate = gate, client = fd, mysql = mysql, watchdog = skynet.self()})
 end
 
 function SOCKET.close(fd)
@@ -64,7 +64,7 @@ function CMD.start(conf)
     if gate == nil then
         gate = skynet.newservice("gate")
     end
-    mysql = conf.mysql;
+    mysql = conf.mysql
     skynet.call(gate, "lua", "open", conf)
 end
 
@@ -105,18 +105,23 @@ function CMD.stop()
     skynet.exit()
 end
 
-skynet.start(function()
-    skynet.fork( checkTimeOut, fdLastMsgTime );
-    skynet.dispatch("lua", function(session, source, cmd, subcmd, ...)
-        if cmd == "socket" then
-            local f = SOCKET[subcmd]
-            f(...)
-            -- socket api don't need return
-        else
-            local f = assert(CMD[cmd])
-            skynet.ret(skynet.pack(f(subcmd, ...)))
-        end
-    end)
+skynet.start(
+    function()
+        skynet.fork(checkTimeOut, fdLastMsgTime)
+        skynet.dispatch(
+            "lua",
+            function(session, source, cmd, subcmd, ...)
+                if cmd == "socket" then
+                    -- socket api don't need return
+                    local f = SOCKET[subcmd]
+                    f(...)
+                else
+                    local f = assert(CMD[cmd])
+                    skynet.ret(skynet.pack(f(subcmd, ...)))
+                end
+            end
+        )
 
-    skynet.register "watchdog"
-end)
+        skynet.register "watchdog"
+    end
+)
