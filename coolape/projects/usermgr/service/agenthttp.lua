@@ -87,6 +87,17 @@ function CMD.onrequset(url, method, header, body)
             CMD.stop()
             return ""
         elseif path == httpCMD.httpGet then
+            -- 处理统一的get请求
+            local requst = urllib.parse_query(query)
+            -- Session 的处理
+            local result = skynet.call(NetProtoName, "lua", "dispatcher", skynet.self(), requst, nil)
+            local jsoncallback = requst.callback
+            if jsoncallback ~= nil then
+                -- 说明ajax调用
+                return jsoncallback .. "(" .. json.encode(result) .. ")"
+            else
+                return json.encode(result)
+            end
         elseif path == httpCMD.httpManage then
             -- 处理统一的get请求
             local requst = urllib.parse_query(query)

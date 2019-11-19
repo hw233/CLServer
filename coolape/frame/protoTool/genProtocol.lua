@@ -660,7 +660,7 @@ do
                                 local type2 = type(v2[1])
                                 if type2 == "table" then
                                     pname = getKeyByVal(defProtocol.structs, v2[1])
-                                    assert(pname, "get key by val is null==" .. i)
+                                    assert(pname, "get key by val is null==" .. i .. "===="..CLUtl.dump(v2[1]))
                                     paramName = getParamName(pname.. "s")
                                     add(toMapStrClient, "        ret[" .. getKeyCode(paramName) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. paramName .. ")  -- " .. (inputDesList[i] or ""));
                                     add(toMapStrClientJS, "        ret[" .. getKeyCode(paramName) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. paramName .. ")  // " .. (inputDesList[i] or ""));
@@ -728,8 +728,7 @@ do
                                 local type2 = type(v2[1])
                                 if type2 == "table" then
                                     pname = getKeyByVal(defProtocol.structs, v2[1])
-                                    print("get key by val is null==" .. i)
-                                    assert(pname, "get key by val is null==" .. i)
+                                    assert(pname, "get key by val is null==" .. i .. "==" .. CLUtl.dump(v2[1]))
                                     paramName = getParamName(pname .. "s")
                                     add(toMapStrServer, "        ret[" .. getKeyCode(paramName) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. paramName .. ")  -- " .. (inputDesList[i] or ""));
                                 else

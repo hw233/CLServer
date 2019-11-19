@@ -1,5 +1,5 @@
 do
-    ---@class NetProtoUsermgr
+    ---@class NetProtoUsermgr 网络协议
     NetProtoUsermgr = {}
     local table = table
     require("bio.BioUtl")
@@ -81,8 +81,8 @@ do
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.msg = m[10] --  string
-            r.code = m[11] --  int
+            r.msg = m[10] or m["10"] --  string
+            r.code = m[11] or m["11"] --  int
             return r;
         end,
     }
@@ -112,14 +112,14 @@ do
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.idx = m[12] --  int
-            r.port = m[15] --  int
-            r.name = m[14] --  string
-            r.host = m[16] --  string
-            r.iosVer = m[17] --  string
-            r.androidVer = m[18] --  string
-            r.isnew = m[19] --  boolean
-            r.status = m[13] --  int
+            r.idx = m[12] or m["12"] --  int
+            r.port = m[15] or m["15"] --  int
+            r.name = m[14] or m["14"] --  string
+            r.host = m[16] or m["16"] --  string
+            r.iosVer = m[17] or m["17"] --  string
+            r.androidVer = m[18] or m["18"] --  string
+            r.isnew = m[19] or m["19"] --  boolean
+            r.status = m[13] or m["13"] --  int
             return r;
         end,
     }
@@ -135,7 +135,7 @@ do
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.idx = m[12] --  int
+            r.idx = m[12] or m["12"] --  int
             return r;
         end,
     }

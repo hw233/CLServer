@@ -3,9 +3,12 @@
 --]]
 defProtocol = {}
 defProtocol.name = "NetProtoUsermgr";      -- 协议名字
-defProtocol.isSendClientInt2bio = true;     -- 发送给客户端时是否把int转成bio
+defProtocol.isSendClientInt2bio = false;     -- 发送给客户端时是否把int转成bio
 defProtocol.isGenLuaClientFile = true -- 生成lua客户端接口文件
-defProtocol.isGenJsClientFile = false -- 生成js客户端接口文件
+defProtocol.isGenJsClientFile = true -- 生成js客户端接口文件
+defProtocol.compatibleJsonp = true;     -- 是否考虑兼容json
+defProtocol.isCheckSession = false -- 生成检测session超时的代码
+defProtocol.donotCheckSessionCMDs = {} -- 不做session超时检测的接口
 --===================================================
 --===================================================
 --===================================================

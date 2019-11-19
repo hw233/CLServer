@@ -1,5 +1,5 @@
 do
-    ---@class NetProtoUsermgr
+    ---@class NetProtoUsermgr 网络协议
     local NetProtoUsermgr = {}
     local table = table
     local CMD = {}
@@ -56,14 +56,14 @@ do
             local r = {}
             if m == nil then return r end
             r[10] = m.msg  -- 返回消息 string
-            r[11] =  BioUtl.number2bio(m.code)  -- 返回值 int
+            r[11] = m.code  -- 返回值 int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.msg = m[10] --  string
-            r.code = m[11] --  int
+            r.msg = m[10] or m["10"] --  string
+            r.code = m[11] or m["11"] --  int
             return r;
         end,
     }
@@ -80,27 +80,27 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.number2bio(m.idx)  -- id int
-            r[15] =  BioUtl.number2bio(m.port)  -- 端口 int
+            r[12] = m.idx  -- id int
+            r[15] = m.port  -- 端口 int
             r[14] = m.name  -- 名称 string
             r[16] = m.host  -- ip地址 string
             r[17] = m.iosVer  -- 客户端ios版本 string
             r[18] = m.androidVer  -- 客户端android版本 string
             r[19] = m.isnew  -- 新服 boolean
-            r[13] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; 2:爆满; 3:维护 int
+            r[13] = m.status  -- 状态 1:正常; 2:爆满; 3:维护 int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.idx = m[12] --  int
-            r.port = m[15] --  int
-            r.name = m[14] --  string
-            r.host = m[16] --  string
-            r.iosVer = m[17] --  string
-            r.androidVer = m[18] --  string
-            r.isnew = m[19] --  boolean
-            r.status = m[13] --  int
+            r.idx = m[12] or m["12"] --  int
+            r.port = m[15] or m["15"] --  int
+            r.name = m[14] or m["14"] --  string
+            r.host = m[16] or m["16"] --  string
+            r.iosVer = m[17] or m["17"] --  string
+            r.androidVer = m[18] or m["18"] --  string
+            r.isnew = m[19] or m["19"] --  boolean
+            r.status = m[13] or m["13"] --  int
             return r;
         end,
     }
@@ -110,86 +110,114 @@ do
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[12] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int
+            r[12] = m.idx  -- 唯一标识 int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.idx = m[12] --  int
+            r.idx = m[12] or m["12"] --  int
             return r;
         end,
     }
     --==============================
     NetProtoUsermgr.recive = {
     -- 注册
+    ---@class NetProtoUsermgr.RC_registAccount
+    ---@field public userId  用户名
+    ---@field public password  密码
+    ---@field public email  邮箱
+    ---@field public appid  应用id
+    ---@field public channel  渠道号
+    ---@field public deviceID  机器码
+    ---@field public deviceInfor  机器信息
     registAccount = function(map)
         local ret = {}
         ret.cmd = "registAccount"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.userId = map[21]-- 用户名
-        ret.password = map[22]-- 密码
-        ret.email = map[23]-- 邮箱
-        ret.appid = map[24]-- 应用id
-        ret.channel = map[25]-- 渠道号
-        ret.deviceID = map[26]-- 机器码
-        ret.deviceInfor = map[27]-- 机器信息
+        ret.userId = map[21] or map["21"] -- 用户名
+        ret.password = map[22] or map["22"] -- 密码
+        ret.email = map[23] or map["23"] -- 邮箱
+        ret.appid = map[24] or map["24"] -- 应用id
+        ret.channel = map[25] or map["25"] -- 渠道号
+        ret.deviceID = map[26] or map["26"] -- 机器码
+        ret.deviceInfor = map[27] or map["27"] -- 机器信息
         return ret
     end,
     -- 取得服务器列表
+    ---@class NetProtoUsermgr.RC_getServers
+    ---@field public appid  应用id
+    ---@field public channel  渠道号
     getServers = function(map)
         local ret = {}
         ret.cmd = "getServers"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.appid = map[24]-- 应用id
-        ret.channel = map[25]-- 渠道号
+        ret.appid = map[24] or map["24"] -- 应用id
+        ret.channel = map[25] or map["25"] -- 渠道号
         return ret
     end,
     -- 取得服务器信息
+    ---@class NetProtoUsermgr.RC_getServerInfor
+    ---@field public idx  服务器id
     getServerInfor = function(map)
         local ret = {}
         ret.cmd = "getServerInfor"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.idx = map[12]-- 服务器id
+        ret.idx = map[12] or map["12"] -- 服务器id
         return ret
     end,
     -- 保存所选服务器
+    ---@class NetProtoUsermgr.RC_setEnterServer
+    ---@field public sidx  服务器id
+    ---@field public uidx  用户id
+    ---@field public appid  应用id
     setEnterServer = function(map)
         local ret = {}
         ret.cmd = "setEnterServer"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.sidx = map[36]-- 服务器id
-        ret.uidx = map[37]-- 用户id
-        ret.appid = map[24]-- 应用id
+        ret.sidx = map[36] or map["36"] -- 服务器id
+        ret.uidx = map[37] or map["37"] -- 用户id
+        ret.appid = map[24] or map["24"] -- 应用id
         return ret
     end,
     -- 登陆
+    ---@class NetProtoUsermgr.RC_loginAccount
+    ---@field public userId  用户名
+    ---@field public password  密码
+    ---@field public appid  应用id int
+    ---@field public channel  渠道号 string
     loginAccount = function(map)
         local ret = {}
         ret.cmd = "loginAccount"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.userId = map[21]-- 用户名
-        ret.password = map[22]-- 密码
-        ret.appid = map[24]-- 应用id int
-        ret.channel = map[25]-- 渠道号 string
+        ret.userId = map[21] or map["21"] -- 用户名
+        ret.password = map[22] or map["22"] -- 密码
+        ret.appid = map[24] or map["24"] -- 应用id int
+        ret.channel = map[25] or map["25"] -- 渠道号 string
         return ret
     end,
     -- 渠道登陆
+    ---@class NetProtoUsermgr.RC_loginAccountChannel
+    ---@field public userId  用户名
+    ---@field public appid  应用id int
+    ---@field public channel  渠道号 string
+    ---@field public deviceID  
+    ---@field public deviceInfor  
     loginAccountChannel = function(map)
         local ret = {}
         ret.cmd = "loginAccountChannel"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.userId = map[21]-- 用户名
-        ret.appid = map[24]-- 应用id int
-        ret.channel = map[25]-- 渠道号 string
-        ret.deviceID = map[26]-- 
-        ret.deviceInfor = map[27]-- 
+        ret.userId = map[21] or map["21"] -- 用户名
+        ret.appid = map[24] or map["24"] -- 应用id int
+        ret.channel = map[25] or map["25"] -- 渠道号 string
+        ret.deviceID = map[26] or map["26"] -- 
+        ret.deviceInfor = map[27] or map["27"] -- 
         return ret
     end,
     }
@@ -201,16 +229,8 @@ do
         ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
-        if type(serverid) == "number" then
-            ret[29] = BioUtl.number2bio(serverid); -- 服务器id int
-        else
-            ret[29] = serverid; -- 服务器id int
-        end
-        if type(systime) == "number" then
-            ret[30] = BioUtl.number2bio(systime); -- 系统时间 long
-        else
-            ret[30] = systime; -- 系统时间 long
-        end
+        ret[29] = serverid; -- 服务器id int
+        ret[30] = systime; -- 系统时间 long
         return ret
     end,
     getServers = function(retInfor, servers, mapOrig) -- mapOrig:客户端原始入参
@@ -242,16 +262,8 @@ do
         ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
-        if type(serverid) == "number" then
-            ret[29] = BioUtl.number2bio(serverid); -- 服务器id int
-        else
-            ret[29] = serverid; -- 服务器id int
-        end
-        if type(systime) == "number" then
-            ret[30] = BioUtl.number2bio(systime); -- 系统时间 long
-        else
-            ret[30] = systime; -- 系统时间 long
-        end
+        ret[29] = serverid; -- 服务器id int
+        ret[30] = systime; -- 系统时间 long
         return ret
     end,
     loginAccountChannel = function(retInfor, userInfor, serverid, systime, mapOrig) -- mapOrig:客户端原始入参
@@ -260,16 +272,8 @@ do
         ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
-        if type(serverid) == "number" then
-            ret[29] = BioUtl.number2bio(serverid); -- 服务器id int
-        else
-            ret[29] = serverid; -- 服务器id int
-        end
-        if type(systime) == "number" then
-            ret[30] = BioUtl.number2bio(systime); -- 系统时间 long
-        else
-            ret[30] = systime; -- 系统时间 long
-        end
+        ret[29] = serverid; -- 服务器id int
+        ret[30] = systime; -- 系统时间 long
         return ret
     end,
     }
@@ -296,17 +300,19 @@ do
             skynet.error("[dispatcher] map == nil")
             return nil
         end
-        local cmd = map[0]
+        local cmd = map[0] or map["0"]
         if cmd == nil then
             skynet.error("get cmd is nil")
             return nil;
         end
+        cmd = tonumber(cmd)
         local dis = NetProtoUsermgr.dispatch[cmd]
         if dis == nil then
             skynet.error("get protocol cfg is nil")
             return nil;
         end
         local m = dis.onReceive(map)
+        -- 执行逻辑处理
         local logicProc = skynet.call(agent, "lua", "getLogic", dis.logicName)
         if logicProc == nil then
             skynet.error("get logicServe is nil. serverName=[" .. dis.loginAccount .."]")
