@@ -531,6 +531,19 @@ do
         add(strsClientJS, "        });")
         add(strsClientJS, "    }")
 
+        add(strsClientJS, "    " .. defProtocol.name .. ".setSession = function(ss)")
+        add(strsClientJS, "    {")
+        add(strsClientJS, "        localStorage.setItem(\"" .. defProtocol.name .. ".__sessionID\", ss)")
+        add(strsClientJS, "    }")
+        add(strsClientJS, "    " .. defProtocol.name .. ".getSession = function()")
+        add(strsClientJS, "    {")
+        add(strsClientJS, "        return localStorage.getItem(\"" .. defProtocol.name .. ".__sessionID\")")
+        add(strsClientJS, "    }")
+        add(strsClientJS, "    " .. defProtocol.name .. ".removeSession = function()")
+        add(strsClientJS, "    {")
+        add(strsClientJS, "        localStorage.removeItem(\"" .. defProtocol.name .. ".__sessionID\")")
+        add(strsClientJS, "    }")
+
         add(strsClient, "do");
         add(strsServer, "do");
         add(strsClient, "    ---@class " .. defProtocol.name .. " 网络协议");
@@ -796,7 +809,7 @@ do
             add(serverSend, "        ret[" .. getKeyCode("cmd") .. "] = " .. getKeyCode(cmd));
             add(serverSend, "        ret[" .. getKeyCode("callback") .. "] = mapOrig and mapOrig.callback or nil");
             add(clientSend, "        ret[" .. getKeyCode("__session__") .. "] = " .. defProtocol.name .. ".__sessionID");
-            add(clientSendJS, "        ret[" .. getKeyCode("__session__") .. "] = " .. defProtocol.name .. ".__sessionID;");
+            add(clientSendJS, "        ret[" .. getKeyCode("__session__") .. "] = " .. defProtocol.name .. ".getSession();");
             if #toMapStrClient > 0 then
                 add(clientSend, table.concat(toMapStrClient, "\n"));
                 add(clientSendJS, table.concat(toMapStrClientJS, "\n"));
