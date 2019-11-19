@@ -21,7 +21,7 @@ local CLSessionMgr = {}
 local data = {}
 local CMD = {}
 local defaultTime = 3600 * 3 -- 秒
-local refreshTime = 3600 * 5 * 100
+local refreshTime = 3600 * 3 * 100
 
 local function checktimeout()
     while (true) do
@@ -48,7 +48,7 @@ function CMD.GET(session)
         return nil
     end
     local bytes = base64.decode(session)
-    local id = XXTEA.bytes2Str(XXTEA.decrypt(bytes, xxteaKey))
+    local id = XXTEA.decrypt(bytes, xxteaKey)
     return {id = id, loginTime = data[session]}
 end
 

@@ -34,20 +34,6 @@ local function convertBytesToString(bytes)
     return table.concat(str)
 end
 
-local function convertBytesToHexString(bytes)
-    local str = ""
-    local bytesLength = #(bytes)
-    for i = 1, bytesLength do
-        local hexString = string.sub(hex.to_hex(bytes[i]), 3)
-        if #(hexString) == 1 then
-            hexString = "0" .. hexString
-        end
-        str = str .. hexString
-    end
-
-    return str
-end
-
 local function convertToUInt32(value)
     if value < 0 then
         local absValue = math.abs(value)
@@ -216,9 +202,9 @@ local function Encrypt(DataStr, KeyStr)
     end
     local bytes = ToByteArray(EncryptInt32(ToUInt32Array(databytes, true), ToUInt32Array(keyBytes, false)), false)
     if bytes then
-        return table.concat(bytes)
+        return convertBytesToString(bytes)
     end
-    return nil
+    return bytes
 end
 
 ---@param Data byte[]
@@ -229,11 +215,12 @@ local function Decrypt(Data, KeyStr)
     end
     KeyStr = KeyStr or defaultKey
     local keyBytes = convertStringToBytes(KeyStr)
-    local bytes = ToByteArray(DecryptInt32(ToUInt32Array(Data, false), ToUInt32Array(keyBytes, false)), true)
+    local databytes = convertStringToBytes(Data)
+    local bytes = ToByteArray(DecryptInt32(ToUInt32Array(databytes, false), ToUInt32Array(keyBytes, false)), true)
     if bytes then
-        return table.concat(bytes)
+        return convertBytesToString(bytes)
     end
-    return nil
+    return bytes
 end
 
 ---@class XXTEA

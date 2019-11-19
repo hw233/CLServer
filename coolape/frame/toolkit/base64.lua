@@ -1,5 +1,9 @@
+local math = math
+local string = string
+local tonumber = tonumber
+local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
 local function encodeBase64(source_str)
-    local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
     local s64 = ""
     local str = source_str
 
@@ -31,7 +35,6 @@ local function encodeBase64(source_str)
 end
 
 local function decodeBase64(str64)
-    local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
     local temp = {}
     for i = 1, 64 do
         temp[string.sub(b64chars, i, i)] = i
@@ -58,8 +61,8 @@ local function decodeBase64(str64)
         end
         for j = 16, 0, -8 do
             if str_count > 0 then
-                str = str .. string.char(math.floor(data / math.pow(2, j)))
-                data = math.fmod(data, math.pow(2, j))
+                str = str .. string.char(math.floor(data / (2^ j)))
+                data = math.fmod(data, (2^ j))
                 str_count = str_count - 1
             end
         end
