@@ -34,7 +34,7 @@ local pauseFork = false
 --    end
 --end
 
----@public 启动一个线路处理超时数据（//TODO:可能有多线程数据同步问题）
+---@public 启动一个线程处理超时数据（//TODO:可能有多线程数据同步问题）
 local procTimeoutData = function()
     while (true) do
         if not pauseFork then
