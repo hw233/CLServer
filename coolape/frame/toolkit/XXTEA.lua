@@ -227,5 +227,6 @@ end
 XXTEA = {
     encrypt = Encrypt,
     decrypt = Decrypt,
-    bytes2Str = convertBytesToString
+    bytes2Str = convertBytesToString,
+    str2Bytes = convertStringToBytes
 }

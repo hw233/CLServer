@@ -2,6 +2,8 @@ local skynet = require("skynet")
 require "skynet.manager" -- import skynet.register
 require("XXTEA")
 require("base64")
+---@type CLNetSerialize
+local CLNetSerialize = require("CLNetSerialize")
 ---@type CLUtl
 local CLUtl = require("CLUtl")
 local DBUtl = require "DBUtl"
@@ -10,7 +12,7 @@ local dateEx = require("dateEx")
 require("CLGlobal")
 
 -- 取得参数
-local parmas = { ... }
+local parmas = {...}
 local xxteaKey = nil
 if #parmas > 0 then
     xxteaKey = parmas[1]
@@ -47,17 +49,22 @@ function CMD.GET(session)
     if (not session) or (not data[session]) then
         return nil
     end
+    local nowTime = data[session]
     local bytes = base64.decode(session)
+    -- local bytes2 = CLNetSerialize.decrypt(bytes, tostring(nowTime))
     local id = XXTEA.decrypt(bytes, xxteaKey)
-    return {id = id, loginTime = data[session]}
+    return {id = id, loginTime = nowTime, session = session}
 end
 
 function CMD.SET(id)
     if not id then
         return
     end
-    local session = base64.encode(XXTEA.encrypt(tostring(id), xxteaKey))
-    data[session] = dateEx.nowMS()
+    local nowTime = dateEx.nowMS()
+    local bytes = XXTEA.encrypt(tostring(id), xxteaKey)
+    -- local bytes2 = CLNetSerialize.encrypt(bytes, tostring(nowTime))
+    local session = base64.encode(bytes)
+    data[session] = nowTime
     return session
 end
 

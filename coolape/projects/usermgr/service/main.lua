@@ -31,6 +31,9 @@ skynet.start(
             -- 网络接口
             skynet.uniqueservice(skynet.getenv("NetProtoName") .. "Server")
 
+            -- session manager
+            skynet.uniqueservice("CLSessionMgr", "keyUsermgr2020")
+
             -- 简单缓存数据库
             skynet.uniqueservice("CLDB")
             skynet.call("CLDB", "lua", "SETTIMEOUT", 20 * dataSynSec)     -- 设置数据缓存时间 秒

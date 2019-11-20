@@ -158,6 +158,15 @@ do
         ret.channel = map[25] or map["25"] -- 渠道号
         return ret
     end,
+    -- session是否有效
+    ---@class NetProtoUsermgr.RC_isSessionAlived
+    isSessionAlived = function(map)
+        local ret = {}
+        ret.cmd = "isSessionAlived"
+        ret.__session__ = map[1] or map["1"]
+        ret.callback = map[3]
+        return ret
+    end,
     -- 取得服务器信息
     ---@class NetProtoUsermgr.RC_getServerInfor
     ---@field public idx  服务器id
@@ -223,7 +232,7 @@ do
     }
     --==============================
     NetProtoUsermgr.send = {
-    registAccount = function(retInfor, userInfor, serverid, systime, mapOrig) -- mapOrig:客户端原始入参
+    registAccount = function(retInfor, userInfor, serverid, systime, session, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 20
         ret[3] = mapOrig and mapOrig.callback or nil
@@ -231,6 +240,7 @@ do
         ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
         ret[29] = serverid; -- 服务器id int
         ret[30] = systime; -- 系统时间 long
+        ret[40] = session; -- 会话id
         return ret
     end,
     getServers = function(retInfor, servers, mapOrig) -- mapOrig:客户端原始入参
@@ -239,6 +249,13 @@ do
         ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         ret[32] = NetProtoUsermgr._toList(NetProtoUsermgr.ST_server, servers)  -- 服务器列表
+        return ret
+    end,
+    isSessionAlived = function(retInfor, mapOrig) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 41
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         return ret
     end,
     getServerInfor = function(retInfor, server, mapOrig) -- mapOrig:客户端原始入参
@@ -256,7 +273,7 @@ do
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         return ret
     end,
-    loginAccount = function(retInfor, userInfor, serverid, systime, mapOrig) -- mapOrig:客户端原始入参
+    loginAccount = function(retInfor, userInfor, serverid, systime, session, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 38
         ret[3] = mapOrig and mapOrig.callback or nil
@@ -264,9 +281,10 @@ do
         ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
         ret[29] = serverid; -- 服务器id int
         ret[30] = systime; -- 系统时间 long
+        ret[40] = session; -- 会话id
         return ret
     end,
-    loginAccountChannel = function(retInfor, userInfor, serverid, systime, mapOrig) -- mapOrig:客户端原始入参
+    loginAccountChannel = function(retInfor, userInfor, serverid, systime, session, mapOrig) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 39
         ret[3] = mapOrig and mapOrig.callback or nil
@@ -274,12 +292,14 @@ do
         ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
         ret[29] = serverid; -- 服务器id int
         ret[30] = systime; -- 系统时间 long
+        ret[40] = session; -- 会话id
         return ret
     end,
     }
     --==============================
     NetProtoUsermgr.dispatch[20]={onReceive = NetProtoUsermgr.recive.registAccount, send = NetProtoUsermgr.send.registAccount, logicName = "cmd4user"}
     NetProtoUsermgr.dispatch[31]={onReceive = NetProtoUsermgr.recive.getServers, send = NetProtoUsermgr.send.getServers, logicName = "cmd4server"}
+    NetProtoUsermgr.dispatch[41]={onReceive = NetProtoUsermgr.recive.isSessionAlived, send = NetProtoUsermgr.send.isSessionAlived, logicName = "cmd4user"}
     NetProtoUsermgr.dispatch[33]={onReceive = NetProtoUsermgr.recive.getServerInfor, send = NetProtoUsermgr.send.getServerInfor, logicName = "cmd4server"}
     NetProtoUsermgr.dispatch[35]={onReceive = NetProtoUsermgr.recive.setEnterServer, send = NetProtoUsermgr.send.setEnterServer, logicName = "cmd4server"}
     NetProtoUsermgr.dispatch[38]={onReceive = NetProtoUsermgr.recive.loginAccount, send = NetProtoUsermgr.send.loginAccount, logicName = "cmd4user"}
@@ -288,6 +308,7 @@ do
     NetProtoUsermgr.cmds = {
         registAccount = "registAccount", -- 注册,
         getServers = "getServers", -- 取得服务器列表,
+        isSessionAlived = "isSessionAlived", -- session是否有效,
         getServerInfor = "getServerInfor", -- 取得服务器信息,
         setEnterServer = "setEnterServer", -- 保存所选服务器,
         loginAccount = "loginAccount", -- 登陆,
