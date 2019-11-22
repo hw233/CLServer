@@ -8,6 +8,9 @@ require("Grid")
 require("public.cfgUtl")
 require("numEx")
 require("db.dbworldmap")
+require("db.dbcity")
+require("db.dbplayer")
+require("logic.IDConstVals")
 
 local constCfg  -- 常量配置
 ---@type Grid
@@ -35,30 +38,30 @@ local pauseFork = false
 --end
 
 ---@public 启动一个线程处理超时数据（//TODO:可能有多线程数据同步问题）
-local procTimeoutData = function()
-    while (true) do
-        if not pauseFork then
-            for pageIdx, lastUseTime in pairs(cachePages) do
-                if not pauseFork then
-                    if lastUseTime and (dateEx.nowMS() - lastUseTime > ConstTimeOut) then
-                        -- 已经超时了
-                        local list = dbworldmap.getListBypageIdx(pageIdx)
-                        if list then
-                            local cell = nil
-                            for i, v in ipairs(list) do
-                                cell = dbworldmap.new()
-                                cell.__key__ = v.idx
-                                cell:release()
-                            end
-                        end
-                        cachePages[pageIdx] = nil
-                    end
-                end
-            end
-        end
-        skynet.sleep(ConstTimeOut)
-    end
-end
+-- local procTimeoutData = function()
+--     while (true) do
+--         if not pauseFork then
+--             for pageIdx, lastUseTime in pairs(cachePages) do
+--                 if not pauseFork then
+--                     if lastUseTime and (dateEx.nowMS() - lastUseTime > ConstTimeOut) then
+--                         -- 已经超时了
+--                         local list = dbworldmap.getListBypageIdx(pageIdx)
+--                         if list then
+--                             local cell = nil
+--                             for i, v in ipairs(list) do
+--                                 cell = dbworldmap.new()
+--                                 cell.__key__ = v.idx
+--                                 cell:release()
+--                             end
+--                         end
+--                         cachePages[pageIdx] = nil
+--                     end
+--                 end
+--             end
+--         end
+--         skynet.sleep(ConstTimeOut)
+--     end
+-- end
 
 --============================================
 ---@public 初始化
@@ -158,20 +161,43 @@ function CMD.getMapDataByPageIdx(map)
 
     -- 先从缓存里取
     local list = dbworldmap.getListBypageIdx(pageIdx)
-    if list == nil or cachePages[pageIdx] == nil then
-        -- 缓存里没有，那就从数据库里取
-        list = dbworldmap.getListBypageIdx(pageIdx)
-        for i, v in ipairs(list) do
-            -- 这样就会把数据先缓存起来
-            dbworldmap.instanse(v.idx)
-        end
-    end
+    -- if list == nil or cachePages[pageIdx] == nil then
+    --     -- 缓存里没有，那就从数据库里取
+    --     list = dbworldmap.getListBypageIdx(pageIdx)
+    --     for i, v in ipairs(list) do
+    --         -- 这样就会把数据先缓存起来
+    --         dbworldmap.instanse(v.idx)
+    --     end
+    -- end
     -- 记录已经缓存了的page
     cachePages[pageIdx] = dateEx.nowMS()
+    local cells = {}
+    ---@param v dbworldmap
+    for i, v in ipairs(list) do
+        ---@type NetProtoIsland.ST_mapCell
+        local cell = v
+        -- 包装数据
+        if v[dbworldmap.keys.cidx] > 0 and v[dbworldmap.keys.type] == IDConstVals.WorldmapCellType.player then
+            local city = dbcity.instanse(v[dbworldmap.keys.cidx])
+            if not city:isEmpty() then
+                local pidx = city:get_pidx()
+                local player = dbplayer.instanse(pidx)
+                if not player:isEmpty() then
+                    cell.name = player:get_name()
+                    cell.lev = player:get_lev()
+                    cell.state = city:get_status()
+                    player:release()
+                end
+                city:release()
+            end
+        end
+        table.insert(cells, cell)
+    end
+    ---@type NetProtoIsland.ST_mapPage
     local mapPage = {}
     mapPage.pageIdx = pageIdx
-    mapPage.cells = list
-    skynet.error("=================" .. #list)
+    mapPage.cells = cells
+    -- skynet.error("=================" .. #list)
     pauseFork = false
     return skynet.call(NetProtoIsland, "lua", "send", cmd, {code = Errcode.ok}, mapPage, map)
 end
@@ -183,13 +209,11 @@ function CMD.moveCity(cidx, fromPos, toPos)
     end
     local toCell = dbworldmap.instanse(toPos)
     if (not toCell:isEmpty()) and toCell:get_cidx() > 0 then
-        printe(toPos)
         toCell:release()
         return Errcode.worldCellNotIdel
     end
     local fromCell = dbworldmap.instanse(fromPos)
     if fromCell:isEmpty() or fromCell:get_cidx() <= 0 then
-        printe(fromPos)
         fromCell:release()
         return Errcode.notFoundInWorld
     end
@@ -200,11 +224,24 @@ function CMD.moveCity(cidx, fromPos, toPos)
     data[dbworldmap.keys.pageIdx] = CMD.getPageIdx(toPos)
     -- 重新设置地块数据
     toCell:init(data, true)
-    --推送给在线的客户端
-    local map = skynet.call(NetProtoIsland, "lua", "send", "onMapCellChg", {code = Errcode.ok}, toCell:value2copy())
-    skynet.call("watchdog", "lua", "notifyAll", map)
-    -- 旧地块也推送
+
+    ---@type NetProtoIsland.ST_mapCell
     local d = toCell:value2copy()
+    local city = dbcity.instanse(toCell:get_cidx())
+    local pidx = city:get_pidx()
+    local player = dbplayer.instanse(pidx)
+    d.name = player:get_name()
+    d.lev = player:get_lev()
+    d.state = city:get_status()
+    city:release()
+    player:release()
+
+    --推送给在线的客户端
+    local map = skynet.call(NetProtoIsland, "lua", "send", "onMapCellChg", {code = Errcode.ok}, d)
+    skynet.call("watchdog", "lua", "notifyAll", map)
+
+    -- 旧地块也推送
+    local d = fromCell:value2copy()
     d[dbworldmap.keys.cidx] = 0
     d[dbworldmap.keys.type] = 0
     map = skynet.call(NetProtoIsland, "lua", "send", "onMapCellChg", {code = Errcode.ok}, d)
@@ -234,7 +271,7 @@ skynet.start(
         )
 
         -- 启动一个线路处理超时数据（应该有多线程数据同步问题）
-        skynet.fork(procTimeoutData)
+        -- skynet.fork(procTimeoutData)
 
         skynet.register "LDSWorld"
     end

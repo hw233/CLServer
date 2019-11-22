@@ -10,8 +10,7 @@ IDConstVals = {
 
 IDConstVals.PlayerState = {
     normal = 1, -- 正常
-    protect = 2, -- 免战保护
-    
+    protect = 2 -- 免战保护
 }
 
 IDConstVals.BuildingState = {
@@ -43,5 +42,9 @@ IDConstVals.ResType = {
     gold = 2,
     oil = 3,
     diam = 9
+}
+---@public 大地图地块类型
+IDConstVals.WorldmapCellType = {
+    player = 1
 }
 return IDConstVals

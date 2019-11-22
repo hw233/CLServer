@@ -34,7 +34,7 @@ cpath = skynetRoot.."cservice/?.so"
 thread = 1
 --logLev:日志等级  debug, warning, error
 logLev = "debug"
-logger = coolapeRoot .. "logs/" .. projectName .. ".log"
+--logger = coolapeRoot .. "logs/" .. projectName .. ".log"
 logpath = "."
 harbor = 0
 consolePort = 8001

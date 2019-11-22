@@ -1,5 +1,5 @@
 do
-    ---@class NetProtoIsland
+    ---@class NetProtoIsland 网络协议
     local NetProtoIsland = {}
     local table = table
     local CMD = {}
@@ -184,35 +184,44 @@ do
     }
     ---@class NetProtoIsland.ST_mapCell 大地图地块数据
     ---@field public idx number 网格index
+    ---@field public pageIdx number 所在屏的index
+    ---@field public val2 number 值2
+    ---@field public lev number 等级
     ---@field public val1 number 值1
     ---@field public cidx number 主城idx
     ---@field public val3 number 值3
+    ---@field public state number 状态  1:正常; int
+    ---@field public name string 名称
     ---@field public type number 地块类型 1：玩家，2：npc
-    ---@field public val2 number 值2
-    ---@field public pageIdx number 所在屏的index
     NetProtoIsland.ST_mapCell = {
         toMap = function(m)
             local r = {}
             if m == nil then return r end
             r[16] =  BioUtl.number2bio(m.idx)  -- 网格index int
+            r[13] =  BioUtl.number2bio(m.pageIdx)  -- 所在屏的index int
+            r[22] =  BioUtl.number2bio(m.val2)  -- 值2 int
+            r[24] =  BioUtl.number2bio(m.lev)  -- 等级 int
             r[29] =  BioUtl.number2bio(m.val1)  -- 值1 int
             r[18] =  BioUtl.number2bio(m.cidx)  -- 主城idx int
             r[21] =  BioUtl.number2bio(m.val3)  -- 值3 int
+            r[28] =  BioUtl.number2bio(m.state)  -- 状态  1:正常; int int
+            r[35] = m.name  -- 名称 string
             r[30] =  BioUtl.number2bio(m.type)  -- 地块类型 1：玩家，2：npc int
-            r[22] =  BioUtl.number2bio(m.val2)  -- 值2 int
-            r[13] =  BioUtl.number2bio(m.pageIdx)  -- 所在屏的index int
             return r;
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.idx = m[16] --  int
+            r.pageIdx = m[13] --  int
+            r.val2 = m[22] --  int
+            r.lev = m[24] --  int
             r.val1 = m[29] --  int
             r.cidx = m[18] --  int
             r.val3 = m[21] --  int
+            r.state = m[28] --  int
+            r.name = m[35] --  string
             r.type = m[30] --  int
-            r.val2 = m[22] --  int
-            r.pageIdx = m[13] --  int
             return r;
         end,
     }
@@ -242,8 +251,8 @@ do
     ---@field public idx number 唯一标识 int
     ---@field public tiles table 地块信息 key=idx, map
     ---@field public name string 名称
-    ---@field public status number 状态 1:正常; int
     ---@field public buildings table 建筑信息 key=idx, map
+    ---@field public status number 状态 1:正常; int
     ---@field public lev number 等级 int
     ---@field public pos number 城所在世界grid的index int
     ---@field public pidx number 玩家idx int
@@ -254,8 +263,8 @@ do
             r[16] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
             r[34] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
             r[35] = m.name  -- 名称 string
-            r[37] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; int int
             r[36] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
+            r[37] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; int int
             r[24] =  BioUtl.number2bio(m.lev)  -- 等级 int int
             r[19] =  BioUtl.number2bio(m.pos)  -- 城所在世界grid的index int int
             r[38] =  BioUtl.number2bio(m.pidx)  -- 玩家idx int int
@@ -267,8 +276,8 @@ do
             r.idx = m[16] --  int
             r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[34])  -- 地块信息 key=idx, map
             r.name = m[35] --  string
-            r.status = m[37] --  int
             r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[36])  -- 建筑信息 key=idx, map
+            r.status = m[37] --  int
             r.lev = m[24] --  int
             r.pos = m[19] --  int
             r.pidx = m[38] --  int
@@ -334,236 +343,287 @@ do
     --==============================
     NetProtoIsland.recive = {
     -- 取得造船厂所有舰艇列表
+    ---@class NetProtoIsland.RC_getShipsByBuildingIdx
+    ---@field public buildingIdx  造船厂的idx int
     getShipsByBuildingIdx = function(map)
         local ret = {}
         ret.cmd = "getShipsByBuildingIdx"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.buildingIdx = map[15]-- 造船厂的idx int
+        ret.buildingIdx = map[15] -- 造船厂的idx int
         return ret
     end,
     -- 升级建筑
+    ---@class NetProtoIsland.RC_upLevBuilding
+    ---@field public idx  建筑idx int
     upLevBuilding = function(map)
         local ret = {}
         ret.cmd = "upLevBuilding"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.idx = map[16]-- 建筑idx int
+        ret.idx = map[16] -- 建筑idx int
         return ret
     end,
     -- 移除建筑
+    ---@class NetProtoIsland.RC_rmBuilding
+    ---@field public idx  地块idx int
     rmBuilding = function(map)
         local ret = {}
         ret.cmd = "rmBuilding"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.idx = map[16]-- 地块idx int
+        ret.idx = map[16] -- 地块idx int
         return ret
     end,
     -- 新建建筑
+    ---@class NetProtoIsland.RC_newBuilding
+    ---@field public attrid  建筑配置id int
+    ---@field public pos  位置 int
     newBuilding = function(map)
         local ret = {}
         ret.cmd = "newBuilding"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.attrid = map[17]-- 建筑配置id int
-        ret.pos = map[19]-- 位置 int
+        ret.attrid = map[17] -- 建筑配置id int
+        ret.pos = map[19] -- 位置 int
         return ret
     end,
     -- 登陆
+    ---@class NetProtoIsland.RC_login
+    ---@field public uidx  用户id
+    ---@field public channel  渠道号
+    ---@field public deviceID  机器码
+    ---@field public isEditMode  编辑模式
     login = function(map)
         local ret = {}
         ret.cmd = "login"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.uidx = map[49]-- 用户id
-        ret.channel = map[50]-- 渠道号
-        ret.deviceID = map[51]-- 机器码
-        ret.isEditMode = map[52]-- 编辑模式
+        ret.uidx = map[49] -- 用户id
+        ret.channel = map[50] -- 渠道号
+        ret.deviceID = map[51] -- 机器码
+        ret.isEditMode = map[52] -- 编辑模式
         return ret
     end,
     -- 搬迁
+    ---@class NetProtoIsland.RC_moveCity
+    ---@field public pos  位置 int
     moveCity = function(map)
         local ret = {}
         ret.cmd = "moveCity"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.pos = map[19]-- 位置 int
+        ret.pos = map[19] -- 位置 int
         return ret
     end,
     -- 当完成建造部分舰艇的通知
+    ---@class NetProtoIsland.RC_onFinishBuildOneShip
+    ---@field public buildingIdx  造船厂的idx int
     onFinishBuildOneShip = function(map)
         local ret = {}
         ret.cmd = "onFinishBuildOneShip"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.buildingIdx = map[15]-- 造船厂的idx int
+        ret.buildingIdx = map[15] -- 造船厂的idx int
         return ret
     end,
     -- 网络协议配置
+    ---@class NetProtoIsland.RC_sendNetCfg
     sendNetCfg = function(map)
         local ret = {}
         ret.cmd = "sendNetCfg"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
         return ret
     end,
     -- 取得建筑
+    ---@class NetProtoIsland.RC_getBuilding
+    ---@field public idx  建筑idx int
     getBuilding = function(map)
         local ret = {}
         ret.cmd = "getBuilding"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.idx = map[16]-- 建筑idx int
+        ret.idx = map[16] -- 建筑idx int
         return ret
     end,
     -- 移除地块
+    ---@class NetProtoIsland.RC_rmTile
+    ---@field public idx  地块idx int
     rmTile = function(map)
         local ret = {}
         ret.cmd = "rmTile"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.idx = map[16]-- 地块idx int
+        ret.idx = map[16] -- 地块idx int
         return ret
     end,
     -- 造船
+    ---@class NetProtoIsland.RC_buildShip
+    ---@field public buildingIdx  造船厂的idx int
+    ---@field public shipAttrID  舰船配置id int
+    ---@field public num  数量 int
     buildShip = function(map)
         local ret = {}
         ret.cmd = "buildShip"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.buildingIdx = map[15]-- 造船厂的idx int
-        ret.shipAttrID = map[58]-- 舰船配置id int
-        ret.num = map[67]-- 数量 int
+        ret.buildingIdx = map[15] -- 造船厂的idx int
+        ret.shipAttrID = map[58] -- 舰船配置id int
+        ret.num = map[67] -- 数量 int
         return ret
     end,
     -- 当地块发生变化时推送
+    ---@class NetProtoIsland.RC_onMapCellChg
     onMapCellChg = function(map)
         local ret = {}
         ret.cmd = "onMapCellChg"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
         return ret
     end,
     -- 资源变化时推送
+    ---@class NetProtoIsland.RC_onResChg
     onResChg = function(map)
         local ret = {}
         ret.cmd = "onResChg"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
         return ret
     end,
     -- 取得一屏的在地图数据
+    ---@class NetProtoIsland.RC_getMapDataByPageIdx
+    ---@field public pageIdx  一屏所在的网格index
     getMapDataByPageIdx = function(map)
         local ret = {}
         ret.cmd = "getMapDataByPageIdx"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.pageIdx = map[13]-- 一屏所在的网格index
+        ret.pageIdx = map[13] -- 一屏所在的网格index
         return ret
     end,
     -- 移动建筑
+    ---@class NetProtoIsland.RC_moveBuilding
+    ---@field public idx  建筑idx int
+    ---@field public pos  位置 int
     moveBuilding = function(map)
         local ret = {}
         ret.cmd = "moveBuilding"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.idx = map[16]-- 建筑idx int
-        ret.pos = map[19]-- 位置 int
+        ret.idx = map[16] -- 建筑idx int
+        ret.pos = map[19] -- 位置 int
         return ret
     end,
     -- 登出
+    ---@class NetProtoIsland.RC_logout
     logout = function(map)
         local ret = {}
         ret.cmd = "logout"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
         return ret
     end,
     -- 收集资源
+    ---@class NetProtoIsland.RC_collectRes
+    ---@field public idx  资源建筑的idx int
     collectRes = function(map)
         local ret = {}
         ret.cmd = "collectRes"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.idx = map[16]-- 资源建筑的idx int
+        ret.idx = map[16] -- 资源建筑的idx int
         return ret
     end,
     -- 立即升级建筑
+    ---@class NetProtoIsland.RC_upLevBuildingImm
+    ---@field public idx  建筑idx int
     upLevBuildingImm = function(map)
         local ret = {}
         ret.cmd = "upLevBuildingImm"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.idx = map[16]-- 建筑idx int
+        ret.idx = map[16] -- 建筑idx int
         return ret
     end,
     -- 新建地块
+    ---@class NetProtoIsland.RC_newTile
+    ---@field public pos  位置 int
     newTile = function(map)
         local ret = {}
         ret.cmd = "newTile"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.pos = map[19]-- 位置 int
+        ret.pos = map[19] -- 位置 int
         return ret
     end,
     -- 建筑变化时推送
+    ---@class NetProtoIsland.RC_onBuildingChg
     onBuildingChg = function(map)
         local ret = {}
         ret.cmd = "onBuildingChg"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
         return ret
     end,
     -- 玩家信息变化时推送
+    ---@class NetProtoIsland.RC_onPlayerChg
     onPlayerChg = function(map)
         local ret = {}
         ret.cmd = "onPlayerChg"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
         return ret
     end,
     -- 心跳
+    ---@class NetProtoIsland.RC_heart
     heart = function(map)
         local ret = {}
         ret.cmd = "heart"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
         return ret
     end,
     -- 建筑升级完成
+    ---@class NetProtoIsland.RC_onFinishBuildingUpgrade
     onFinishBuildingUpgrade = function(map)
         local ret = {}
         ret.cmd = "onFinishBuildingUpgrade"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
         return ret
     end,
     -- 移动地块
+    ---@class NetProtoIsland.RC_moveTile
+    ---@field public idx  地块idx int
+    ---@field public pos  位置 int
     moveTile = function(map)
         local ret = {}
         ret.cmd = "moveTile"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.idx = map[16]-- 地块idx int
-        ret.pos = map[19]-- 位置 int
+        ret.idx = map[16] -- 地块idx int
+        ret.pos = map[19] -- 位置 int
         return ret
     end,
     -- 自己的城变化时推送
+    ---@class NetProtoIsland.RC_onMyselfCityChg
     onMyselfCityChg = function(map)
         local ret = {}
         ret.cmd = "onMyselfCityChg"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
         return ret
     end,
     -- 攻击
+    ---@class NetProtoIsland.RC_attack
+    ---@field public pos  世界地图坐标idx int
     attack = function(map)
         local ret = {}
         ret.cmd = "attack"
-        ret.__session__ = map[1]
+        ret.__session__ = map[1] or map["1"]
         ret.callback = map[3]
-        ret.pos = map[19]-- 世界地图坐标idx int
+        ret.pos = map[19] -- 世界地图坐标idx int
         return ret
     end,
     }
@@ -888,17 +948,19 @@ do
             skynet.error("[dispatcher] map == nil")
             return nil
         end
-        local cmd = map[0]
+        local cmd = map[0] or map["0"]
         if cmd == nil then
             skynet.error("get cmd is nil")
             return nil;
         end
+        cmd = tonumber(cmd)
         local dis = NetProtoIsland.dispatch[cmd]
         if dis == nil then
             skynet.error("get protocol cfg is nil")
             return nil;
         end
         local m = dis.onReceive(map)
+        -- 执行逻辑处理
         local logicProc = skynet.call(agent, "lua", "getLogic", dis.logicName)
         if logicProc == nil then
             skynet.error("get logicServe is nil. serverName=[" .. dis.loginAccount .."]")

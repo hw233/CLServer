@@ -47,7 +47,7 @@ function cmd4city.new(uidx)
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
 
     -- 分配一个世界坐标
-    local mapcell = skynet.call("LDSWorld", "lua", "occupyMapCell", idx, 1)
+    local mapcell = skynet.call("LDSWorld", "lua", "occupyMapCell", idx, IDConstVals.WorldmapCellType.player)
     myself = dbcity.new()
     local d = {}
     d.idx = idx

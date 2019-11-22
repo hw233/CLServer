@@ -6,6 +6,9 @@ defProtocol.name = "NetProtoIsland" -- 协议名字
 defProtocol.isSendClientInt2bio = true -- 发送给客户端时是否把int转成bio
 defProtocol.isGenLuaClientFile = true -- 生成lua客户端接口文件
 defProtocol.isGenJsClientFile = false -- 生成js客户端接口文件
+defProtocol.compatibleJsonp = false -- 是否考虑兼容json
+defProtocol.isCheckSession = false -- 生成检测session超时的代码
+defProtocol.donotCheckSessionCMDs = {} -- 不做session超时检测的接口
 --===================================================
 --===================================================
 --===================================================
@@ -119,9 +122,12 @@ defProtocol.structs.mapCell = {
     "大地图地块数据",
     {
         idx = {0, "网格index"},
+        pageIdx = {0, "所在屏的index"},
         type = {0, "地块类型 1：玩家，2：npc"},
         cidx = {0, "主城idx"},
-        pageIdx = {0, "所在屏的index"},
+        name = {"", "名称"},
+        lev = {0, "等级"},
+        state = {0, "状态  1:正常; int"},
         val1 = {0, "值1"},
         val2 = {0, "值2"},
         val3 = {0, "值3"}
@@ -364,7 +370,13 @@ defProtocol.cmds = {
         desc = "攻击", -- 接口说明
         input = {"pos"}, -- 入参
         inputDesc = {"世界地图坐标idx int"}, -- 入参说明
-        output = {structs.retInfor, structs.player, structs.city, {structs.dockyardShips,structs.dockyardShips}, {structs.dockyardShips,structs.dockyardShips}}, -- 出参
+        output = {
+            structs.retInfor,
+            structs.player,
+            structs.city,
+            {structs.dockyardShips, structs.dockyardShips},
+            {structs.dockyardShips, structs.dockyardShips}
+        }, -- 出参
         outputDesc = {"返回信息", "被攻击玩家信息", "被攻击主城信息", "被攻击航船的数据", "进攻击方航船的数据"}, -- 出参说明
         logic = "cmd4battle"
     }
