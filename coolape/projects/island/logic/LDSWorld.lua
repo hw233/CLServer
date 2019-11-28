@@ -64,6 +64,62 @@ local pauseFork = false
 -- end
 
 --============================================
+--============================================
+--=========================================
+local mapBaseData = {} -- 配置数据
+local mapAreaInfor  -- 大地图分区数据
+-- 数据的路径
+local scale = 100
+---@type Grid
+local gridArea
+
+-- 加载配置数据
+local function loadCfgData()
+    gridArea = Grid.new()
+    gridArea:init(Vector3.zero, screenSize, screenSize, scale)
+    local priorityPath = assert(skynet.getenv("projectPath"))
+    printe(priorityPath)
+    local cfgWorldBasePath = priorityPath .. "cfgWorldmap/"
+    printe(cfgWorldBasePath)
+    printe(cfgWorldBasePath .. "maparea.cfg")
+    local bytes = fileEx.readAll(cfgWorldBasePath .. "maparea.cfg")
+    mapAreaInfor = BioUtl.readObject(bytes)
+
+    for i = 0, 99 do
+        local bytes = fileEx.readAll(cfgWorldBasePath .. i .. ".cfg")
+        local map = BioUtl.readObject(bytes)
+        for pageid, m in pairs(map) do
+            for index, id in pairs(m) do
+                mapBaseData[index] = id
+            end
+        end
+    end
+end
+
+---@public 取得大图的index映射到分区网格的index
+---@param index
+local function mapIndex2AreaIndex(index)
+    local areaIndex = -1
+    local col = grid:GetColumn(index)
+    local row = grid:GetRow(index)
+    col = NumEx.getIntPart(col / scale)
+    row = NumEx.getIntPart(row / scale)
+
+    areaIndex = gridArea:GetCellIndex(col, row)
+    return areaIndex
+end
+
+---@public 取得网格id对应的分区id
+local function getAreaId(index)
+    if mapAreaInfor == nil then
+        local cfgPath = joinStr(cfgWorldBasePath, "maparea.cfg")
+        local bytes = fileEx.readAll(cfgPath)
+        mapAreaInfor = BioUtl.readObject(bytes)
+    end
+    return mapAreaInfor[index]
+end
+--============================================
+--============================================
 ---@public 初始化
 function CMD.init()
     local center
@@ -79,9 +135,16 @@ function CMD.init()
             table.insert(screenCneterIndexs, center)
         end
     end
+
+    -- 加载地图配置
+    loadCfgData()
 end
 
----@public 通过网格idx取得所以屏的index
+local function haveBaseData(index)
+    return (mapBaseData[index] ~= nil)
+end
+
+---@public 通过网格idx取得所有屏的index
 function CMD.getPageIdx(gidx)
     local pos = grid:GetCellCenter(gidx)
     pos = pos - grid.Origin
@@ -111,7 +174,7 @@ function CMD.getIdleIdx(creenIdx)
     local index = numEx.nextInt(1, #cells)
     local pos = cells[index]
     local mapCell = dbworldmap.instanse(pos)
-    if mapCell:isEmpty() then
+    if mapCell:isEmpty() and (not haveBaseData(index)) then
         -- 该位置是可用
         return pos
     else
@@ -139,7 +202,7 @@ function CMD.getIdleIdx(creenIdx)
 end
 
 ---@public 占用一个格子
-function CMD.occupyMapCell(cidx, type)
+function CMD.occupyMapCell(cidx, type, attrid)
     local idx = CMD.getIdleIdx()
     local mapCell = dbworldmap.instanse(idx)
     local cellData = {}
@@ -147,6 +210,7 @@ function CMD.occupyMapCell(cidx, type)
     cellData[dbworldmap.keys.pageIdx] = CMD.getPageIdx(idx)
     cellData[dbworldmap.keys.cidx] = cidx or 0
     cellData[dbworldmap.keys.type] = type
+    cellData[dbworldmap.keys.attrid] = attrid
     mapCell:init(cellData, true)
     local ret = mapCell:value2copy()
     mapCell:release()
@@ -177,7 +241,7 @@ function CMD.getMapDataByPageIdx(map)
         ---@type NetProtoIsland.ST_mapCell
         local cell = v
         -- 包装数据
-        if v[dbworldmap.keys.cidx] > 0 and v[dbworldmap.keys.type] == IDConstVals.WorldmapCellType.player then
+        if v[dbworldmap.keys.cidx] > 0 and v[dbworldmap.keys.type] == IDConstVals.WorldmapCellType.user then
             local city = dbcity.instanse(v[dbworldmap.keys.cidx])
             if not city:isEmpty() then
                 local pidx = city:get_pidx()
@@ -203,20 +267,41 @@ function CMD.getMapDataByPageIdx(map)
 end
 
 ---@public 搬迁
-function CMD.moveCity(cidx, fromPos, toPos)
+---@param map NetProtoIsland.RC_moveCity
+function CMD.moveCity(map)
+    ---@type NetProtoIsland.ST_retInfor
+    local ret = {}
+    local cidx = map.cidx
+    local toPos = map.pos
+
     if not grid:IsInBounds(toPos) then
-        return Errcode.notInGridBounds
+        ret.code = Errcode.notInGridBounds
+        return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, map)
     end
+
     local toCell = dbworldmap.instanse(toPos)
-    if (not toCell:isEmpty()) and toCell:get_cidx() > 0 then
+    if (not toCell:isEmpty()) or toCell:get_cidx() > 0 or haveBaseData(toPos) then
         toCell:release()
-        return Errcode.worldCellNotIdel
+        ret.code = Errcode.worldCellNotIdel
+        return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, map)
     end
+
+    local city = dbcity.instanse(cidx)
+    if city:isEmpty() then
+        ret.code = Errcode.cityIsNil
+        return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, map)
+    end
+    local fromPos = city:get_pos()
+
     local fromCell = dbworldmap.instanse(fromPos)
     if fromCell:isEmpty() or fromCell:get_cidx() <= 0 then
         fromCell:release()
-        return Errcode.notFoundInWorld
+        city:release()
+        ret.code = Errcode.notFoundInWorld
+        return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, map)
     end
+    -- 把城的坐标先修改了
+    city:set_pos(toPos)
 
     local data = fromCell:value2copy()
     data[dbworldmap.keys.idx] = toPos
@@ -227,7 +312,6 @@ function CMD.moveCity(cidx, fromPos, toPos)
 
     ---@type NetProtoIsland.ST_mapCell
     local d = toCell:value2copy()
-    local city = dbcity.instanse(toCell:get_cidx())
     local pidx = city:get_pidx()
     local player = dbplayer.instanse(pidx)
     d.name = player:get_name()
@@ -237,20 +321,20 @@ function CMD.moveCity(cidx, fromPos, toPos)
     player:release()
 
     --推送给在线的客户端
-    local map = skynet.call(NetProtoIsland, "lua", "send", "onMapCellChg", {code = Errcode.ok}, d)
-    skynet.call("watchdog", "lua", "notifyAll", map)
+    local mapcell = skynet.call(NetProtoIsland, "lua", "send", "onMapCellChg", {code = Errcode.ok}, d, false)
+    skynet.call("watchdog", "lua", "notifyAll", mapcell)
 
     -- 旧地块也推送
     local d = fromCell:value2copy()
     d[dbworldmap.keys.cidx] = 0
-    d[dbworldmap.keys.type] = 0
-    map = skynet.call(NetProtoIsland, "lua", "send", "onMapCellChg", {code = Errcode.ok}, d)
-    skynet.call("watchdog", "lua", "notifyAll", map)
+    mapcell = skynet.call(NetProtoIsland, "lua", "send", "onMapCellChg", {code = Errcode.ok}, d, true)
+    skynet.call("watchdog", "lua", "notifyAll", mapcell)
 
     -- 删除旧的地块
     fromCell:delete()
     toCell:release()
-    return Errcode.ok
+    ret.code = Errcode.ok
+    return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, map)
 end
 
 skynet.start(

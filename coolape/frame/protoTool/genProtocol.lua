@@ -487,11 +487,15 @@ do
         add(strsClientJS, "    * success：成功回调，（result, status, xhr）")
         add(strsClientJS, "    * error：失败回调，（jqXHR, textStatus, errorThrown）")
         add(strsClientJS, "    */")
-        add(strsClientJS, "    " .. defProtocol.name .. ".call = function ( params, callback) {")
+        add(strsClientJS, "    " .. defProtocol.name .. ".call = function ( params, callback, httpType) {")
+        add(strsClientJS, "        if(!httpType) {");
+        add(strsClientJS, "            httpType = \"GET\";")
+        add(strsClientJS, "        }");
         add(strsClientJS, "        if(" .. defProtocol.name .. ".beforeCallFunc) {")
         add(strsClientJS, "            " .. defProtocol.name .. ".beforeCallFunc();")
         add(strsClientJS, "        }")
         add(strsClientJS, "        $.ajax({")
+        add(strsClientJS, "            type: httpType,")
         add(strsClientJS, "            url: " .. defProtocol.name .. ".url,")
         add(strsClientJS, "            data: params,")
         add(strsClientJS, "            dataType: 'jsonp',")
@@ -820,7 +824,7 @@ do
 
             add(clientSend, "        setCallback(__callback, __orgs, ret)")
             add(clientSend, "        return ret");
-            add(clientSendJS, "        " .. defProtocol.name .. ".call(ret, callback);");
+            add(clientSendJS, "        " .. defProtocol.name .. ".call(ret, callback, " .. (cfg.httpType and  "\"" .. cfg.httpType .. "\"" or "null") .. ");");
             add(serverSend, "        return ret");
             add(clientSend, "    end,");
             add(clientSendJS, "    },");

@@ -65,6 +65,11 @@ function cfgUtl.getRoleByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFRoleData", id)
 end
 
+---@public 取得大地图地块数据
+function cfgUtl.getMapTileByID(id)
+    return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFMapTileData", id)
+end
+
 ---@public 取得成长值
 ---@param min 基础值
 ---@param max 最大值

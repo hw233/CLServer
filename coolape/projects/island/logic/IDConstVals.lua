@@ -45,6 +45,10 @@ IDConstVals.ResType = {
 }
 ---@public 大地图地块类型
 IDConstVals.WorldmapCellType = {
-    player = 1
+    port = 1, -- 港口
+    decorate = 2, -- 装饰
+    user = 3, -- 玩家
+    occupy = 99 -- 占用
 }
+
 return IDConstVals

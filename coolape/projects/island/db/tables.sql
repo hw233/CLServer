@@ -1,5 +1,6 @@
 create database if not exists `island`;
 use `island`;
+alter database island character set utf8;
 #--DROP TABLE IF EXISTS sequence;
 CREATE TABLE IF NOT EXISTS sequence (
      name VARCHAR(50) NOT NULL,
@@ -141,6 +142,7 @@ DROP TABLE IF EXISTS `worldmap`;
 CREATE TABLE `worldmap` (
   `idx` INT(10) NOT NULL,
   `type` TINYINT NOT NULL,
+  `attrid` INT,
   `cidx` INT(11),
   `pageIdx` INT(11) NOT NULL,
   `val1` INT(11),

@@ -27,7 +27,8 @@ dbworldmap.name = "worldmap"
 
 dbworldmap.keys = {
     idx = "idx", -- 网格index
-    type = "type", -- 地块类型 1：玩家，2：npc
+    type = "type", -- 地块类型 3：玩家，2：npc
+    attrid = "attrid", -- 配置id
     cidx = "cidx", -- 主城idx
     pageIdx = "pageIdx", -- 所在屏的index
     val1 = "val1", -- 值1
@@ -123,7 +124,7 @@ function dbworldmap:get_idx()
 end
 
 function dbworldmap:set_type(v)
-    -- 地块类型 1：玩家，2：npc
+    -- 地块类型 3：玩家，2：npc
     if self:isEmpty() then
         skynet.error("[dbworldmap:set_type],please init first!!")
         return nil
@@ -132,8 +133,23 @@ function dbworldmap:set_type(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "type", v)
 end
 function dbworldmap:get_type()
-    -- 地块类型 1：玩家，2：npc
+    -- 地块类型 3：玩家，2：npc
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "type")
+    return (tonumber(val) or 0)
+end
+
+function dbworldmap:set_attrid(v)
+    -- 配置id
+    if self:isEmpty() then
+        skynet.error("[dbworldmap:set_attrid],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "attrid", v)
+end
+function dbworldmap:get_attrid()
+    -- 配置id
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "attrid")
     return (tonumber(val) or 0)
 end
 
@@ -238,7 +254,7 @@ function dbworldmap:delete()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     skynet.call("CLDB", "lua", "REMOVE", self.__name__, self.__key__)
     local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, d)
-    return skynet.call("CLMySQL", "lua", "EXESQL", sql)
+    return skynet.call("CLMySQL", "lua", "save", sql)
 end
 
 ---@public 设置触发器（当有数据改变时回调）
@@ -329,6 +345,9 @@ function dbworldmap.validData(data)
     end
     if type(data.type) ~= "number" then
         data.type = tonumber(data.type) or 0
+    end
+    if type(data.attrid) ~= "number" then
+        data.attrid = tonumber(data.attrid) or 0
     end
     if type(data.cidx) ~= "number" then
         data.cidx = tonumber(data.cidx) or 0

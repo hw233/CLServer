@@ -46,8 +46,9 @@ function cmd4city.new(uidx)
 
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
 
+    local attrid = 7
     -- 分配一个世界坐标
-    local mapcell = skynet.call("LDSWorld", "lua", "occupyMapCell", idx, IDConstVals.WorldmapCellType.player)
+    local mapcell = skynet.call("LDSWorld", "lua", "occupyMapCell", idx, IDConstVals.WorldmapCellType.user, attrid)
     myself = dbcity.new()
     local d = {}
     d.idx = idx
@@ -1621,19 +1622,6 @@ CMD.onDockyardShipsChg = function(bidx, shipAttrid, num)
     if skynet.address(agent) ~= nil then
         skynet.call(agent, "lua", "sendPackage", package)
     end
-end
----@public 搬迁
-CMD.moveCity = function(map, fd, agent)
-    --//TODO:需要判断是否可以迁城，比如需要消耗资源等
-    local toPos = map.pos
-    local retCode = skynet.call("LDSWorld", "lua", "moveCity", myself:get_idx(), myself:get_pos(), toPos)
-    if retCode ~= Errcode.ok then
-        local ret = {}
-        ret.code = retCode
-        return skynet.call(NetProtoIsland, "lua", "send", map.cmd, ret, map)
-    end
-    myself:set_pos(toPos)
-    return skynet.call(NetProtoIsland, "lua", "send", map.cmd, {code = Errcode.ok}, map)
 end
 CMD.onMyselfCityChg = function(data)
     local cmd = "onMyselfCityChg"

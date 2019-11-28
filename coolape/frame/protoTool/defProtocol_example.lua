@@ -94,6 +94,7 @@ login = {       -- 接口名
         output = { structs.retInfor, structs.userInfor, "sysTime", "session" }; -- 出参
         outputDesc = {"返回信息","用户信息","系统时间", "会话id"}; -- 出参说明
         logic = "cmd4user";
+        httpType = "GET" -- 当生成js接口时用： GET/POST
     };
     login = {
         desc = "登陆"; -- 接口说明
@@ -102,6 +103,7 @@ login = {       -- 接口名
         output = { structs.retInfor, structs.userInfor, "sysTime", "session" }; -- 出参
         outputDesc = {"返回信息","用户信息","系统时间", "会话id"}; -- 出参说明
         logic = "cmd4user";
+        httpType = "GET" -- 当生成js接口时用： GET/POST
     };
 
     logout = {
@@ -109,6 +111,7 @@ login = {       -- 接口名
         output = { structs.retInfor }, -- 出参
         outputDesc = {"返回信息"}, -- 出参说明
         logic = "cmd4user";
+        httpType = "GET" -- 当生成js接口时用： GET/POST
     };
 
     syndata = {
@@ -118,6 +121,7 @@ login = {       -- 接口名
         output = { structs.retInfor, "newVer", "newData" },
         outputDesc = {"返回信息", "新版本号","新数据"},
         logic = "cmd4user";
+        httpType = "GET" -- 当生成js接口时用： GET/POST
     };
 
 }

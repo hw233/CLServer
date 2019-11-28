@@ -543,7 +543,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"SETUNUSE\", self.__name__, self.__key__)")
     table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"REMOVE\", self.__name__, self.__key__)")
     table.insert(str, "    local sql = skynet.call(\"CLDB\", \"lua\", \"GETDELETESQL\", self.__name__, d)")
-    table.insert(str, "    return skynet.call(\"CLMySQL\", \"lua\", \"EXESQL\", sql)")
+    table.insert(str, "    return skynet.call(\"CLMySQL\", \"lua\", \"save\", sql)")
     table.insert(str, "end")
     table.insert(str, "")
 

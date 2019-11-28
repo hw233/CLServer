@@ -123,7 +123,8 @@ defProtocol.structs.mapCell = {
     {
         idx = {0, "网格index"},
         pageIdx = {0, "所在屏的index"},
-        type = {0, "地块类型 1：玩家，2：npc"},
+        type = {0, "地块类型 3：玩家，4：npc"},
+        attrid = {0, "配置id"},
         cidx = {0, "主城idx"},
         name = {"", "名称"},
         lev = {0, "等级"},
@@ -254,14 +255,6 @@ defProtocol.cmds = {
         outputDesc = {"返回信息", "建筑信息"}, -- 出参说明
         logic = "cmd4city"
     },
-    moveCity = {
-        desc = "搬迁", -- 接口说明
-        input = {"pos"}, -- 入参
-        inputDesc = {"位置 int"}, -- 入参说明
-        output = {structs.retInfor}, -- 出参
-        outputDesc = {"返回信息"}, -- 出参说明
-        logic = "cmd4city"
-    },
     upLevBuilding = {
         desc = "升级建筑", -- 接口说明
         input = {"idx"}, -- 入参
@@ -314,8 +307,8 @@ defProtocol.cmds = {
         desc = "当地块发生变化时推送", -- 接口说明
         input = {}, -- 入参
         inputDesc = {}, -- 入参说明
-        output = {structs.retInfor, defProtocol.structs.mapCell}, -- 出参
-        outputDesc = {"返回信息", "地块"}, -- 出参说明
+        output = {structs.retInfor, defProtocol.structs.mapCell, "isRemove"}, -- 出参
+        outputDesc = {"返回信息", "地块", "是否是删除"}, -- 出参说明
         logic = "LDSWorld"
     },
     onFinishBuildingUpgrade = {
@@ -333,6 +326,14 @@ defProtocol.cmds = {
         output = {structs.retInfor, "resType", "resVal", defProtocol.structs.building}, -- 出参
         outputDesc = {"返回信息", "收集的资源类型 int", "收集到的资源量 int", "建筑信息"}, -- 出参说明
         logic = "cmd4city"
+    },
+    moveCity = {
+        desc = "搬迁", -- 接口说明
+        input = { "cidx", "pos"}, -- 入参
+        inputDesc = {"城市idx", "新位置 int"}, -- 入参说明
+        output = {structs.retInfor}, -- 出参
+        outputDesc = {"返回信息"}, -- 出参说明
+        logic = "LDSWorld"
     },
     getMapDataByPageIdx = {
         desc = "取得一屏的在地图数据", -- 接口说明
