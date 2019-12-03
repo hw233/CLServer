@@ -528,7 +528,7 @@ do
         add(strsClientJS, "                    " .. defProtocol.name .. ".afterCallFunc();")
         add(strsClientJS, "                }")
         add(strsClientJS, "                if(callback) {")
-        add(strsClientJS, "                    callback(nil, textStatus, jqXHR);")
+        add(strsClientJS, "                    callback(null, textStatus, jqXHR);")
         add(strsClientJS, "                }")
         add(strsClientJS, "                console.log(textStatus + \":\" + errorThrown);")
         add(strsClientJS, "            }")

@@ -191,7 +191,10 @@ function command.SET(tableName, key, ...)
     local count = #params
     local val = params[count]
     local last = t[key]
+    -- 是否需要更新到库里
+    local isNeedUpdateData = false
     if count > 1 then
+        -- 说明是更新某个字段
         local subt = nil
         for i = 1, count - 1 do
             subt = last
@@ -201,7 +204,14 @@ function command.SET(tableName, key, ...)
             last = subt[params[i]] -- 取得old数据
         end
         subt[params[count - 1]] = val -- 设置成新数据
+        if last ~= val then
+            isNeedUpdateData = true
+        end
     else
+        -- 更新整条记录
+        if t[key] then
+            isNeedUpdateData = true
+        end
         t[key] = val
     end
 
@@ -226,8 +236,9 @@ function command.SET(tableName, key, ...)
                 setGroup(tableName, groupkey, key)
             end
         end
-
-        needUpdateData:enQueue({tableName = tableName, key = key})
+        if isNeedUpdateData then
+            needUpdateData:enQueue({tableName = tableName, key = key})
+        end
         -- 触发回调
         if count > 1 then
             --说明是更新某个字段， 记录下需要更新

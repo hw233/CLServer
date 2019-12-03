@@ -1,5 +1,6 @@
 create database if not exists `usermgr`;
 use `usermgr`;
+alter database usermgr character set utf8;
 #--DROP TABLE IF EXISTS sequence;
 CREATE TABLE IF NOT EXISTS sequence (
      name VARCHAR(50) NOT NULL,

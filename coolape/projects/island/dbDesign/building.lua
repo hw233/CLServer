@@ -7,7 +7,7 @@ local tab = {
         { "pos", "int(8) NOT NULL", "位置，即在城的gird中的index" },
         { "attrid", "int(5)", "属性配置id" },
         { "lev", "int(5)", "等级" },
-        { "state", "INT(1)", "状态. 0：正常；1：升级中；9：恢复中" },
+        { "state", "TINYINT", "状态. 0：正常；1：升级中；9：恢复中" },
         { "starttime", "DATETIME", "开始升级、恢复、采集等的时间点" },
         { "endtime", "DATETIME", "完成升级、恢复、采集等的时间点" },
         { "val", "bigint(14)", "值。如:产量，仓库的存储量等" },

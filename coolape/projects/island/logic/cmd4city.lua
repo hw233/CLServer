@@ -7,6 +7,7 @@ require("dbcity")
 require("dbtile")
 require("dbbuilding")
 require("dbplayer")
+require("dbunit")
 require("Errcode")
 require("buildQueue")
 local timerEx = require("timerEx")
@@ -870,18 +871,28 @@ end
 ---@param num number 已经造好的船的数量
 function cmd4city.onFinishBuildShip(b, shipAttrid, num)
     local shipsMap
-    local jsonstr = b:get_valstr()
-    if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
-        shipsMap = json.decode(jsonstr)
+    local ships = dbunit.getListBybidx(b:get_idx())
+    ---@type dbunit
+    local unit = nil
+    for i, v in ipairs(ships) do
+        if v[dbunit.keys.id] == shipAttrid then
+            unit = dbunit.instanse(v[dbunit.keys.idx])
+            unit:set_num(unit:get_num() + num)
+            break
+        end
     end
-    shipsMap = shipsMap or {}
-    -- 保存数据，因为只能用string为key时json转为才不会报错
-    shipsMap[tostring(shipAttrid)] = num + (shipsMap[tostring(shipAttrid)] or 0)
-    local str = json.encode(shipsMap)
-    b:set_valstr(str)
+    if unit == nil then
+        local ship = {}
+        ship[dbunit.keys.idx] = DBUtl.nextVal("unit")
+        ship[dbunit.keys.id] = shipAttrid
+        ship[dbunit.keys.bidx] = b:get_idx()
+        ship[dbunit.keys.num] = num
+        unit = dbunit.new(ship)
+    end
 
     -- 通知客户端
     CMD.onDockyardShipsChg(b:get_idx(), shipAttrid, num)
+    unit:release()
 end
 
 ---@public 处理造船厂建造舰船的逻辑
@@ -1445,6 +1456,7 @@ CMD.collectRes = function(m, fd, agent)
     return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, resType, val, b:value2copy(), m)
 end
 ---@public 建造舰船
+---@param map NetProtoIsland.RC_buildShip
 CMD.buildShip = function(map, fd, agent)
     local ret = {}
     local cmd = map.cmd
@@ -1474,7 +1486,7 @@ CMD.buildShip = function(map, fd, agent)
         ret.msg = "舰船配置取得为空"
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
     end
-
+    -----------------------------------------------
     -- 是否解锁
     local needDockyardLev = roleAttr.ArsenalLev
     if needDockyardLev > b:get_lev() then
@@ -1482,6 +1494,7 @@ CMD.buildShip = function(map, fd, agent)
         ret.msg = "舰船未解锁"
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
     end
+    -----------------------------------------------
     -- 空间是否够
     local buildingAttr = cfgUtl.getBuildingByID(b:get_attrid())
     local totalSpace =
@@ -1491,18 +1504,14 @@ CMD.buildShip = function(map, fd, agent)
         buildingAttr.ComVal1Curve,
         b:get_lev() / buildingAttr.MaxLev
     )
-    local shipsMap
-    local jsonstr = b:get_valstr()
-    if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
-        shipsMap = json.decode(jsonstr)
-    end
+    -- 取得已经有的数量
     local usedSpace = 0
-    if shipsMap then
-        local _attr
-        for roleAttrId, num in pairs(shipsMap) do
-            _attr = cfgUtl.getRoleByID(tonumber(roleAttrId))
-            usedSpace = usedSpace + num * _attr.SpaceSize
-        end
+    local shipsList = dbunit.getListBybidx(b:get_idx())
+    local _attr
+    ---@param v dbunit
+    for i, v in ipairs(shipsList) do
+        _attr = cfgUtl.getRoleByID(v[dbunit.keys.id])
+        usedSpace = usedSpace + v[dbunit.keys.num] * _attr.SpaceSize
     end
     if num * roleAttr.SpaceSize > (totalSpace - usedSpace) then
         ret.code = Errcode.dockyardSpaceNotEnough
@@ -1510,6 +1519,7 @@ CMD.buildShip = function(map, fd, agent)
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
     end
 
+    -----------------------------------------------
     -- 如果是编辑模式，则不扣处资源
     local isEditMode = cmd4city.isEditMode()
     if not isEditMode then
@@ -1563,14 +1573,10 @@ CMD.getShipsByBuildingIdx = function(map, fd, agent)
             return nil
         end
     end
-    local shipsMap
-    local jsonstr = b:get_valstr()
-    if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
-        shipsMap = json.decode(jsonstr)
-    end
+    ---@type NetProtoIsland.ST_dockyardShips
     local dockyardShips = {}
     dockyardShips.buildingIdx = buildingIdx
-    dockyardShips.shipsMap = shipsMap
+    dockyardShips.ships = dbunit.getListBybidx(b:get_idx())
     ret.code = Errcode.ok
     if fd then
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, dockyardShips, map)
@@ -1602,13 +1608,11 @@ CMD.onDockyardShipsChg = function(bidx, shipAttrid, num)
 
     ---@type dbbuilding
     local b = buildings[bidx] -- 不要使用new(), 或者instance()，也不能直接传data
+    ---@type NetProtoIsland.ST_dockyardShips
     local dockyardShips = {}
     dockyardShips.buildingIdx = bidx
+    dockyardShips.ships = dbunit.getListBybidx(b:get_idx())
 
-    local jsonstr = b:get_valstr()
-    if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
-        dockyardShips.shipsMap = json.decode(jsonstr)
-    end
     -- 推送给客户端
     cmd = "getShipsByBuildingIdx"
     local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, dockyardShips)

@@ -19,11 +19,15 @@
     * success：成功回调，（result, status, xhr）
     * error：失败回调，（jqXHR, textStatus, errorThrown）
     */
-    NetProtoUsermgr.call = function ( params, callback) {
+    NetProtoUsermgr.call = function ( params, callback, httpType) {
+        if(!httpType) {
+            httpType = "GET";
+        }
         if(NetProtoUsermgr.beforeCallFunc) {
             NetProtoUsermgr.beforeCallFunc();
         }
         $.ajax({
+            type: httpType,
             url: NetProtoUsermgr.url,
             data: params,
             dataType: 'jsonp',
@@ -56,7 +60,7 @@
                     NetProtoUsermgr.afterCallFunc();
                 }
                 if(callback) {
-                    callback(nil, textStatus, jqXHR);
+                    callback(null, textStatus, jqXHR);
                 }
                 console.log(textStatus + ":" + errorThrown);
             }
@@ -202,7 +206,7 @@
         ret[25] = channel; // 渠道号
         ret[26] = deviceID; // 机器码
         ret[27] = deviceInfor; // 机器信息
-        NetProtoUsermgr.call(ret, callback);
+        NetProtoUsermgr.call(ret, callback, null);
     },
     // 取得服务器列表
     getServers : function(appid, channel, callback) {
@@ -211,14 +215,14 @@
         ret[1] = NetProtoUsermgr.getSession();
         ret[24] = appid; // 应用id
         ret[25] = channel; // 渠道号
-        NetProtoUsermgr.call(ret, callback);
+        NetProtoUsermgr.call(ret, callback, null);
     },
     // session是否有效
     isSessionAlived : function(callback) {
         var ret = {};
         ret[0] = 41;
         ret[1] = NetProtoUsermgr.getSession();
-        NetProtoUsermgr.call(ret, callback);
+        NetProtoUsermgr.call(ret, callback, null);
     },
     // 取得服务器信息
     getServerInfor : function(idx, callback) {
@@ -226,7 +230,7 @@
         ret[0] = 33;
         ret[1] = NetProtoUsermgr.getSession();
         ret[12] = idx; // 服务器id
-        NetProtoUsermgr.call(ret, callback);
+        NetProtoUsermgr.call(ret, callback, null);
     },
     // 保存所选服务器
     setEnterServer : function(sidx, uidx, appid, callback) {
@@ -236,7 +240,7 @@
         ret[36] = sidx; // 服务器id
         ret[37] = uidx; // 用户id
         ret[24] = appid; // 应用id
-        NetProtoUsermgr.call(ret, callback);
+        NetProtoUsermgr.call(ret, callback, null);
     },
     // 登陆
     loginAccount : function(userId, password, appid, channel, callback) {
@@ -247,7 +251,7 @@
         ret[22] = password; // 密码
         ret[24] = appid; // 应用id int
         ret[25] = channel; // 渠道号 string
-        NetProtoUsermgr.call(ret, callback);
+        NetProtoUsermgr.call(ret, callback, null);
     },
     // 渠道登陆
     loginAccountChannel : function(userId, appid, channel, deviceID, deviceInfor, callback) {
@@ -259,7 +263,7 @@
         ret[25] = channel; // 渠道号 string
         ret[26] = deviceID; // 
         ret[27] = deviceInfor; // 
-        NetProtoUsermgr.call(ret, callback);
+        NetProtoUsermgr.call(ret, callback, null);
     },
     };
     //==============================

@@ -6,7 +6,7 @@ local tab = {
         { "name", "varchar(45)", "名称" },
         { "pidx", "int(11) NOT NULL", "玩家idx" },
         { "pos", "int(11)", "城所在世界grid的index" },
-        { "status", "int(11)", "状态 1:正常;" },
+        { "status", "TINYINT", "状态 1:正常;" },
         --{ "lev", "int(4)", "等级" },
         --{ "iron", "int(11)", "铁" },
         --{ "oil", "int(11)", "油" },

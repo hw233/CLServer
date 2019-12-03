@@ -109,6 +109,16 @@ defProtocol.structs.city = {
         tiles = {{tileIdx = defProtocol.structs.tile}, "地块信息 key=idx, map"}
     }
 }
+defProtocol.structs.unitInfor = {
+    "单元(舰船、萌宠等)",
+    {
+        id = {0, "配置数量的id int"},
+        bidx = {0, "所属建筑idx int"},
+        fidx = {0, "所属舰队idx int"},
+        num = {0, "数量 int"}
+    }
+}
+
 defProtocol.structs.resInfor = {
     "资源信息",
     {
@@ -146,7 +156,7 @@ defProtocol.structs.dockyardShips = {
     "造船厂的舰船信息",
     {
         buildingIdx = {0, "造船厂的idx"},
-        shipsMap = {{skipAttrid = 0}, "key=舰船的配置id, val=舰船数量 map"}
+        ships = {{defProtocol.structs.unitInfor,defProtocol.structs.unitInfor}, "舰船数据"}
     }
 }
 defProtocol.structs.netCfg = {
@@ -329,7 +339,7 @@ defProtocol.cmds = {
     },
     moveCity = {
         desc = "搬迁", -- 接口说明
-        input = { "cidx", "pos"}, -- 入参
+        input = {"cidx", "pos"}, -- 入参
         inputDesc = {"城市idx", "新位置 int"}, -- 入参说明
         output = {structs.retInfor}, -- 出参
         outputDesc = {"返回信息"}, -- 出参说明

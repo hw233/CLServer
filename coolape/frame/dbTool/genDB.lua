@@ -178,7 +178,8 @@ end
 --增量sql
 function genDB.genIncrementSql(oldPath, t)
     if not fileEx.exist(oldPath) then
-        return nil
+        -- 说明是新建的表，直接返回建表sql
+        return genDB.genSql(t)
     end
     local oldt = dofile(oldPath)
     if oldt == nil then

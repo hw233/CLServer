@@ -85,7 +85,7 @@ CREATE TABLE `building` (
   `pos` int(8) NOT NULL,
   `attrid` int(5),
   `lev` int(5),
-  `state` INT(1),
+  `state` TINYINT,
   `starttime` DATETIME,
   `endtime` DATETIME,
   `val` bigint(14),
@@ -105,7 +105,19 @@ CREATE TABLE `city` (
   `name` varchar(45),
   `pidx` int(11) NOT NULL,
   `pos` int(11),
-  `status` int(11),
+  `status` TINYINT,
+  PRIMARY KEY (`idx`, `pidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 舰队
+DROP TABLE IF EXISTS `fleet`;
+CREATE TABLE `fleet` (
+  `idx` int(11) NOT NULL,
+  `pidx` int(11) NOT NULL,
+  `name` varchar(45),
+  `pos` int(11),
+  `status` TINYINT,
+  `deadtime` datetime,
   PRIMARY KEY (`idx`, `pidx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
@@ -135,6 +147,17 @@ CREATE TABLE `tile` (
   `attrid` int(11) NOT NULL,
   `pos` int(11),
   PRIMARY KEY (`idx`, `cidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 单元(舰船、盟宠等)
+DROP TABLE IF EXISTS `unit`;
+CREATE TABLE `unit` (
+  `idx` int(11) NOT NULL,
+  `id` TINYINT,
+  `bidx` int(11) NOT NULL,
+  `fidx` int(11),
+  `num` int(11),
+  PRIMARY KEY (`idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 世界地图

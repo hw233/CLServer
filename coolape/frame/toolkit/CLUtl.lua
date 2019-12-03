@@ -75,25 +75,6 @@ function CLUtl.isNilOrEmpty(s)
     return false
 end
 
-function CLUtl.joinStrWithSep(sep, ...)
-    local tb = {}
-    local v
-    for i = 1, select("#", ...) do
-        v = select(i, ...)
-        if v then
-            insert(tb, tostring(v))
-        else
-            -- insert(tb, "")
-        end
-    end
-    return concat(tb, sep)
-end
-
----@public 拼接字符串
-function CLUtl.joinStr(...)
-    CLUtl.joinStrWithSep("", ...)
-end
-
 function CLUtl.dump(obj)
     local getIndent, quoteStr, wrapKey, wrapVal, dumpObj
     getIndent = function(level)
