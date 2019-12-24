@@ -9,7 +9,7 @@ local tab = {
         {"num", "int(11)", "数量"}
     },
     primaryKey = {"idx"},
-    cacheKey = {"idx",}, -- 缓存key
+    cacheKey = {"idx"}, -- 缓存key
     groupKey = {{"bidx"}, {"fidx"}}, -- 组key
     defaultData = {} -- 初始数据
 }

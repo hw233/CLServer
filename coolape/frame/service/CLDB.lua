@@ -176,19 +176,19 @@ end
 
 ---@public 设置数据.支持多个key，最后一个参数是要设置的value,例如：command.SET("user", "u001", "name", "小张"), 更新user表的key＝"u001"记录的，字段为name的值为"小张"
 function command.SET(tableName, key, ...)
-    local params = {...}
-    if #params < 1 then
+    local count = select("#", ...) -- #params
+    if count < 1 then
         printe("[CLDB.SET] parmas error")
         return nil
     end
 
+    local params = {...}
     local t = db[tableName]
     if t == nil then
         t = {}
         db[tableName] = t
     end
     key = tostring(key)
-    local count = #params
     local val = params[count]
     local last = t[key]
     -- 是否需要更新到库里

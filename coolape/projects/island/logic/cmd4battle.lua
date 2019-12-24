@@ -1,4 +1,4 @@
----@class cmd4city
+---@class cmd4battle
 local cmd4battle = {}
 local skynet = require("skynet")
 require "skynet.manager" -- import skynet.register
@@ -9,11 +9,13 @@ require("dbcity")
 require("dbtile")
 require("dbbuilding")
 require("dbplayer")
+require("dbunit")
 local IDConstVals = require("IDConstVals")
 local CMD = {}
 local NetProtoIsland = skynet.getenv("NetProtoName")
 
 ---@public 攻击
+---@param map NetProtoIsland.RC_attack
 CMD.attack = function(map, fd, agent)
     local pos = map.pos
     local ret = {}
@@ -47,20 +49,20 @@ CMD.attack = function(map, fd, agent)
     targetCityVal.tiles = dbtile.getListBycidx(cidx)
     targetCityVal.buildings = dbbuilding.getListBycidx(cidx)
 
-    -- -- 取得舰船数据
+    --------------------------------------------------
+    -- 取得舰船数据
+    -- 取被攻击方的舰船数据(只需要联盟里的舰船会出来)
+    ---@type NetProtoIsland.ST_dockyardShips
     local targetShips = {}
     for idx, building in pairs(targetCityVal.buildings) do
-        if building[dbbuilding.keys.attrid] == IDConstVals.dockyardBuildingID then
-            local jsonstr = building[dbbuilding.keys.valstr]
-            if not (CLUtl.isNilOrEmpty(jsonstr) or jsonstr == "nil") then
-                local shipsMap = json.decode(jsonstr)
-                if shipsMap then
-                    table.insert(targetShips, shipsMap)
-                end
-            end
+        if building[dbbuilding.keys.attrid] == IDConstVals.AllianceID then
+            targetShips.buildingIdx = building[dbbuilding.keys.idx]
+            targetShips.ships = dbunit.getListBybidx(building[dbbuilding.keys.idx])
+            break
         end
     end
 
+    -- 取得自己的战斗单元
     local myCityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
     local selfShips = skynet.call(myCityServer, "lua", "getAllShips")
 
@@ -85,7 +87,6 @@ CMD.attack = function(map, fd, agent)
 end
 
 CMD.release = function()
-    
 end
 
 skynet.start(

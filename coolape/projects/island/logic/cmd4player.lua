@@ -23,10 +23,47 @@ local myself
 local city
 local agent
 local isEditMode
+-- 客户端接口
 local CMD = {}
-CMD.getEditMode = function()
+
+---@public 编辑器模式
+cmd4player.getEditMode = function()
     return isEditMode
 end
+
+cmd4player.release = function()
+    print("player release")
+    if myself then
+        myself:unsetTrigger(skynet.self(), "onPlayerChg")
+        myself:release()
+        myself = nil
+    end
+end
+
+---@public 取得玩家信息
+cmd4player.getPlayer = function(m)
+    return myself:value2copy()
+end
+
+---@public 修改宝石数量
+cmd4player.chgDiam = function(m)
+    if m.diam == nil then
+        return false
+    end
+    myself:set_diam(myself:get_diam() - m.diam)
+    return true
+end
+
+cmd4player.onPlayerChg = function(data, cmd)
+    cmd = cmd or "onPlayerChg"
+    local ret = {}
+    ret.code = Errcode.ok
+    local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy())
+    skynet.call(agent, "lua", "sendPackage", package)
+end
+------------------------------------------
+------------------------------------------
+------------------------------------------
 CMD.login = function(m, fd, _agent)
     local cmd = m.cmd
     isEditMode = m.isEditMode
@@ -97,7 +134,7 @@ CMD.login = function(m, fd, _agent)
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
     end
     cityVal.tiles = tiles
-    local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
+    -- local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
     local buildings = skynet.call(cityServer, "lua", "getSelfBuildings")
     --local buildings = cmd4city.getSelfBuildings()
     if buildings == nil then
@@ -109,43 +146,17 @@ CMD.login = function(m, fd, _agent)
     end
     cityVal.buildings = buildings
 
+    -- 设置一次数据
+    skynet.call(agent, "lua", "onLogin", myself:value2copy())
+
     local ret = {}
     ret.msg = nil
     ret.code = Errcode.ok
     return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy(), cityVal, dateEx.nowMS(), fd, m)
 end
-CMD.release = function(m, fd)
-    print("player release")
-    if myself then
-        myself:unsetTrigger(skynet.self(), "onPlayerChg")
-        myself:release()
-        myself = nil
-    end
-end
 
 CMD.logout = function(m, fd)
     skynet.call("watchdog", "lua", "close", fd, m)
-end
-
-CMD.onPlayerChg = function(data, cmd)
-    cmd = cmd or "onPlayerChg"
-    local ret = {}
-    ret.code = Errcode.ok
-    local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy())
-    skynet.call(agent, "lua", "sendPackage", package)
-end
-
-CMD.getPlayer = function(m)
-    -- 取得玩家信息
-    return myself:value2copy()
-end
-CMD.chgDiam = function(m)
-    -- 修改宝石数量
-    if m.diam == nil then
-        return false
-    end
-    myself:set_diam(myself:get_diam() - m.diam)
-    return true
 end
 
 skynet.start(
@@ -153,7 +164,7 @@ skynet.start(
         skynet.dispatch(
             "lua",
             function(_, _, command, ...)
-                local f = CMD[command]
+                local f = CMD[command] or cmd4player[command]
                 if f then
                     skynet.ret(skynet.pack(f(...)))
                 else

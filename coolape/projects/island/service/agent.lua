@@ -1,10 +1,11 @@
 local skynet = require "skynet"
-require "skynet.manager"    -- import skynet.register
+require "skynet.manager" -- import skynet.register
 local socket = require "skynet.socket"
 require("public.include")
 require("Errcode")
 local BioUtl = require("BioUtl")
 local CLUtl = require("CLUtl")
+require("dbplayer")
 ---@type CLNetSerialize
 local CLNetSerialize = require("CLNetSerialize")
 local KeyCodeProtocol = require("KeyCodeProtocol")
@@ -14,12 +15,14 @@ local LogicMap = {}
 local CMD = {}
 local client_fd  -- socket fd
 local mysql
+---@type NetProtoIsland.ST_player
+local player
 local NetProtoName = skynet.getenv("NetProtoName")
 
 ---@public 处理接口指令
 local function procCmd(map)
     if map == nil then
-        return
+        return false
     end
     local result = skynet.call(NetProtoName, "lua", "dispatcher", skynet.self(), map, client_fd)
     if result then
@@ -27,8 +30,10 @@ local function procCmd(map)
         for i, pkg in ipairs(list) do
             socket.write(client_fd, pkg)
         end
+        return true
     else
         skynet.error(result)
+        return false
     end
 end
 
@@ -42,7 +47,11 @@ skynet.register_protocol {
         -- skynet.tostring will copy msg to a string, so we must free msg here.
         -- skynet.trash(msg, sz)
     end,
-    dispatch = function(session, source, map, ...)
+    dispatch = function(fd, source, map, ...)
+        assert(fd == client_fd) -- You can use fd to reply message
+        skynet.ignoreret() -- session is fd, don't call skynet.ret
+        -- skynet.trace()
+
         skynet.call(WATCHDOG, "lua", "alivefd", client_fd)
         procCmd(map)
     end
@@ -73,7 +82,22 @@ function CMD.disconnect()
         end
     end
     LogicMap = {}
+    -- 通知大地图服移除我
+    skynet.call("LDSWorld", "lua", "rmPlayerCurrLook4WorldPage", skynet.self())
+
     skynet.exit()
+end
+
+function CMD.onLogin(_player)
+    player = _player
+end
+
+function CMD.log(msg)
+    if player then
+        printe(msg .. "pidx=[" .. player[dbplayer.keys.idx] .. "] name=[" .. player[dbplayer.keys.name] .. "]")
+    else
+        printe(msg)
+    end
 end
 
 ---@public 取得逻辑处理类
@@ -94,7 +118,10 @@ end
 function CMD.stopLogic(logicName)
     local logic = LogicMap[logicName]
     if logic then
-        skynet.call(logic, "lua", "release")
+        if skynet.address(logic) then
+            skynet.call(logic, "lua", "release")
+            skynet.kill(logic)
+        end
     end
     LogicMap[logicName] = nil
 end

@@ -105,7 +105,10 @@ skynet.register_protocol {
         local bytes = skynet.tostring(msg, sz);
         return BioUtl.readObject(bytes)
     end,
-    dispatch = function(_, _, map, ...)
+    dispatch = function(fd, _, map, ...)
+		-- assert(fd == client_fd)	-- You can use fd to reply message
+        skynet.ignoreret()	-- session is fd, don't call skynet.ret
+        
         pcall(procPackage, map);
     end
 }

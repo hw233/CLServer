@@ -32,4 +32,12 @@ Errcode.notInGridBounds = 27 -- 无效的世界坐标
 Errcode.worldCellNotIdel = 28 -- 当前坐标不是空闲
 Errcode.notFoundInWorld = 29 -- 世界地图中没找到玩家城
 Errcode.protectedCannotAttack = 30 -- 玩家处在免战保护中，不可攻击
+Errcode.fleetIsNil = 31 -- 舰队不存在
+Errcode.fleetsReachedMax = 32 -- 已经超过最大舰队数量
+Errcode.toposisCurPos = 33 -- 目标坐标与当前坐标一致
+Errcode.foodNotEnough = 34  -- 粮食不足
+Errcode.goldNotEnough = 35  -- 金币不足
+Errcode.oilNotEnough = 36  -- 油不足
+Errcode.diamNotEnough = 37  -- 钻石不足
+Errcode.fleetCannotMoveTo = 38 -- 舰队不能到达
 return Errcode

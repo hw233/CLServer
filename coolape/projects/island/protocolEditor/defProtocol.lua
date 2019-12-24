@@ -56,7 +56,14 @@ defProtocol.structs.retInfor = {
         msg = {"", "返回消息"}
     }
 }
-
+defProtocol.structs.vector3 = {
+    "坐标(注意使用时需要/1000",
+    {
+        x = {0, "int"},
+        y = {0, "int"},
+        z = {0, "int"}
+    }
+}
 defProtocol.structs.player = {
     "用户信息",
     {
@@ -156,7 +163,7 @@ defProtocol.structs.dockyardShips = {
     "造船厂的舰船信息",
     {
         buildingIdx = {0, "造船厂的idx"},
-        ships = {{defProtocol.structs.unitInfor,defProtocol.structs.unitInfor}, "舰船数据"}
+        ships = {{defProtocol.structs.unitInfor, defProtocol.structs.unitInfor}, "舰船数据"}
     }
 }
 defProtocol.structs.netCfg = {
@@ -165,6 +172,27 @@ defProtocol.structs.netCfg = {
         encryptType = {0, "加密类别，1：只加密客户端，2：只加密服务器，3：前后端都加密，0及其它情况：不加密"},
         secretKey = {"", "密钥"},
         checkTimeStamp = {true, "检测时间戳"}
+    }
+}
+defProtocol.structs.fleetinfor = {
+    "舰队数据",
+    {
+        idx = {0, "唯一标识"},
+        cidx = {0, "城市idx"},
+        fidx = {0, "舰队idx"},
+        name = {"", "名称"},
+        curpos = {0, "当前所在世界grid的index"},
+        fromposv3 = {defProtocol.structs.vector3, "坐标"},
+        frompos = {0, "出征的开始所在世界grid的index"},
+        topos = {0, "出征的目地所在世界grid的index"},
+        task = {0, "执行任务类型 idel = 1, -- 待命状态;voyage = 2, -- 出征;back = 3, -- 返航;attack = 4 -- 攻击"},
+        status = {
+            0,
+            "状态 none = 1, -- 无;moving = 2, -- 航行中;docked = 3, -- 停泊在港口;stay = 4, -- 停留在海面;fighting = 5 -- 正在战斗中"
+        },
+        arrivetime = {0, "到达时间"},
+        deadtime = {0, "沉没的时间"},
+        units = {{defProtocol.structs.unitInfor, defProtocol.structs.unitInfor}, "战斗单元列表"}
     }
 }
 --===================================================
@@ -349,8 +377,20 @@ defProtocol.cmds = {
         desc = "取得一屏的在地图数据", -- 接口说明
         input = {"pageIdx"}, -- 入参
         inputDesc = {"一屏所在的网格index"}, -- 入参说明
-        output = {structs.retInfor, defProtocol.structs.mapPage}, -- 出参
-        outputDesc = {"返回信息", "在地图一屏数据 map"}, -- 出参说明
+        output = {
+            structs.retInfor,
+            defProtocol.structs.mapPage,
+            {defProtocol.structs.fleetinfor, defProtocol.structs.fleetinfor}
+        }, -- 出参
+        outputDesc = {"返回信息", "在地图一屏数据 map", "舰队列表"}, -- 出参说明
+        logic = "LDSWorld"
+    },
+    setPlayerCurrLook4WorldPage = {
+        desc = "设置用户当前正在查看大地图的哪一页，便于后续推送数据", -- 接口说明
+        input = {"pageIdx"}, -- 入参
+        inputDesc = {"一屏所在的网格index"}, -- 入参说明
+        output = {structs.retInfor}, -- 出参
+        outputDesc = {"返回信息"}, -- 出参说明
         logic = "LDSWorld"
     },
     buildShip = {
@@ -377,10 +417,42 @@ defProtocol.cmds = {
         outputDesc = {"返回信息", "造船厂的idx int", "舰船的配置id", "舰船的数量"}, -- 出参说明
         logic = "cmd4city"
     },
-    attack = {
-        desc = "攻击", -- 接口说明
-        input = {"pos"}, -- 入参
-        inputDesc = {"世界地图坐标idx int"}, -- 入参说明
+    saveFleet = {
+        desc = "新建、更新舰队", -- 接口说明
+        input = {"cidx", "idx", "name", {defProtocol.structs.unitInfor, defProtocol.structs.unitInfor}}, -- 入参
+        inputDesc = {"城市", "舰队idx（新建时可为空）", "舰队名（最长7个字）", "战斗单元列表"}, -- 入参说明
+        output = {structs.retInfor, defProtocol.structs.fleetinfor}, -- 出参
+        outputDesc = {"返回信息", "舰队信息"}, -- 出参说明
+        logic = "LDSWorld"
+    },
+    getFleet = {
+        desc = "取得舰队信息", -- 接口说明
+        input = {"idx"}, -- 入参
+        inputDesc = {"舰队idx"}, -- 入参说明
+        output = {structs.retInfor, defProtocol.structs.fleetinfor}, -- 出参
+        outputDesc = {"返回信息", "舰队信息"}, -- 出参说明
+        logic = "LDSWorld"
+    },
+    sendFleet = {
+        desc = "推送舰队信息", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {structs.retInfor, defProtocol.structs.fleetinfor, "isRemove"}, -- 出参
+        outputDesc = {"返回信息", "舰队信息", "是否移除"}, -- 出参说明
+        logic = ""
+    },
+    getAllFleets = {
+        desc = "取得所有舰队信息", -- 接口说明
+        input = {"cidx"}, -- 入参
+        inputDesc = {"城市的idx"}, -- 入参说明
+        output = {structs.retInfor, {defProtocol.structs.fleetinfor, defProtocol.structs.fleetinfor}}, -- 出参
+        outputDesc = {"返回信息", "舰队列表"}, -- 出参说明
+        logic = "LDSWorld"
+    },
+    fleetAttack = {
+        desc = "舰队攻击", -- 接口说明
+        input = {"fidx", "targetPos"}, -- 入参
+        inputDesc = {"舰队idx", "世界地图坐标idx int"}, -- 入参说明
         output = {
             structs.retInfor,
             structs.player,
@@ -389,7 +461,15 @@ defProtocol.cmds = {
             {structs.dockyardShips, structs.dockyardShips}
         }, -- 出参
         outputDesc = {"返回信息", "被攻击玩家信息", "被攻击主城信息", "被攻击航船的数据", "进攻击方航船的数据"}, -- 出参说明
-        logic = "cmd4battle"
+        logic = "LDSWorld"
+    },
+    fleetDepart = {
+        desc = "舰队出征", -- 接口说明
+        input = {"idx", "toPos"}, -- 入参
+        inputDesc = {"舰队idx", "目标位置"}, -- 入参说明
+        output = {structs.retInfor, defProtocol.structs.fleetinfor}, -- 出参
+        outputDesc = {"返回信息", "舰队信息"}, -- 出参说明
+        logic = "LDSWorld"
     }
 }
 

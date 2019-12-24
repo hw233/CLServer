@@ -11,6 +11,7 @@ local sqrt	= math.sqrt
 local min	= math.min
 local max 	= math.max
 
+---@class Vector2
 Vector4 = 
 {
 	x = 0,

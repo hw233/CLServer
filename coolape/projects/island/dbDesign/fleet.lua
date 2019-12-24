@@ -3,15 +3,23 @@ local tab = {
     desc = "舰队",
     columns = {
         {"idx", "int(11) NOT NULL", "唯一标识"},
-        {"pidx", "int(11) NOT NULL", "玩家idx"},
+        {"cidx", "int(11) NOT NULL", "城市idx"},
         {"name", "varchar(45)", "名称"},
-        {"pos", "int(11)", "城所在世界grid的index"},
-        {"status", "TINYINT", "状态 1:待命; 2:出征中；3：停靠中"},
-        {"deadtime", "datetime", "沉没的时间"},
+        {"curpos", "int(11)", "当前所在世界grid的index"},
+        {"frompos", "int(11)", "出征的开始所在世界grid的index"},
+        {"topos", "int(11)", "出征的目地所在世界grid的index"},
+        {"task", "TINYINT", "执行任务类型 idel = 1, -- 待命状态;voyage = 2, -- 出征;back = 3, -- 返航;attack = 4 -- 攻击"},
+        {
+            "status",
+            "TINYINT",
+            "状态 none = 1, -- 无;moving = 2, -- 航行中;docked = 3, -- 停泊在港口;stay = 4, -- 停留在海面;fighting = 5 -- 正在战斗中"
+        },
+        {"arrivetime", "datetime", "到达时间"},
+        {"deadtime", "datetime", "沉没的时间"}
     },
-    primaryKey = {"idx", "pidx"},
+    primaryKey = {"idx", "cidx"},
     cacheKey = {"idx"}, -- 缓存key
-    groupKey = {{"pidx"}}, -- 组key
+    groupKey = {{"cidx"}}, -- 组key
     defaultData = {} -- 初始数据
 }
 

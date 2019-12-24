@@ -9,7 +9,7 @@ require("dbbuilding")
 require("dbplayer")
 require("dbunit")
 require("Errcode")
-require("buildQueue")
+require("timerQueue")
 local timerEx = require("timerEx")
 local IDConstVals = require("IDConstVals")
 local CMD = {}
@@ -41,7 +41,7 @@ local hadTileCount = 0 -- 地块总量
 
 --======================================================
 --======================================================
-function cmd4city.new(uidx)
+cmd4city.new = function(uidx)
     tiles = {} -- 地块信息 key=idx
     buildings = {} -- 建筑信息 key=idx
 
@@ -93,7 +93,7 @@ function cmd4city.new(uidx)
 end
 
 ---@param building dbbuilding
-function cmd4city.placeBuilding(building)
+cmd4city.placeBuilding = function(building)
     local center = building:get_pos()
     local attr = cfgUtl.getBuildingByID(building:get_attrid())
     local size = attr.Size
@@ -104,7 +104,7 @@ function cmd4city.placeBuilding(building)
 end
 
 ---@param building dbbuilding
-function cmd4city.unPlaceBuilding(building)
+cmd4city.unPlaceBuilding = function(building)
     local center = building:get_pos()
     local attr = cfgUtl.getBuildingByID(building:get_attrid())
     local size = attr.Size
@@ -115,7 +115,7 @@ function cmd4city.unPlaceBuilding(building)
 end
 
 ---@param tile dbtile
-function cmd4city.placeTile(tile)
+cmd4city.placeTile = function(tile)
     local center = tile:get_pos()
 
     local indexs = grid:getCells(center, tileSize)
@@ -124,7 +124,7 @@ function cmd4city.placeTile(tile)
     end
 end
 ---@param tile dbtile
-function cmd4city.unPlaceTile(tile)
+cmd4city.unPlaceTile = function(tile)
     local center = tile:get_pos()
     local indexs = grid:getCells(center, tileSize)
     for i, index in ipairs(indexs) do
@@ -132,7 +132,7 @@ function cmd4city.unPlaceTile(tile)
     end
 end
 
-function cmd4city.canPlaceBuilding(index, id)
+cmd4city.canPlaceBuilding = function(index, id)
     if id then
         local attr = cfgUtl.getBuildingByID(id)
         local size = attr.Size
@@ -148,7 +148,7 @@ function cmd4city.canPlaceBuilding(index, id)
     end
 end
 
-function cmd4city.canPlaceTile(index)
+cmd4city.canPlaceTile = function(index)
     local indexs = grid:getCells(index, tileSize)
     for i, v in ipairs(indexs) do
         if (not grid:IsInBounds(v)) or gridState4Tile[v] then
@@ -159,7 +159,7 @@ function cmd4city.canPlaceTile(index)
     return true
 end
 
-function cmd4city.canPlace(index, is4Building, attrid)
+cmd4city.canPlace = function(index, is4Building, attrid)
     if is4Building then
         return cmd4city.canPlaceBuilding(index, attrid)
     else
@@ -202,19 +202,19 @@ end
 
 -- 取得一定范围内可用的地块
 ---@param rangeV4 Vector4
-function cmd4city.getFreeGridIdx4Tile(rangeV4)
+cmd4city.getFreeGridIdx4Tile = function(rangeV4)
     return getFreeGridIdx(rangeV4, grid)
 end
 
 -- 取得一定范围内可用的地块
 ---@param rangeV4 Vector4
-function cmd4city.getFreeGridIdx4Building(rangeV4)
+cmd4city.getFreeGridIdx4Building = function(rangeV4)
     return getFreeGridIdx(rangeV4, grid, true)
 end
 
 -- 初始化树
 ---@param dbcity
-function cmd4city.initTree(city, rangeV4)
+cmd4city.initTree = function(city, rangeV4)
     local max = math.random(5, 12)
     for i = 1, max do
         local pos = cmd4city.getFreeGridIdx4Building(rangeV4)
@@ -227,7 +227,7 @@ function cmd4city.initTree(city, rangeV4)
 end
 
 -- 取得主城的等级，其实就是主基地的等级
-function cmd4city.getCityLev()
+cmd4city.getCityLev = function()
     if headquarters and (not headquarters:isEmpty()) then
         return headquarters:get_lev()
     else
@@ -237,7 +237,7 @@ end
 
 -- 初始化地块
 ---@param city dbcity
-function cmd4city.initTiles(city)
+cmd4city.initTiles = function(city)
     local headquartersLevsAttr = cfgUtl.getHeadquartersLevsByID(1)
     if headquartersLevsAttr == nil then
         printe("get DBCFHeadquartersLevsData attr is nil. key=" .. cmd4city.getCityLev())
@@ -284,7 +284,7 @@ function cmd4city.initTiles(city)
 end
 
 -- 设置tile属性
-function cmd4city.setTilesAttr(tiles)
+cmd4city.setTilesAttr = function(tiles)
     ---@type dbtile
     local tile
     local attrid
@@ -311,7 +311,7 @@ function cmd4city.setTilesAttr(tiles)
     end
 end
 
-function cmd4city.getTileAttrWithAround(leftAttrId, righAttrId, upAttrId, downAttrId)
+cmd4city.getTileAttrWithAround = function(leftAttrId, righAttrId, upAttrId, downAttrId)
     local all = {1, 2, 3, 4, 5, 6, 7}
     local ret1 = all
     local ret2 = all
@@ -349,7 +349,7 @@ function cmd4city.getTileAttrWithAround(leftAttrId, righAttrId, upAttrId, downAt
 end
 
 ---@param idx 城的idx
-function cmd4city.getSelf(idx)
+cmd4city.getSelf = function(idx)
     -- 取得城数据
     if myself == nil then
         myself = dbcity.instanse(idx)
@@ -369,7 +369,7 @@ end
 -- 新建地块
 ---@param pos grid地块的idx
 ---@param cidx 城idx
-function cmd4city.newTile(pos, attrid, cidx)
+cmd4city.newTile = function(pos, attrid, cidx)
     local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters:get_lev())
     local maxNum = headquartersOpen.Tiles
     if hadTileCount >= maxNum then
@@ -399,11 +399,11 @@ function cmd4city.newTile(pos, attrid, cidx)
     end
 end
 
-function cmd4city.queryTiles(cidx)
+cmd4city.queryTiles = function(cidx)
     return dbtile.getListBycidx(cidx)
 end
 
-function cmd4city.getSelfTile(idx)
+cmd4city.getSelfTile = function(idx)
     -- 取得建筑
     if myself == nil then
         printe("主城为空")
@@ -422,7 +422,7 @@ function cmd4city.getSelfTile(idx)
     return t
 end
 
-function cmd4city.delSelfBuilding(idx)
+cmd4city.delSelfBuilding = function(idx)
     -- 取得建筑
     if myself == nil then
         printe("主城为空")
@@ -448,7 +448,7 @@ function cmd4city.delSelfBuilding(idx)
     return Errcode.ok
 end
 
-function cmd4city.delSelfTile(idx)
+cmd4city.delSelfTile = function(idx)
     -- 取得建筑
     if myself == nil then
         printe("主城为空")
@@ -472,7 +472,7 @@ function cmd4city.delSelfTile(idx)
     return Errcode.ok
 end
 
-function cmd4city.setSelfTiles()
+cmd4city.setSelfTiles = function()
     local list = cmd4city.queryTiles(myself:get_idx())
     if list == nil then
         printe("[cmd4city.setSelfTiles]:get tiles is nil. cidx=" .. myself:get_idx())
@@ -489,7 +489,7 @@ function cmd4city.setSelfTiles()
     end
 end
 
-function cmd4city.getSelfTiles()
+cmd4city.getSelfTiles = function()
     if myself == nil then
         printe("[cmd4city.getSelfTiles]:the city data is nil")
         return nil
@@ -498,7 +498,7 @@ function cmd4city.getSelfTiles()
 end
 
 ---@public 取得当前等级建筑的最大数量
-function cmd4city.getBuildingCountAtCurrLev(buildingAttrId)
+cmd4city.getBuildingCountAtCurrLev = function(buildingAttrId)
     if headquarters == nil then
         return 1
     end
@@ -510,7 +510,7 @@ end
 ---@param attrid 建筑的配置id
 ---@param pos grid地块idx
 ---@param cidx 城idx
-function cmd4city.newBuilding(attrid, pos, cidx)
+cmd4city.newBuilding = function(attrid, pos, cidx)
     -- 数量判断
     local hadNum = (buildingCountMap[attrid] or 0)
     if attrid ~= IDConstVals.headquartersBuildingID then
@@ -549,7 +549,7 @@ function cmd4city.newBuilding(attrid, pos, cidx)
     end
 end
 
-function cmd4city.query(idx)
+cmd4city.query = function(idx)
     -- 取得城数据
     local city = dbcity.instanse(idx)
     if city:isEmpty() then
@@ -560,11 +560,11 @@ function cmd4city.query(idx)
     return ret
 end
 
-function cmd4city.queryBuildings(cidx)
+cmd4city.queryBuildings = function(cidx)
     return dbbuilding.getListBycidx(cidx)
 end
 
-function cmd4city.setSelfBuildings()
+cmd4city.setSelfBuildings = function()
     if myself == nil then
         printe("[cmd4city.getSelfBuildings]:the city data is nil")
         return
@@ -587,7 +587,7 @@ function cmd4city.setSelfBuildings()
             if b:get_endtime() <= dateEx.nowMS() then
                 cmd4city.onFinishBuildingUpgrade(b)
             else
-                buildQueue.addBuildQueue(b, cmd4city.onFinishBuildingUpgrade)
+                timerQueue.addtimerQueue(b, cmd4city.onFinishBuildingUpgrade)
             end
         elseif b:get_state() == IDConstVals.BuildingState.working then
             -- 正生产
@@ -605,7 +605,7 @@ function cmd4city.setSelfBuildings()
     end
 end
 
-function cmd4city.getSelfBuildings()
+cmd4city.getSelfBuildings = function()
     if myself == nil then
         printe("[cmd4city.getSelfBuildings]:the city data is nil")
         return nil
@@ -613,7 +613,7 @@ function cmd4city.getSelfBuildings()
     return buildings
 end
 
-function cmd4city.getSelfBuilding(idx)
+cmd4city.getSelfBuilding = function(idx)
     -- 取得建筑
     if myself == nil then
         printe("主城为空")
@@ -644,10 +644,15 @@ local getResTypeByBuildingAttrID = function(attrid)
     return resType
 end
 
+---@class _ParamResInfor
+---@field public type number IDConstVals.ResType
+---@field stored number 当前存储的量
+---@field maxstore number 最大存储量
+
 ---@public 取得某种资源的信息
 ---@param resType IDConstVals.ResType
----@return { type = resType, stored = 当前存储的量, maxstore = 最大存储量 }
-function cmd4city.getResInforByType(resType)
+---@return _ParamResInfor
+cmd4city.getResInforByType = function(resType)
     local attrid = 0
     local hadRes = 0 -- 已有资源
     local maxstore = 0
@@ -674,7 +679,7 @@ end
 ---@return list 建筑列表
 ---@return totalStore 总存储量
 ---@return maxStore 最大存储空间
-function cmd4city.getStoreBuildings(attrid)
+cmd4city.getStoreBuildings = function(attrid)
     ---@type dbbuilding
     local b, list, totalStore, attr, maxStore, emptySpace
     list = {}
@@ -738,7 +743,7 @@ local consumeOneRes = function(val, list)
 end
 
 ---@public 处理主基地的资源
-function cmd4city.consumeRes4Base(food, gold, oil)
+cmd4city.consumeRes4Base = function(food, gold, oil)
     local val = food
     if val ~= 0 then
         local tmpval = headquarters:get_val() - val
@@ -805,7 +810,7 @@ function cmd4city.consumeRes4Base(food, gold, oil)
     return food, gold, oil
 end
 
-function cmd4city.consumeRes2(data)
+cmd4city.consumeRes2 = function(data)
     if data == nil then
         return
     end
@@ -815,11 +820,12 @@ function cmd4city.consumeRes2(data)
     cmd4city.consumeRes(food, gold, oil)
 end
 
----@public 消耗资源
+---@public 消耗资源。注意：负数时就是增加资源
 ---@param food 粮
 ---@param gold 金
 ---@param oil 油
-function cmd4city.consumeRes(food, gold, oil)
+---@return boolean 是否扣除成功
+cmd4city.consumeRes = function(food, gold, oil)
     local list1, total1 = cmd4city.getStoreBuildings(IDConstVals.foodStorageBuildingID)
     if food > total1 + headquarters:get_val() then
         return false, Errcode.resNotEnough
@@ -842,7 +848,7 @@ function cmd4city.consumeRes(food, gold, oil)
 end
 
 ---@public 最大的工人数
-function cmd4city.maxBuildQueue()
+cmd4city.maxtimerQueue = function()
     if headquarters == nil then
         return 1
     end
@@ -852,9 +858,9 @@ end
 
 ---@public 当建筑升级完成时
 ---@param b dbbuilding
-function cmd4city.onFinishBuildingUpgrade(b)
+cmd4city.onFinishBuildingUpgrade = function(b)
     --移除升级队列
-    buildQueue.removeBuildQueue(b)
+    timerQueue.removetimerQueue(b)
     local v = {}
     v[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
     v[dbbuilding.keys.lev] = b:get_lev() + 1
@@ -869,19 +875,24 @@ end
 ---@param b dbbuilding
 ---@param shipAttrid number 舰船的配置id
 ---@param num number 已经造好的船的数量
-function cmd4city.onFinishBuildShip(b, shipAttrid, num)
+cmd4city.onChgShipInDockyard = function(b, shipAttrid, num)
     local shipsMap
     local ships = dbunit.getListBybidx(b:get_idx())
+    local isRemoved = false
     ---@type dbunit
     local unit = nil
     for i, v in ipairs(ships) do
         if v[dbunit.keys.id] == shipAttrid then
             unit = dbunit.instanse(v[dbunit.keys.idx])
             unit:set_num(unit:get_num() + num)
+            if unit:get_num() <= 0 then
+                isRemoved = true
+                unit:delete()
+            end
             break
         end
     end
-    if unit == nil then
+    if unit == nil and (not isRemoved) then
         local ship = {}
         ship[dbunit.keys.idx] = DBUtl.nextVal("unit")
         ship[dbunit.keys.id] = shipAttrid
@@ -892,12 +903,14 @@ function cmd4city.onFinishBuildShip(b, shipAttrid, num)
 
     -- 通知客户端
     CMD.onDockyardShipsChg(b:get_idx(), shipAttrid, num)
-    unit:release()
+    if not (unit:isEmpty() or isRemoved) then
+        unit:release()
+    end
 end
 
 ---@public 处理造船厂建造舰船的逻辑
 ---@param b dbbuilding
-function cmd4city.procDockyardBuildShip(b)
+cmd4city.procDockyardBuildShip = function(b)
     if b:get_state() == IDConstVals.BuildingState.working then
         local roleAttrId = b:get_val()
         local num = b:get_val2()
@@ -935,21 +948,21 @@ function cmd4city.procDockyardBuildShip(b)
                 data[dbbuilding.keys.val3] = dateEx.nowMS() - numEx.getIntPart(leftSec * 1000)
                 b:refreshData(data)
             end
-            cmd4city.onFinishBuildShip(b, roleAttrId, finishBuildNum)
+            cmd4city.onChgShipInDockyard(b, roleAttrId, finishBuildNum)
         end
 
         if b:get_state() == IDConstVals.BuildingState.working then
-            buildQueue.addShipQueue(b, BuildTimeS, cmd4city.procDockyardBuildShip)
+            timerQueue.addShipQueue(b, BuildTimeS, cmd4city.procDockyardBuildShip)
         else
-            buildQueue.removeShipQueue(b)
+            timerQueue.removeShipQueue(b)
         end
     end
 end
 
 -- 释放数据
-function cmd4city.release()
+cmd4city.release = function()
     -- 队列释放
-    buildQueue.release()
+    timerQueue.release()
 
     ---@type dbbuilding
     local b
@@ -977,14 +990,77 @@ function cmd4city.release()
     gridState4Building = {}
 end
 
-function cmd4city.isEditMode()
+cmd4city.isEditMode = function()
     if skynet.address(agent) ~= nil then
         local playerserver = skynet.call(agent, "lua", "getLogic", "cmd4player")
         return skynet.call(playerserver, "lua", "getEditMode")
     end
     return false
 end
---＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+---@public 取得所有的舰船数据
+cmd4city.getAllShips = function()
+    local shipList = {}
+    ---@param building dbbuilding
+    for idx, building in pairs(buildings) do
+        if building:get_attrid() == IDConstVals.dockyardBuildingID then
+            local shipMap = cmd4city.getShipsInDockyard(idx)
+            if shipMap then
+                table.insert(shipList, shipMap)
+            end
+        end
+    end
+    return shipList
+end
+
+---@public 取得等级
+cmd4city.getLev = function()
+    return cmd4city.getCityLev()
+end
+---@public 取得造船厂的舰船数据
+---@return NetProtoIsland.ST_dockyardShips
+cmd4city.getShipsInDockyard = function(buildingIdx)
+    ---@type dbbuilding
+    local b = buildings[buildingIdx] -- 不要使用new(), 或者instance()，也不能直接传data
+    if b == nil then
+        return nil
+    end
+    ---@type NetProtoIsland.ST_dockyardShips
+    local dockyardShips = {}
+    dockyardShips.buildingIdx = buildingIdx
+    dockyardShips.ships = dbunit.getListBybidx(b:get_idx())
+    return dockyardShips
+end
+
+---@从造舰厂里扣除舰船
+cmd4city.deductShipsInDockyard = function(attrid, num)
+    local shipList = cmd4city.getAllShips()
+    local cutList = {}
+    local doDeduct = function()
+        for i, v in ipairs(cutList) do
+            cmd4city.onChgShipInDockyard(buildings[v.bid], v.shipid, -v.num)
+        end
+    end
+
+    ---@param v NetProtoIsland.ST_dockyardShips
+    for i, v in ipairs(shipList) do
+        ---@param unit NetProtoIsland.ST_unitInfor
+        for j, unit in ipairs(v.ships) do
+            if unit.id == attrid then
+                if unit.num >= num then
+                    table.insert(cutList, {bid = v.buildingIdx, shipid = attrid, num = num})
+                    doDeduct()
+                    return true
+                else
+                    num = num - unit.num
+                    table.insert(cutList, {bid = v.buildingIdx, shipid = attrid, num = unit.num})
+                end
+            end
+        end
+    end
+    -- 说明在for里都没有扣除完舰船，返回flase
+    return false
+end
 --＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 --＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 --＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
@@ -1003,6 +1079,7 @@ CMD.getSelf = function(idx, _agent)
     if city then
         return city:value2copy()
     end
+
     return nil
 end
 CMD.getSelfTiles = function()
@@ -1039,7 +1116,7 @@ CMD.newBuilding = function(m, fd)
     end
 
     -- 是否有空闲队列
-    if #(buildQueue.build) >= cmd4city.maxBuildQueue() then
+    if #(timerQueue.build) >= cmd4city.maxtimerQueue() then
         ret.code = Errcode.noIdelQueue
         ret.msg = "没有空闲队列"
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
@@ -1090,7 +1167,7 @@ CMD.newBuilding = function(m, fd)
             [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade
         }
         building:refreshData(_v)
-        buildQueue.addBuildQueue(building, cmd4city.onFinishBuildingUpgrade)
+        timerQueue.addtimerQueue(building, cmd4city.onFinishBuildingUpgrade)
     end
 
     buildings[building:get_idx()] = building
@@ -1098,7 +1175,7 @@ CMD.newBuilding = function(m, fd)
     ret.code = Errcode.ok
     return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, building:value2copy(), m)
 end
-CMD.getBuilding = function(m, fd)
+CMD.getBuilding = function(m, fd, agent)
     -- 取得建筑
     local ret = {}
     local b = cmd4city.getSelfBuilding(m.idx)
@@ -1110,7 +1187,7 @@ CMD.getBuilding = function(m, fd)
     ret.code = Errcode.ok
     return skynet.call(NetProtoIsland, "lua", "send", "getBuilding", ret, b:value2copy(), m)
 end
-CMD.moveTile = function(m, fd)
+CMD.moveTile = function(m, fd, agent)
     -- 移动地块
     local ret = {}
     ---@type dbtile
@@ -1126,7 +1203,7 @@ CMD.moveTile = function(m, fd)
     ret.code = Errcode.ok
     return skynet.call(NetProtoIsland, "lua", "send", "moveTile", ret, t:value2copy(), m)
 end
-CMD.moveBuilding = function(m, fd)
+CMD.moveBuilding = function(m, fd, agent)
     -- 移动建筑
     local ret = {}
     ---@type dbbuilding
@@ -1162,7 +1239,7 @@ CMD.upLevBuilding = function(m, fd, agent)
     end
 
     -- 是否有空闲队列
-    if #(buildQueue.build) >= cmd4city.maxBuildQueue() then
+    if #(timerQueue.build) >= cmd4city.maxtimerQueue() then
         ret.code = Errcode.noIdelQueue
         ret.msg = "没有空闲队列"
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
@@ -1216,7 +1293,7 @@ CMD.upLevBuilding = function(m, fd, agent)
             [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade
         }
         b:refreshData(v)
-        buildQueue.addBuildQueue(b, cmd4city.onFinishBuildingUpgrade)
+        timerQueue.addtimerQueue(b, cmd4city.onFinishBuildingUpgrade)
     else
         b:set_lev(b:get_lev() + 1)
     end
@@ -1310,26 +1387,7 @@ CMD.upLevBuildingImm = function(m, fd, agent)
     ret.code = Errcode.ok
     return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, m)
 end
-CMD.release = function(m, fd)
-    cmd4city.release()
-end
-CMD.onBuildingChg = function(data, cmd)
-    -- 当建筑数据有变化，这个接口是内部触发的
-    cmd = cmd or "onBuildingChg"
-    if data then
-        local idx = data.idx
-        ---@type dbbuilding
-        local b = buildings[idx] -- 不要使用new(), 或者instance()，也不能直接传data
-        if b then
-            local ret = {}
-            ret.code = Errcode.ok
-            local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy())
-            if skynet.address(agent) ~= nil then
-                skynet.call(agent, "lua", "sendPackage", package)
-            end
-        end
-    end
-end
+
 CMD.newTile = function(m, fd, agent)
     -- 扩建地块
     local cmd = "newTile"
@@ -1455,6 +1513,7 @@ CMD.collectRes = function(m, fd, agent)
     ret.code = Errcode.ok
     return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, resType, val, b:value2copy(), m)
 end
+
 ---@public 建造舰船
 ---@param map NetProtoIsland.RC_buildShip
 CMD.buildShip = function(map, fd, agent)
@@ -1564,40 +1623,34 @@ CMD.getShipsByBuildingIdx = function(map, fd, agent)
     ---@type dbbuilding
     local b = buildings[buildingIdx] -- 不要使用new(), 或者instance()，也不能直接传data
     if b == nil then
-        if fd then
-            -- 说明是客户端请求
-            ret.code = Errcode.buildingIsNil
-            ret.msg = "取得建筑为空"
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
-        else
-            return nil
-        end
+        -- 说明是客户端请求
+        ret.code = Errcode.buildingIsNil
+        ret.msg = "取得建筑为空"
+        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
     end
+
     ---@type NetProtoIsland.ST_dockyardShips
-    local dockyardShips = {}
-    dockyardShips.buildingIdx = buildingIdx
-    dockyardShips.ships = dbunit.getListBybidx(b:get_idx())
+    local dockyardShips = cmd4city.getShipsInDockyard(buildingIdx)
     ret.code = Errcode.ok
-    if fd then
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, dockyardShips, map)
-    else
-        return dockyardShips
-    end
+    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, dockyardShips, map)
 end
 
----@public 取得所有的舰船数据
-CMD.getAllShips = function()
-    local shipList = {}
-    ---@param building dbbuilding
-    for idx, building in pairs(buildings) do
-        if building:get_attrid() == IDConstVals.dockyardBuildingID then
-            local shipMap = CMD.getShipsByBuildingIdx({buildingIdx = idx})
-            if shipMap then
-                table.insert(shipList, shipMap)
+CMD.onBuildingChg = function(data, cmd)
+    -- 当建筑数据有变化，这个接口是内部触发的
+    cmd = cmd or "onBuildingChg"
+    if data then
+        local idx = data.idx
+        ---@type dbbuilding
+        local b = buildings[idx] -- 不要使用new(), 或者instance()，也不能直接传data
+        if b then
+            local ret = {}
+            ret.code = Errcode.ok
+            local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy())
+            if skynet.address(agent) ~= nil then
+                skynet.call(agent, "lua", "sendPackage", package)
             end
         end
     end
-    return shipList
 end
 
 ---@public 当造船厂的舰艇数量发化变化时
@@ -1620,13 +1673,16 @@ CMD.onDockyardShipsChg = function(bidx, shipAttrid, num)
         skynet.call(agent, "lua", "sendPackage", package)
     end
 
-    -- 推送给客户端
-    cmd = "onFinishBuildOneShip"
-    package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, bidx, shipAttrid, num)
-    if skynet.address(agent) ~= nil then
-        skynet.call(agent, "lua", "sendPackage", package)
+    if num > 0 then
+        -- 推送给客户端
+        cmd = "onFinishBuildOneShip"
+        package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, bidx, shipAttrid, num)
+        if skynet.address(agent) ~= nil then
+            skynet.call(agent, "lua", "sendPackage", package)
+        end
     end
 end
+
 CMD.onMyselfCityChg = function(data)
     local cmd = "onMyselfCityChg"
     local ret = {}
@@ -1636,7 +1692,7 @@ CMD.onMyselfCityChg = function(data)
         skynet.call(agent, "lua", "sendPackage", package)
     end
 end
-
+-----------------------------------------------------
 skynet.start(
     function()
         constCfg = cfgUtl.getConstCfg()
@@ -1647,7 +1703,7 @@ skynet.start(
         skynet.dispatch(
             "lua",
             function(_, _, command, ...)
-                local f = CMD[command]
+                local f = CMD[command] or cmd4city[command]
                 if f == nil then
                     error("func is nill.cmd =" .. command)
                 else

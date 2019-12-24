@@ -42,7 +42,9 @@ skynet.register_protocol {
         -- skynet.tostring will copy msg to a string, so we must free msg here.
         -- skynet.trash(msg, sz)
     end,
-    dispatch = function(session, source, map, ...)
+    dispatch = function(fd, source, map, ...)
+		assert(fd == client_fd)	-- You can use fd to reply message
+		skynet.ignoreret()	-- session is fd, don't call skynet.ret
         skynet.call(WATCHDOG, "lua", "alivefd", client_fd)
         procCmd(map)
     end

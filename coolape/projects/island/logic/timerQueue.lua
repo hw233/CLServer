@@ -5,21 +5,23 @@
 ---
 --======================================================
 --======================================================
--- 各种队列处理
-buildQueue = {
+---@class 各种队列处理
+timerQueue = {
     build = {}, -- 建筑队列
     ship = {}, -- 兵队列
     tech = {}, -- 科技队列
+    fleet4Moving = {}, -- 舰队
+    fleet4Dead = {} -- 舰队
 }
 ---@param b dbbuilding
-buildQueue.removeBuildQueue = function(b)
+timerQueue.removetimerQueue = function(b)
     ---@type dbbuilding
     local building
-    for i, cor in ipairs(buildQueue.build) do
+    for i, cor in ipairs(timerQueue.build) do
         building = cor.param
         if building:get_idx() == b:get_idx() then
             timerEx.cancel(cor) --取消timer
-            table.remove(buildQueue.build, i)
+            table.remove(timerQueue.build, i)
             break
         end
     end
@@ -27,54 +29,55 @@ end
 
 ---@public 加入建筑队列
 ---@param b dbbuilding
-buildQueue.addBuildQueue = function(b, callback)
+timerQueue.addtimerQueue = function(b, callback)
     local endtime = b:get_endtime()
     local diff = endtime - dateEx.nowMS()
     local cor = timerEx.new(diff / 1000, callback, b)
-    table.insert(buildQueue.build, cor)
+    table.insert(timerQueue.build, cor)
 end
 
 ---@public 加入造兵队列
 ---@param b dbbuilding
-buildQueue.addShipQueue = function(b, seconds, callback)
+timerQueue.addShipQueue = function(b, seconds, callback)
     if b:get_state() ~= IDConstVals.BuildingState.working then
-        buildQueue.removeShipQueue(b)
+        timerQueue.removeShipQueue(b)
         return
     end
     local roleAttrId = b:get_val()
     local num = b:get_val2()
     if num <= 0 then
-        buildQueue.removeShipQueue(b)
+        timerQueue.removeShipQueue(b)
         return
     end
 
     local cor = timerEx.new(seconds, callback, b)
-    buildQueue.ship[b:get_idx()] = cor
+    timerQueue.ship[b:get_idx()] = cor
 end
 
 ---@param b dbbuilding
-buildQueue.removeShipQueue = function(b)
-    local cor = buildQueue.ship[b:get_idx()]
+timerQueue.removeShipQueue = function(b)
+    local cor = timerQueue.ship[b:get_idx()]
     if cor then
         timerEx.cancel(cor) --取消timer
     end
-    buildQueue.ship[b:get_idx()] = nil
+    timerQueue.ship[b:get_idx()] = nil
 end
 
-buildQueue.release = function()
-    for i, v in ipairs(buildQueue.build) do
+timerQueue.release = function()
+    for i, v in ipairs(timerQueue.build) do
         timerEx.cancel(v)
     end
-    buildQueue.build = {}
+    timerQueue.build = {}
 
-    for i, v in ipairs(buildQueue.ship) do
+    for i, v in ipairs(timerQueue.ship) do
         timerEx.cancel(v)
     end
-    buildQueue.ship = {}
-    for i, v in ipairs(buildQueue.tech) do
+    timerQueue.ship = {}
+    
+    for i, v in ipairs(timerQueue.tech) do
         timerEx.cancel(v)
     end
-    buildQueue.tech = {}
+    timerQueue.tech = {}
 end
 
-return buildQueue
+return timerQueue

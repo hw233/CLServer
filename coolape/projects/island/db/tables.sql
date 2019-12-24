@@ -113,12 +113,16 @@ CREATE TABLE `city` (
 DROP TABLE IF EXISTS `fleet`;
 CREATE TABLE `fleet` (
   `idx` int(11) NOT NULL,
-  `pidx` int(11) NOT NULL,
+  `cidx` int(11) NOT NULL,
   `name` varchar(45),
-  `pos` int(11),
+  `curpos` int(11),
+  `frompos` int(11),
+  `topos` int(11),
+  `task` TINYINT,
   `status` TINYINT,
+  `arrivetime` datetime,
   `deadtime` datetime,
-  PRIMARY KEY (`idx`, `pidx`)
+  PRIMARY KEY (`idx`, `cidx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 玩家表
@@ -167,6 +171,7 @@ CREATE TABLE `worldmap` (
   `type` TINYINT NOT NULL,
   `attrid` INT,
   `cidx` INT(11),
+  `fidx` INT(11),
   `pageIdx` INT(11) NOT NULL,
   `val1` INT(11),
   `val2` INT(11),

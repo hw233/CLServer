@@ -20,7 +20,7 @@ local tonumber = tonumber
 require("dateEx")
 
 -- 玩家表
----@class dbplayer
+---@class dbplayer : ClassBase
 dbplayer = class("dbplayer")
 
 dbplayer.name = "player"
@@ -71,7 +71,7 @@ function dbplayer:init(data, isNew)
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
-        local r = skynet.call("CLMySQL", "lua", "save", sql)
+        local r = skynet.call("CLMySQL", "lua", "exesql", sql)
         if r == nil or r.errno == nil then
             self.__isNew__ = false
         else
@@ -308,10 +308,11 @@ function dbplayer:flush(immd)
     local sql
     if self.__isNew__ then
         sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, self:value2copy())
+        return skynet.call("CLMySQL", "lua", "exesql", sql, immd)
     else
         sql = skynet.call("CLDB", "lua", "GETUPDATESQL", self.__name__, self:value2copy())
+        return skynet.call("CLMySQL", "lua", "save", sql, immd)
     end
-    return skynet.call("CLMySQL", "lua", "save", sql, immd)
 end
 
 function dbplayer:isEmpty()
@@ -329,7 +330,8 @@ function dbplayer:delete()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     skynet.call("CLDB", "lua", "REMOVE", self.__name__, self.__key__)
     local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, d)
-    return skynet.call("CLMySQL", "lua", "save", sql)
+    self.__key__ = nil
+    return skynet.call("CLMySQL", "lua", "exesql", sql)
 end
 
 ---@public 设置触发器（当有数据改变时回调）

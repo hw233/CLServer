@@ -20,7 +20,7 @@ local tonumber = tonumber
 require("dateEx")
 
 -- 世界地图
----@class dbworldmap
+---@class dbworldmap : ClassBase
 dbworldmap = class("dbworldmap")
 
 dbworldmap.name = "worldmap"
@@ -30,6 +30,7 @@ dbworldmap.keys = {
     type = "type", -- 地块类型 3：玩家，2：npc
     attrid = "attrid", -- 配置id
     cidx = "cidx", -- 主城idx
+    fidx = "fidx", -- 驻扎在改地块的舰队idx
     pageIdx = "pageIdx", -- 所在屏的index
     val1 = "val1", -- 值1
     val2 = "val2", -- 值2
@@ -67,7 +68,7 @@ function dbworldmap:init(data, isNew)
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
-        local r = skynet.call("CLMySQL", "lua", "save", sql)
+        local r = skynet.call("CLMySQL", "lua", "exesql", sql)
         if r == nil or r.errno == nil then
             self.__isNew__ = false
         else
@@ -168,6 +169,21 @@ function dbworldmap:get_cidx()
     return (tonumber(val) or 0)
 end
 
+function dbworldmap:set_fidx(v)
+    -- 驻扎在改地块的舰队idx
+    if self:isEmpty() then
+        skynet.error("[dbworldmap:set_fidx],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "fidx", v)
+end
+function dbworldmap:get_fidx()
+    -- 驻扎在改地块的舰队idx
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "fidx")
+    return (tonumber(val) or 0)
+end
+
 function dbworldmap:set_pageIdx(v)
     -- 所在屏的index
     if self:isEmpty() then
@@ -233,10 +249,11 @@ function dbworldmap:flush(immd)
     local sql
     if self.__isNew__ then
         sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, self:value2copy())
+        return skynet.call("CLMySQL", "lua", "exesql", sql, immd)
     else
         sql = skynet.call("CLDB", "lua", "GETUPDATESQL", self.__name__, self:value2copy())
+        return skynet.call("CLMySQL", "lua", "save", sql, immd)
     end
-    return skynet.call("CLMySQL", "lua", "save", sql, immd)
 end
 
 function dbworldmap:isEmpty()
@@ -254,7 +271,8 @@ function dbworldmap:delete()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     skynet.call("CLDB", "lua", "REMOVE", self.__name__, self.__key__)
     local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, d)
-    return skynet.call("CLMySQL", "lua", "save", sql)
+    self.__key__ = nil
+    return skynet.call("CLMySQL", "lua", "exesql", sql)
 end
 
 ---@public 设置触发器（当有数据改变时回调）
@@ -351,6 +369,9 @@ function dbworldmap.validData(data)
     end
     if type(data.cidx) ~= "number" then
         data.cidx = tonumber(data.cidx) or 0
+    end
+    if type(data.fidx) ~= "number" then
+        data.fidx = tonumber(data.fidx) or 0
     end
     if type(data.pageIdx) ~= "number" then
         data.pageIdx = tonumber(data.pageIdx) or 0

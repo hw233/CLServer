@@ -20,17 +20,21 @@ local tonumber = tonumber
 require("dateEx")
 
 -- 舰队
----@class dbfleet
+---@class dbfleet : ClassBase
 dbfleet = class("dbfleet")
 
 dbfleet.name = "fleet"
 
 dbfleet.keys = {
     idx = "idx", -- 唯一标识
-    pidx = "pidx", -- 玩家idx
+    cidx = "cidx", -- 城市idx
     name = "name", -- 名称
-    pos = "pos", -- 城所在世界grid的index
-    status = "status", -- 状态 1:待命; 2:出征中；3：停靠中
+    curpos = "curpos", -- 当前所在世界grid的index
+    frompos = "frompos", -- 出征的开始所在世界grid的index
+    topos = "topos", -- 出征的目地所在世界grid的index
+    task = "task", -- 执行任务类型 idel = 1, -- 待命状态;voyage = 2, -- 出征;back = 3, -- 返航;attack = 4 -- 攻击
+    status = "status", -- 状态 none = 1, -- 无;moving = 2, -- 航行中;docked = 3, -- 停泊在港口;stay = 4, -- 停留在海面;fighting = 5 -- 正在战斗中
+    arrivetime = "arrivetime", -- 到达时间
     deadtime = "deadtime", -- 沉没的时间
 }
 
@@ -65,7 +69,7 @@ function dbfleet:init(data, isNew)
     if self.__isNew__ then
         -- 说明之前表里没有数据，先入库
         local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
-        local r = skynet.call("CLMySQL", "lua", "save", sql)
+        local r = skynet.call("CLMySQL", "lua", "exesql", sql)
         if r == nil or r.errno == nil then
             self.__isNew__ = false
         else
@@ -86,6 +90,7 @@ end
 function dbfleet:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
     local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
     if ret then
+        ret.arrivetime = self:get_arrivetime()
         ret.deadtime = self:get_deadtime()
     end
     return ret
@@ -122,18 +127,18 @@ function dbfleet:get_idx()
     return (tonumber(val) or 0)
 end
 
-function dbfleet:set_pidx(v)
-    -- 玩家idx
+function dbfleet:set_cidx(v)
+    -- 城市idx
     if self:isEmpty() then
-        skynet.error("[dbfleet:set_pidx],please init first!!")
+        skynet.error("[dbfleet:set_cidx],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pidx", v)
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "cidx", v)
 end
-function dbfleet:get_pidx()
-    -- 玩家idx
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pidx")
+function dbfleet:get_cidx()
+    -- 城市idx
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cidx")
     return (tonumber(val) or 0)
 end
 
@@ -151,23 +156,68 @@ function dbfleet:get_name()
     return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "name")
 end
 
-function dbfleet:set_pos(v)
-    -- 城所在世界grid的index
+function dbfleet:set_curpos(v)
+    -- 当前所在世界grid的index
     if self:isEmpty() then
-        skynet.error("[dbfleet:set_pos],please init first!!")
+        skynet.error("[dbfleet:set_curpos],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pos", v)
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "curpos", v)
 end
-function dbfleet:get_pos()
-    -- 城所在世界grid的index
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pos")
+function dbfleet:get_curpos()
+    -- 当前所在世界grid的index
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "curpos")
+    return (tonumber(val) or 0)
+end
+
+function dbfleet:set_frompos(v)
+    -- 出征的开始所在世界grid的index
+    if self:isEmpty() then
+        skynet.error("[dbfleet:set_frompos],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "frompos", v)
+end
+function dbfleet:get_frompos()
+    -- 出征的开始所在世界grid的index
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "frompos")
+    return (tonumber(val) or 0)
+end
+
+function dbfleet:set_topos(v)
+    -- 出征的目地所在世界grid的index
+    if self:isEmpty() then
+        skynet.error("[dbfleet:set_topos],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "topos", v)
+end
+function dbfleet:get_topos()
+    -- 出征的目地所在世界grid的index
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "topos")
+    return (tonumber(val) or 0)
+end
+
+function dbfleet:set_task(v)
+    -- 执行任务类型 idel = 1, -- 待命状态;voyage = 2, -- 出征;back = 3, -- 返航;attack = 4 -- 攻击
+    if self:isEmpty() then
+        skynet.error("[dbfleet:set_task],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "task", v)
+end
+function dbfleet:get_task()
+    -- 执行任务类型 idel = 1, -- 待命状态;voyage = 2, -- 出征;back = 3, -- 返航;attack = 4 -- 攻击
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "task")
     return (tonumber(val) or 0)
 end
 
 function dbfleet:set_status(v)
-    -- 状态 1:待命; 2:出征中；3：停靠中
+    -- 状态 none = 1, -- 无;moving = 2, -- 航行中;docked = 3, -- 停泊在港口;stay = 4, -- 停留在海面;fighting = 5 -- 正在战斗中
     if self:isEmpty() then
         skynet.error("[dbfleet:set_status],please init first!!")
         return nil
@@ -176,9 +226,30 @@ function dbfleet:set_status(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbfleet:get_status()
-    -- 状态 1:待命; 2:出征中；3：停靠中
+    -- 状态 none = 1, -- 无;moving = 2, -- 航行中;docked = 3, -- 停泊在港口;stay = 4, -- 停留在海面;fighting = 5 -- 正在战斗中
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
     return (tonumber(val) or 0)
+end
+
+function dbfleet:set_arrivetime(v)
+    -- 到达时间
+    if self:isEmpty() then
+        skynet.error("[dbfleet:set_arrivetime],please init first!!")
+        return nil
+    end
+    if type(v) == "number" then
+        v = dateEx.seconds2Str(v/1000)
+    end
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "arrivetime", v)
+end
+function dbfleet:get_arrivetime()
+    -- 到达时间
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "arrivetime")
+    if type(val) == "string" then
+        return dateEx.str2Seconds(val)*1000 -- 转成毫秒
+    else
+        return val
+    end
 end
 
 function dbfleet:set_deadtime(v)
@@ -207,10 +278,11 @@ function dbfleet:flush(immd)
     local sql
     if self.__isNew__ then
         sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, self:value2copy())
+        return skynet.call("CLMySQL", "lua", "exesql", sql, immd)
     else
         sql = skynet.call("CLDB", "lua", "GETUPDATESQL", self.__name__, self:value2copy())
+        return skynet.call("CLMySQL", "lua", "save", sql, immd)
     end
-    return skynet.call("CLMySQL", "lua", "save", sql, immd)
 end
 
 function dbfleet:isEmpty()
@@ -228,7 +300,8 @@ function dbfleet:delete()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     skynet.call("CLDB", "lua", "REMOVE", self.__name__, self.__key__)
     local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, d)
-    return skynet.call("CLMySQL", "lua", "save", sql)
+    self.__key__ = nil
+    return skynet.call("CLMySQL", "lua", "exesql", sql)
 end
 
 ---@public 设置触发器（当有数据改变时回调）
@@ -246,14 +319,14 @@ function dbfleet:unsetTrigger(server, cmd, fieldKey)
     skynet.call("CLDB", "lua", "REMOVETRIGGER", self.__name__, self.__key__, server, cmd, fieldKey)
 end
 
-function dbfleet.querySql(idx, pidx)
+function dbfleet.querySql(idx, cidx)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}
     if idx then
         table.insert(where, "`idx`=" .. idx)
     end
-    if pidx then
-        table.insert(where, "`pidx`=" .. pidx)
+    if cidx then
+        table.insert(where, "`cidx`=" .. cidx)
     end
     if #where > 0 then
         return "SELECT * FROM fleet WHERE " .. table.concat(where, " and ") .. ";"
@@ -265,14 +338,14 @@ end
 ---@public 取得一个组
 ---@param forceSelect boolean 强制从mysql取数据
 ---@param orderby string 排序
-function dbfleet.getListBypidx(pidx, forceSelect, orderby, limitOffset, limitNum)
+function dbfleet.getListBycidx(cidx, forceSelect, orderby, limitOffset, limitNum)
     if orderby and orderby ~= "" then
         forceSelect = true
     end
     local data
     local ret = {}
     local cachlist, isFullCached, list
-    local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbfleet.name, pidx) or {}
+    local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbfleet.name, cidx) or {}
     cachlist = groupInfor[1] or {}
     isFullCached = groupInfor[2]
     if isFullCached == true and (not forceSelect) then
@@ -283,7 +356,7 @@ function dbfleet.getListBypidx(pidx, forceSelect, orderby, limitOffset, limitNum
             data:release()
         end
     else
-        local sql = "SELECT * FROM fleet WHERE pidx=" .. pidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
+        local sql = "SELECT * FROM fleet WHERE cidx=" .. cidx ..  (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"
         list = skynet.call("CLMySQL", "lua", "exesql", sql)
         if list and list.errno then
             skynet.error("[dbfleet.getGroup] sql error==" .. sql)
@@ -310,7 +383,7 @@ function dbfleet.getListBypidx(pidx, forceSelect, orderby, limitOffset, limitNum
      end
      list = nil
      -- 设置当前缓存数据是全的数据
-     skynet.call("CLDB", "lua", "SETGROUPISFULL", dbfleet.name, pidx)
+     skynet.call("CLDB", "lua", "SETGROUPISFULL", dbfleet.name, cidx)
      return ret
 end
 
@@ -320,14 +393,26 @@ function dbfleet.validData(data)
     if type(data.idx) ~= "number" then
         data.idx = tonumber(data.idx) or 0
     end
-    if type(data.pidx) ~= "number" then
-        data.pidx = tonumber(data.pidx) or 0
+    if type(data.cidx) ~= "number" then
+        data.cidx = tonumber(data.cidx) or 0
     end
-    if type(data.pos) ~= "number" then
-        data.pos = tonumber(data.pos) or 0
+    if type(data.curpos) ~= "number" then
+        data.curpos = tonumber(data.curpos) or 0
+    end
+    if type(data.frompos) ~= "number" then
+        data.frompos = tonumber(data.frompos) or 0
+    end
+    if type(data.topos) ~= "number" then
+        data.topos = tonumber(data.topos) or 0
+    end
+    if type(data.task) ~= "number" then
+        data.task = tonumber(data.task) or 0
     end
     if type(data.status) ~= "number" then
         data.status = tonumber(data.status) or 0
+    end
+    if type(data.arrivetime) == "number" then
+        data.arrivetime = dateEx.seconds2Str(data.arrivetime/1000)
     end
     if type(data.deadtime) == "number" then
         data.deadtime = dateEx.seconds2Str(data.deadtime/1000)

@@ -1,4 +1,4 @@
-
+local skynet = require("skynet")
 require("CLGlobal")
 require("class")
 require("CLLPool")
@@ -24,3 +24,8 @@ require("Vector4")
 
 -- island
 require("public.cfgUtl")
+
+---@public logic有错误的日志，会把用户信息一并记录
+loge =  function(agent, msg)
+    skynet.call(agent, "lua", "log", msg)
+end

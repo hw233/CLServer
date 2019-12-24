@@ -86,6 +86,10 @@ function CMD.notifyAll(map)
     return Errcode.ok
 end
 
+function CMD.getAllAgents()
+    return agent
+end
+
 -- 停服
 function CMD.stop()
     -- 踢掉所有fd
@@ -96,7 +100,7 @@ function CMD.stop()
     skynet.kill(gate)
 
     skynet.call("CLDB", "lua", "stop", false)
-    skynet.kill("CLDB")
+    -- skynet.kill("CLDB")
     skynet.call("CLMySQL", "lua", "stop", false)
     skynet.kill("CLMySQL")
     -- kill进程

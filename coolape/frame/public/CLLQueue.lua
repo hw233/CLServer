@@ -3,7 +3,7 @@
 --
 
 require("class")
----@class CLLQueue
+---@class CLLQueue:ClassBase
 CLLQueue = class("CLLQueue")
 
 local insert = table.insert;

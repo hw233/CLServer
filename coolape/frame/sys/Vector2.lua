@@ -5,7 +5,7 @@
 --      Use, modification and distribution are subject to the "New BSD License"
 --      as listed at <url: http://www.opensource.org/licenses/bsd-license.php >.
 --------------------------------------------------------------------------------
-
+---@class Vector2
 Vector2 = 
 {
 	x = 0,

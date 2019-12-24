@@ -67,7 +67,10 @@ function printe(...)
     local trace = debug.traceback("")
     local msg = wrapMsg(...)
     msg = msg or ""
-    skynet.error("[err]:" .. msg .. "\n" .. parseBackTrace(trace, logTraceLev))
+    logTraceLev = 0 -- 表示所有层级
+    
+    -- skynet.error("[err]:" .. msg .. parseBackTrace(trace, logTraceLev))
+    error("[err]:" .. msg .. parseBackTrace(trace, logTraceLev))
 end
 
 
