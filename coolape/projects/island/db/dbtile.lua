@@ -57,7 +57,7 @@ function dbtile:init(data, isNew)
             hadCacheData = true
             self.__isNew__ = false
         end
-    else
+    elseif isNew ~= nil then
         self.__isNew__ = isNew
     end
     if self.__isNew__ then

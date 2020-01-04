@@ -7,6 +7,8 @@ DBUtl.Keys = {
     city = "city",
     building = "building",
     server = "server",
+    fleet = "fleet",
+    unit = "unit",
 }
 -- 取得key的自增序列号
 function DBUtl.nextVal(key)

@@ -143,6 +143,7 @@ defProtocol.structs.mapCell = {
         type = {0, "地块类型 3：玩家，4：npc"},
         attrid = {0, "配置id"},
         cidx = {0, "主城idx"},
+        fidx = {0, "舰队idx"},
         name = {"", "名称"},
         lev = {0, "等级"},
         state = {0, "状态  1:正常; int"},
@@ -177,9 +178,8 @@ defProtocol.structs.netCfg = {
 defProtocol.structs.fleetinfor = {
     "舰队数据",
     {
-        idx = {0, "唯一标识"},
+        idx = {0, "唯一标识舰队idx"},
         cidx = {0, "城市idx"},
-        fidx = {0, "舰队idx"},
         name = {"", "名称"},
         curpos = {0, "当前所在世界grid的index"},
         fromposv3 = {defProtocol.structs.vector3, "坐标"},
@@ -467,6 +467,14 @@ defProtocol.cmds = {
         desc = "舰队出征", -- 接口说明
         input = {"idx", "toPos"}, -- 入参
         inputDesc = {"舰队idx", "目标位置"}, -- 入参说明
+        output = {structs.retInfor, defProtocol.structs.fleetinfor}, -- 出参
+        outputDesc = {"返回信息", "舰队信息"}, -- 出参说明
+        logic = "LDSWorld"
+    },
+    fleetBack = {
+        desc = "舰队返航", -- 接口说明
+        input = {"idx"}, -- 入参
+        inputDesc = {"舰队idx"}, -- 入参说明
         output = {structs.retInfor, defProtocol.structs.fleetinfor}, -- 出参
         outputDesc = {"返回信息", "舰队信息"}, -- 出参说明
         logic = "LDSWorld"

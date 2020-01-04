@@ -108,13 +108,20 @@ CMD.login = function(m, fd, _agent)
         -- 取得主城信息
         --city = cmd4city.getSelf(myself:getcityidx())
         local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
-        city = skynet.call(cityServer, "lua", "getSelf", myself:get_cityidx(), agent)
-        if city == nil then
-            printe("get city is nil or empty==" .. m.uidx)
-            local ret = {}
-            ret.msg = "get city is nil or empty"
-            ret.code = Errcode.error
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
+        if myself:get_cityidx() <= 0 then
+            -- 说明没有主城，重新创建主城
+            local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
+            city = skynet.call(cityServer, "lua", "new", m.uidx, agent)
+            myself:set_cityidx(city.idx)
+        else
+            city = skynet.call(cityServer, "lua", "getSelf", myself:get_cityidx(), agent)
+            if city == nil then
+                printe("get city is nil or empty==" .. m.uidx)
+                local ret = {}
+                ret.msg = "get city is nil or empty"
+                ret.code = Errcode.error
+                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
+            end
         end
     end
     -- 增加触发器

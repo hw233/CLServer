@@ -9,6 +9,17 @@ IDConstVals = {
     baseRes = 50000 -- 基础资源量
 }
 
+---@public 建筑类别
+IDConstVals.BuildingGID = {
+    spec = -1, -- 特殊建筑
+    com = 1, -- 基础建筑
+    resource = 2, -- 资源建筑
+    defense = 3, -- 防御建筑
+    trap = 4, --陷阱
+    decorate = 5, -- 装饰
+    tree = 6 -- 树
+}
+
 IDConstVals.PlayerState = {
     normal = 1, -- 正常
     protect = 2 -- 免战保护
@@ -50,6 +61,7 @@ IDConstVals.WorldmapCellType = {
     decorate = 2, -- 装饰
     user = 3, -- 玩家
     empty = 4, -- 空地
+    fleet = 5, -- 舰队停留
     occupy = 99 -- 占用
 }
 

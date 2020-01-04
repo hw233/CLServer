@@ -45,11 +45,12 @@ cmd4city.new = function(uidx)
     tiles = {} -- 地块信息 key=idx
     buildings = {} -- 建筑信息 key=idx
 
+    -- 主城idx
     local idx = DBUtl.nextVal(DBUtl.Keys.city)
 
     local attrid = 7
     -- 分配一个世界坐标
-    local mapcell = skynet.call("LDSWorld", "lua", "occupyMapCell", idx, IDConstVals.WorldmapCellType.user, attrid)
+    local mapcell = skynet.call("LDSWorld", "lua", "occupyMapCell", 0, idx, IDConstVals.WorldmapCellType.user, attrid)
     myself = dbcity.new()
     local d = {}
     d.idx = idx
@@ -61,34 +62,33 @@ cmd4city.new = function(uidx)
     myself:init(d, true)
     myself:setTrigger(skynet.self(), "onMyselfCityChg")
 
-    --TODO: 初始化建筑
-    -- add base buildings
-    ---@type dbbuilding
-    local building =
+    -- 先把主基地new出来，后面马上就会用到
+    headquarters =
         cmd4city.newBuilding(
         1,
         grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)),
         idx
     )
-    if building then
-        building:refreshData(
-            {
-                [dbbuilding.keys.lev] = 1, -- 初始成一级
-                [dbbuilding.keys.val] = IDConstVals.baseRes, -- 粮
-                [dbbuilding.keys.val2] = IDConstVals.baseRes, -- 金
-                [dbbuilding.keys.val3] = IDConstVals.baseRes -- 油
-            }
-        )
-        buildings[building:get_idx()] = building
-        headquarters = building
-    end
+    headquarters:refreshData(
+        {
+            [dbbuilding.keys.lev] = 1, -- 初始成一级
+            [dbbuilding.keys.val] = IDConstVals.baseRes, -- 粮
+            [dbbuilding.keys.val2] = IDConstVals.baseRes, -- 金
+            [dbbuilding.keys.val3] = IDConstVals.baseRes -- 油
+        }
+    )
+    buildings[headquarters:get_idx()] = headquarters
 
+    local v4 = Vector4.New(0, 0, 59, 59)
     --初始化地块
     cmd4city.initTiles(myself)
+    --初始化建筑
+    -- 邮箱
+	local building = cmd4city.newBuilding(39, 
+	cmd4city.getFreeGridIdx4Building(v4, 39), idx)
 
-    -- 初始化树
-    --cmd4city.initTree(myself, v4)
-
+    -- 最后初始化树
+    cmd4city.initTree(myself, v4)
     return myself
 end
 
@@ -134,12 +134,36 @@ end
 
 cmd4city.canPlaceBuilding = function(index, id)
     if id then
+        ---@type DBCFBuildingData
         local attr = cfgUtl.getBuildingByID(id)
         local size = attr.Size
         local indexs = grid:getCells(index, size)
         for i, v in ipairs(indexs) do
             if (not grid:IsInBounds(v)) or gridState4Building[v] then
                 return false
+            end
+        end
+        if attr.PlaceGround and (not attr.PlaceSea) then
+            -- 只能放在陆地上
+            for i, v in ipairs(indexs) do
+                if not gridState4Tile[v] then
+                    return false
+                end
+            end
+        elseif (not attr.PlaceGround) and attr.PlaceSea then
+            -- 只能放在海上
+            for i, v in ipairs(indexs) do
+                if gridState4Tile[v] then
+                    return false
+                end
+            end
+        else
+			-- 都可以，要么在海上，要么在陆地上
+			local isGound = gridState4Tile[indexs[1]] or false
+            for i, v in ipairs(indexs) do
+                if isGound ~= (gridState4Tile[v] or false) then
+                    return false
+                end
             end
         end
         return true
@@ -159,16 +183,16 @@ cmd4city.canPlaceTile = function(index)
     return true
 end
 
-cmd4city.canPlace = function(index, is4Building, attrid)
+cmd4city.canPlace = function(index, is4Building, buildingAttrid)
     if is4Building then
-        return cmd4city.canPlaceBuilding(index, attrid)
+        return cmd4city.canPlaceBuilding(index, buildingAttrid)
     else
         return cmd4city.canPlaceTile(index)
     end
 end
 
 ---@param grid Grid
-function getFreeGridIdx(rangeV4, grid, is4Building)
+function getFreeGridIdx(rangeV4, grid, is4Building, buildingAttrid)
     local x1 = rangeV4.x > rangeV4.z and rangeV4.z or rangeV4.x
     local x2 = rangeV4.x > rangeV4.z and rangeV4.x or rangeV4.z
     local y1 = rangeV4.y > rangeV4.w and rangeV4.w or rangeV4.y
@@ -180,7 +204,7 @@ function getFreeGridIdx(rangeV4, grid, is4Building)
         end
     end
     local startIdx = math.random(1, #cells)
-    if cmd4city.canPlace(cells[startIdx], is4Building) then
+    if cmd4city.canPlace(cells[startIdx], is4Building, buildingAttrid) then
         return cells[startIdx]
     end
 
@@ -192,7 +216,7 @@ function getFreeGridIdx(rangeV4, grid, is4Building)
         if i == startIdx then
             break
         end
-        if cmd4city.canPlace(cells[i], is4Building) then
+        if cmd4city.canPlace(cells[i], is4Building, buildingAttrid) then
             return cells[i]
         end
         i = i + 1
@@ -208,8 +232,8 @@ end
 
 -- 取得一定范围内可用的地块
 ---@param rangeV4 Vector4
-cmd4city.getFreeGridIdx4Building = function(rangeV4)
-    return getFreeGridIdx(rangeV4, grid, true)
+cmd4city.getFreeGridIdx4Building = function(rangeV4, buildingAttrid)
+    return getFreeGridIdx(rangeV4, grid, true, buildingAttrid)
 end
 
 -- 初始化树
@@ -217,10 +241,10 @@ end
 cmd4city.initTree = function(city, rangeV4)
     local max = math.random(5, 12)
     for i = 1, max do
-        local pos = cmd4city.getFreeGridIdx4Building(rangeV4)
+		local treeAttrid = math.random(32, 36)
+        local pos = cmd4city.getFreeGridIdx4Building(rangeV4, treeAttrid)
         if pos >= 0 then
             -- attrid 32到36都是树的配制
-            local treeAttrid = math.random(30, 34)
             local tree = cmd4city.newBuilding(treeAttrid, pos, city:get_idx())
         end
     end
@@ -250,28 +274,12 @@ cmd4city.initTiles = function(city)
     local gridCells =
         grid:getCells(grid:GetCellIndex(numEx.getIntPart(gridSize / 2 - 1), numEx.getIntPart(gridSize / 2 - 1)), range)
     local counter = 0
-    local treeCounter = 0
-    local maxTree = math.random(10, 20)
     for i, index in ipairs(gridCells) do
         if counter < tileCount then
-            local tile = cmd4city.newTile(index, 0, city:get_idx())
-            if tile then
-                counter = counter + 1
-
-                -- 初始化树
-                if treeCounter < maxTree then
-                    local tileCells = grid:getCells(index, tileSize)
-                    for i, index2 in ipairs(tileCells) do
-                        if numEx.nextBool() then
-                            -- attrid 32到36都是树的配制
-                            local treeAttrid = math.random(32, 36)
-                            local tree = cmd4city.newBuilding(treeAttrid, index2, city:get_idx())
-                            if tree then
-                                --tree:set_lev(1)
-                                treeCounter = treeCounter + 1
-                            end
-                        end
-                    end
+            if cmd4city.canPlace(index, false) then
+                local tile = cmd4city.newTile(index, 0, city:get_idx())
+                if tile then
+                    counter = counter + 1
                 end
             end
         else
@@ -502,6 +510,11 @@ cmd4city.getBuildingCountAtCurrLev = function(buildingAttrId)
     if headquarters == nil then
         return 1
     end
+    local attr = cfgUtl.getBuildingByID(buildingAttrId)
+    if attr.GID == IDConstVals.BuildingGID.tree then
+        return 9999
+    end
+
     local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters:get_lev())
     return headquartersOpen["Building" .. buildingAttrId] or 1
 end
@@ -510,10 +523,12 @@ end
 ---@param attrid 建筑的配置id
 ---@param pos grid地块idx
 ---@param cidx 城idx
+---@return dbbuilding
 cmd4city.newBuilding = function(attrid, pos, cidx)
     -- 数量判断
     local hadNum = (buildingCountMap[attrid] or 0)
-    if attrid ~= IDConstVals.headquartersBuildingID then
+    local attr = cfgUtl.getBuildingByID(attrid)
+    if attrid ~= IDConstVals.headquartersBuildingID and attr.GID ~= IDConstVals.BuildingGID.tree then
         local maxNum = cmd4city.getBuildingCountAtCurrLev(attrid)
         if hadNum >= maxNum then
             printe("已经达到建筑最大数量！")
@@ -894,7 +909,7 @@ cmd4city.onChgShipInDockyard = function(b, shipAttrid, num)
     end
     if unit == nil and (not isRemoved) then
         local ship = {}
-        ship[dbunit.keys.idx] = DBUtl.nextVal("unit")
+        ship[dbunit.keys.idx] = DBUtl.nextVal(DBUtl.Keys.unit)
         ship[dbunit.keys.id] = shipAttrid
         ship[dbunit.keys.bidx] = b:get_idx()
         ship[dbunit.keys.num] = num
@@ -1104,6 +1119,7 @@ CMD.getSelfBuildings = function()
     end
     return nil
 end
+---@param m NetProtoIsland.RC_newBuilding
 CMD.newBuilding = function(m, fd)
     -- 新建筑
     local cmd = "newBuilding"
@@ -1122,7 +1138,7 @@ CMD.newBuilding = function(m, fd)
         return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
     end
 
-    if not cmd4city.canPlace(m.pos, true) then
+    if not cmd4city.canPlace(m.pos, true, m.attrid) then
         printe("该位置不能放置建筑！pos==" .. m.pos)
         ret.code = Errcode.error
         ret.msg = "该位置不能放置建筑"

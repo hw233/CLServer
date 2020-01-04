@@ -39,7 +39,7 @@ end
 ---@return dbfleet
 logic4fleet.new = function(name, cidx, pos)
     local fleet = dbfleet.new()
-    local idx = DBUtl.nextVal("fleet")
+    local idx = DBUtl.nextVal(DBUtl.Keys.fleet)
     local fleetData = {}
     fleetData[dbfleet.keys.idx] = idx
     fleetData[dbfleet.keys.name] = CLUtl.isNilOrEmpty(name) and "new fleets" .. idx or name
@@ -88,7 +88,7 @@ logic4fleet.refreshUnits = function(idx, units, agent)
         else
             -- 说明是新加入的舰船数据,只能在idle状态时才可以增加舰船数量
             if fleet:get_task() == IDConstVals.FleetTask.idel and deductShipsInDockyard(v.id, v.num, agent) then
-                v[dbunit.keys.idx] = DBUtl.nextVal("unit")
+                v[dbunit.keys.idx] = DBUtl.nextVal(DBUtl.Keys.unit)
                 v[dbunit.keys.fidx] = fleet:get_idx()
                 dbunit.new(v):release()
             end
@@ -130,6 +130,17 @@ logic4fleet.delete = function(idx)
     if fleet:isEmpty() then
         return
     end
+
+    if fleet:get_task() ~= IDConstVals.FleetTask.idel then
+        if fleet:get_status() == IDConstVals.FleetState.docked or fleet:get_status() == IDConstVals.FleetState.stay then
+            local tile = dbworldmap.instanse(fleet:get_curpos())
+            if not tile:isEmpty() then
+                tile:delete()
+                skynet.call("LDSWorld", "lua", "pushMapCellChg", fleet:get_curpos())
+            end
+        end
+    end
+
     local units = dbunit.getListByfidx(idx)
     for i, v in ipairs(units) do
         local unit = dbunit.instanse(v[dbunit.keys.idx])
