@@ -58,7 +58,7 @@ cmd4player.onPlayerChg = function(data, cmd)
     cmd = cmd or "onPlayerChg"
     local ret = {}
     ret.code = Errcode.ok
-    local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy())
+    local package = pkg4Client({cmd = cmd}, ret, myself:value2copy())
     skynet.call(agent, "lua", "sendPackage", package)
 end
 ------------------------------------------
@@ -73,7 +73,7 @@ CMD.login = function(m, fd, _agent)
         local ret = {}
         ret.msg = "参数错误！"
         ret.code = Errcode.error
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
+        return pkg4Client(m, ret, nil, nil, dateEx.nowMS(), fd)
     end
     if myself == nil then
         myself = dbplayer.instanse(m.uidx)
@@ -102,7 +102,7 @@ CMD.login = function(m, fd, _agent)
             local ret = {}
             ret.msg = "create player err"
             ret.code = Errcode.error
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
+            return pkg4Client(m, ret, nil, nil, dateEx.nowMS(), fd)
         end
     else
         -- 取得主城信息
@@ -120,7 +120,7 @@ CMD.login = function(m, fd, _agent)
                 local ret = {}
                 ret.msg = "get city is nil or empty"
                 ret.code = Errcode.error
-                return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
+                return pkg4Client(m, ret, nil, nil, dateEx.nowMS(), fd)
             end
         end
     end
@@ -138,7 +138,7 @@ CMD.login = function(m, fd, _agent)
         local ret = {}
         ret.msg = "get buildings is nil"
         ret.code = Errcode.error
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
+        return pkg4Client(m, ret, nil, nil, dateEx.nowMS(), fd)
     end
     cityVal.tiles = tiles
     -- local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
@@ -149,7 +149,7 @@ CMD.login = function(m, fd, _agent)
         local ret = {}
         ret.msg = "get buildings is nil"
         ret.code = Errcode.error
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, dateEx.nowMS(), fd, m)
+        return pkg4Client(m, ret, nil, nil, dateEx.nowMS(), fd)
     end
     cityVal.buildings = buildings
 
@@ -159,7 +159,7 @@ CMD.login = function(m, fd, _agent)
     local ret = {}
     ret.msg = nil
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy(), cityVal, dateEx.nowMS(), fd, m)
+    return pkg4Client(m, ret, myself:value2copy(), cityVal, dateEx.nowMS(), fd)
 end
 
 CMD.logout = function(m, fd)

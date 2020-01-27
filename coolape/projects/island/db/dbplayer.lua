@@ -30,8 +30,10 @@ dbplayer.keys = {
     status = "status", -- 状态 1:正常;
     name = "name", -- 名称
     lev = "lev", -- 等级
+    exp = "exp", -- 经验值
     money = "money", -- 充值总数
     diam = "diam", -- 钻石
+    diam4reward = "diam4reward", -- 系统奖励钻石
     cityidx = "cityidx", -- 主城idx
     unionidx = "unionidx", -- 联盟idx
     crtTime = "crtTime", -- 创建时间
@@ -173,6 +175,21 @@ function dbplayer:get_lev()
     return (tonumber(val) or 0)
 end
 
+function dbplayer:set_exp(v)
+    -- 经验值
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_exp],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "exp", v)
+end
+function dbplayer:get_exp()
+    -- 经验值
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "exp")
+    return (tonumber(val) or 0)
+end
+
 function dbplayer:set_money(v)
     -- 充值总数
     if self:isEmpty() then
@@ -200,6 +217,21 @@ end
 function dbplayer:get_diam()
     -- 钻石
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "diam")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_diam4reward(v)
+    -- 系统奖励钻石
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_diam4reward],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "diam4reward", v)
+end
+function dbplayer:get_diam4reward()
+    -- 系统奖励钻石
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "diam4reward")
     return (tonumber(val) or 0)
 end
 
@@ -374,11 +406,17 @@ function dbplayer.validData(data)
     if type(data.lev) ~= "number" then
         data.lev = tonumber(data.lev) or 0
     end
+    if type(data.exp) ~= "number" then
+        data.exp = tonumber(data.exp) or 0
+    end
     if type(data.money) ~= "number" then
         data.money = tonumber(data.money) or 0
     end
     if type(data.diam) ~= "number" then
         data.diam = tonumber(data.diam) or 0
+    end
+    if type(data.diam4reward) ~= "number" then
+        data.diam4reward = tonumber(data.diam4reward) or 0
     end
     if type(data.cityidx) ~= "number" then
         data.cityidx = tonumber(data.cityidx) or 0

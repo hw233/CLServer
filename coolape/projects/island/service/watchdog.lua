@@ -6,18 +6,24 @@ require("public.include")
 local CMD = {}
 local SOCKET = {}
 local gate = nil
-local agent = {}
+local agents = {} -- fd:agent
+local playersWithFd = {} -- pidx:fd
+local fdWithPlayers = {} -- fd:pidx
 local fdLastMsgTime = {}
 local mysql
 local timeOutSec = 300 -- socket超时时间(秒)
 
 local function close_agent(fd)
-    local a = agent[fd]
-    agent[fd] = nil
+    local a = agents[fd]
+    agents[fd] = nil
     if a then
         skynet.call(gate, "lua", "kick", fd)
         -- disconnect never return
         skynet.send(a, "lua", "disconnect")
+    end
+    if fdWithPlayers[fd] then
+        playersWithFd[fdWithPlayers[fd]] = nil
+        fdWithPlayers[fd] = nil
     end
     fdLastMsgTime[fd] = nil
 end
@@ -37,9 +43,9 @@ end
 
 function SOCKET.open(fd, addr)
     skynet.error("New client from : " .. addr .. " fd==" .. fd)
-    agent[fd] = skynet.newservice("agent")
+    agents[fd] = skynet.newservice("agent")
     CMD.alivefd(fd)
-    skynet.call(agent[fd], "lua", "start", {gate = gate, client = fd, mysql = mysql, watchdog = skynet.self()})
+    skynet.call(agents[fd], "lua", "start", {gate = gate, client = fd, mysql = mysql, watchdog = skynet.self()})
 end
 
 function SOCKET.close(fd)
@@ -78,16 +84,38 @@ function CMD.alivefd(fd)
     fdLastMsgTime[fd] = skynet.time()
 end
 
+function CMD.bindPlayer(pidx, fd)
+    playersWithFd[pidx] = fd
+    fdWithPlayers[fd] = pidx
+end
+
+---@public 玩家是否在线
+function CMD.isPlayerOnline(pidx)
+    local fd = playersWithFd[pidx]
+    return fd and true or false
+end
+
+---@public 取得数据
+function CMD.getAgent(pidx)
+    local fd = playersWithFd[pidx]
+    return fd and agents[fd] or nil
+end
+
+---@public 取得数据
+function CMD.getPidx(fd)
+    return fdWithPlayers[fd]
+end
+
 ---@public 通知所有用户
 function CMD.notifyAll(map)
-    for k, agentServer in pairs(agent) do
+    for k, agentServer in pairs(agents) do
         skynet.call(agentServer, "lua", "sendPackage", map)
     end
     return Errcode.ok
 end
 
 function CMD.getAllAgents()
-    return agent
+    return agents
 end
 
 -- 停服

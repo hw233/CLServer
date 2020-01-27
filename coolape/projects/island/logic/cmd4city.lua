@@ -84,11 +84,10 @@ cmd4city.new = function(uidx)
     cmd4city.initTiles(myself)
     --初始化建筑
     -- 邮箱
-	local building = cmd4city.newBuilding(39, 
-	cmd4city.getFreeGridIdx4Building(v4, 39), idx)
+    local building = cmd4city.newBuilding(39, cmd4city.getFreeGridIdx4Building(v4, 39), idx)
 
     -- 最后初始化树
-    cmd4city.initTree(myself, v4)
+    cmd4city.initTree(v4)
     return myself
 end
 
@@ -158,8 +157,8 @@ cmd4city.canPlaceBuilding = function(index, id)
                 end
             end
         else
-			-- 都可以，要么在海上，要么在陆地上
-			local isGound = gridState4Tile[indexs[1]] or false
+            -- 都可以，要么在海上，要么在陆地上
+            local isGound = gridState4Tile[indexs[1]] or false
             for i, v in ipairs(indexs) do
                 if isGound ~= (gridState4Tile[v] or false) then
                     return false
@@ -238,14 +237,14 @@ end
 
 -- 初始化树
 ---@param dbcity
-cmd4city.initTree = function(city, rangeV4)
-    local max = math.random(5, 12)
+cmd4city.initTree = function(rangeV4)
+    local max = math.random(2, 8)
     for i = 1, max do
-		local treeAttrid = math.random(32, 36)
+        -- attrid 32到36都是树的配制
+        local treeAttrid = math.random(32, 36)
         local pos = cmd4city.getFreeGridIdx4Building(rangeV4, treeAttrid)
         if pos >= 0 then
-            -- attrid 32到36都是树的配制
-            local tree = cmd4city.newBuilding(treeAttrid, pos, city:get_idx())
+            local tree = cmd4city.newBuilding(treeAttrid, pos, myself:get_idx())
         end
     end
 end
@@ -1128,21 +1127,21 @@ CMD.newBuilding = function(m, fd)
         printe("主城数据为空！")
         ret.code = Errcode.error
         ret.msg = "主城数据为空"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     -- 是否有空闲队列
     if #(timerQueue.build) >= cmd4city.maxtimerQueue() then
         ret.code = Errcode.noIdelQueue
         ret.msg = "没有空闲队列"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     if not cmd4city.canPlace(m.pos, true, m.attrid) then
         printe("该位置不能放置建筑！pos==" .. m.pos)
         ret.code = Errcode.error
         ret.msg = "该位置不能放置建筑"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     local attrid = m.attrid
@@ -1161,7 +1160,7 @@ CMD.newBuilding = function(m, fd)
         if not succ then
             ret.code = code
             ret.msg = "资源不足"
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+            return pkg4Client(m, ret, nil)
         end
     end
 
@@ -1170,7 +1169,7 @@ CMD.newBuilding = function(m, fd)
         printe("新建建筑失败")
         ret.code = Errcode.error
         ret.msg = "新建建筑失败"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     -- 设置冷却时间
@@ -1189,7 +1188,7 @@ CMD.newBuilding = function(m, fd)
     buildings[building:get_idx()] = building
 
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, building:value2copy(), m)
+    return pkg4Client(m, ret, building:value2copy())
 end
 CMD.getBuilding = function(m, fd, agent)
     -- 取得建筑
@@ -1198,10 +1197,10 @@ CMD.getBuilding = function(m, fd, agent)
     if b == nil then
         ret.code = Errcode.error
         ret.msg = "取得建筑为空"
-        return skynet.call(NetProtoIsland, "lua", "send", "getBuilding", ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", "getBuilding", ret, b:value2copy(), m)
+    return pkg4Client(m, ret, b:value2copy())
 end
 CMD.moveTile = function(m, fd, agent)
     -- 移动地块
@@ -1211,13 +1210,13 @@ CMD.moveTile = function(m, fd, agent)
     if t == nil then
         ret.code = Errcode.error
         ret.msg = "取得地块为空"
-        return skynet.call(NetProtoIsland, "lua", "send", "moveTile", ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
     cmd4city.unPlaceTile(t)
     t:set_pos(m.pos)
     cmd4city.placeTile(t)
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", "moveTile", ret, t:value2copy(), m)
+    return pkg4Client(m, ret, t:value2copy())
 end
 CMD.moveBuilding = function(m, fd, agent)
     -- 移动建筑
@@ -1227,7 +1226,7 @@ CMD.moveBuilding = function(m, fd, agent)
     if b == nil then
         ret.code = Errcode.error
         ret.msg = "取得建筑为空"
-        return skynet.call(NetProtoIsland, "lua", "send", "moveBuilding", ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
     -- 先释放之前的网格状态
     cmd4city.unPlaceBuilding(b)
@@ -1235,7 +1234,7 @@ CMD.moveBuilding = function(m, fd, agent)
     -- 设置新的网格的状态
     cmd4city.placeBuilding(b)
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", "moveBuilding", ret, b:value2copy(), m)
+    return pkg4Client(m, ret, b:value2copy())
 end
 CMD.upLevBuilding = function(m, fd, agent)
     -- 建筑升级
@@ -1245,20 +1244,20 @@ CMD.upLevBuilding = function(m, fd, agent)
     if b == nil then
         ret.code = Errcode.buildingIsNil
         ret.msg = "取得建筑为空"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     if b:get_state() ~= IDConstVals.BuildingState.normal then
         ret.code = Errcode.buildingNotIdel
         ret.msg = "取得建筑不是空闲"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     -- 是否有空闲队列
     if #(timerQueue.build) >= cmd4city.maxtimerQueue() then
         ret.code = Errcode.noIdelQueue
         ret.msg = "没有空闲队列"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     --check max lev
@@ -1268,7 +1267,7 @@ CMD.upLevBuilding = function(m, fd, agent)
     if b:get_lev() >= maxLev then
         ret.code = Errcode.outOfMaxLev
         ret.msg = "已经是最高等级"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     -- 非主基地时，基它建筑要不能超过主基地
@@ -1276,7 +1275,7 @@ CMD.upLevBuilding = function(m, fd, agent)
         if b:get_lev() >= headquarters:get_lev() then
             ret.code = Errcode.exceedHeadquarters
             ret.msg = "不能超过主基地等级"
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+            return pkg4Client(m, ret, nil)
         end
     end
 
@@ -1295,7 +1294,7 @@ CMD.upLevBuilding = function(m, fd, agent)
         if not succ then
             ret.code = code
             ret.msg = "资源不足"
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+            return pkg4Client(m, ret, nil)
         end
     end
 
@@ -1318,7 +1317,7 @@ CMD.upLevBuilding = function(m, fd, agent)
     --cmd4city.CMD.onBuildingChg(b:value2copy())
     ret.code = Errcode.ok
 
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy(), m)
+    return pkg4Client(m, ret, b:value2copy())
 end
 CMD.upLevBuildingImm = function(m, fd, agent)
     -- 立即完成升级
@@ -1330,7 +1329,7 @@ CMD.upLevBuildingImm = function(m, fd, agent)
     if b == nil then
         ret.code = Errcode.error
         ret.msg = "取得建筑为空"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, m)
+        return pkg4Client(m, ret)
     end
 
     --check max lev
@@ -1340,7 +1339,7 @@ CMD.upLevBuildingImm = function(m, fd, agent)
     if b:get_lev() >= maxLev then
         ret.code = Errcode.outOfMaxLev
         ret.msg = "已经是最高等级"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, m)
+        return pkg4Client(m, ret)
     end
 
     -- 非主基地时，基它建筑要不能超过主基地
@@ -1348,7 +1347,7 @@ CMD.upLevBuildingImm = function(m, fd, agent)
         if b:get_lev() >= headquarters:get_lev() then
             ret.code = Errcode.exceedHeadquarters
             ret.msg = "不能超过主基地等级"
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, m)
+            return pkg4Client(m, ret)
         end
     end
 
@@ -1376,7 +1375,7 @@ CMD.upLevBuildingImm = function(m, fd, agent)
     else
         ret.code = Errcode.buildingIsBusy
         ret.msg = "建筑正忙，不可操作"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, m)
+        return pkg4Client(m, ret)
     end
     local isEditMode = cmd4city.isEditMode()
     if needDiam > 0 and (not isEditMode) then
@@ -1386,12 +1385,12 @@ CMD.upLevBuildingImm = function(m, fd, agent)
         if player == nil then
             ret.code = Errcode.playerIsNil
             ret.msg = "玩家数据取得为空"
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, m)
+            return pkg4Client(m, ret)
         end
         if player:get_diam() < needDiam then
             ret.code = Errcode.diamNotEnough
             ret.msg = "钻石不足"
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, m)
+            return pkg4Client(m, ret)
         end
         -- 扣除钻石
         player:set_diam(player:get_diam() - needDiam)
@@ -1401,7 +1400,7 @@ CMD.upLevBuildingImm = function(m, fd, agent)
     b:set_endtime(dateEx.nowMS())
     cmd4city.onFinishBuildingUpgrade(b)
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, m)
+    return pkg4Client(m, ret)
 end
 
 CMD.newTile = function(m, fd, agent)
@@ -1412,14 +1411,14 @@ CMD.newTile = function(m, fd, agent)
         printe("主城数据为空！")
         ret.code = Errcode.error
         ret.msg = "主城数据为空"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     if not cmd4city.canPlace(m.pos, false) then
         printe("该位置不能放置地块！pos==" .. m.pos)
         ret.code = Errcode.error
         ret.msg = "该位置不能放置地块"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     local headquartersOpen = cfgUtl.getHeadquartersLevsByID(headquarters:get_lev())
@@ -1427,7 +1426,7 @@ CMD.newTile = function(m, fd, agent)
     if hadTileCount >= maxNum then
         ret.code = Errcode.maxNumber
         ret.msg = "地块数量已经达上限"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     local constcfg = cfgUtl.getConstCfg()
@@ -1439,28 +1438,28 @@ CMD.newTile = function(m, fd, agent)
     if not succ then
         ret.code = code
         ret.msg = "资源不足"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     local tile, code = cmd4city.newTile(m.pos, 0, myself:get_idx())
     if tile == nil then
         ret.code = code
         ret.msg = "新建地块失败"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, m)
+        return pkg4Client(m, ret, nil)
     end
 
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, tile:value2copy(), m)
+    return pkg4Client(m, ret, tile:value2copy())
 end
 CMD.rmTile = function(m, fd, agent)
     local ret = {}
     ret.code = cmd4city.delSelfTile(m.idx)
-    return skynet.call(NetProtoIsland, "lua", "send", "rmTile", ret, m.idx, m)
+    return pkg4Client(m, ret, m.idx)
 end
 CMD.rmBuilding = function(m, fd, agent)
     local ret = {}
     ret.code = cmd4city.delSelfBuilding(m.idx)
-    return skynet.call(NetProtoIsland, "lua", "send", "rmBuilding", ret, m.idx, m)
+    return pkg4Client(m, ret, m.idx)
 end
 ---@public 收集资源
 CMD.collectRes = function(m, fd, agent)
@@ -1472,7 +1471,7 @@ CMD.collectRes = function(m, fd, agent)
     if b == nil then
         ret.code = Errcode.buildingIsNil
         ret.msg = "取得建筑为空"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, nil, m)
+        return pkg4Client(m, ret, nil, nil, nil)
     end
 
     local attrid = b:get_attrid()
@@ -1480,7 +1479,7 @@ CMD.collectRes = function(m, fd, agent)
     if resType == nil then
         ret.code = Errcode.buildingIsNotResFactory
         ret.msg = "不是资源建筑，不可操作"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, nil, m)
+        return pkg4Client(m, ret, nil, nil, nil)
     end
 
     local val = 0
@@ -1510,7 +1509,7 @@ CMD.collectRes = function(m, fd, agent)
                 if outPrent > 0.2 then
                     ret.code = Errcode.storeNotEnough
                     ret.msg = "仓库空间不足"
-                    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, nil, nil, m)
+                    return pkg4Client(m, ret, nil, nil, nil)
                 end
                 -- 只能存储剩余的空间
                 val = emptySpace
@@ -1527,7 +1526,7 @@ CMD.collectRes = function(m, fd, agent)
     end
 
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, resType, val, b:value2copy(), m)
+    return pkg4Client(m, ret, resType, val, b:value2copy())
 end
 
 ---@public 建造舰船
@@ -1543,23 +1542,23 @@ CMD.buildShip = function(map, fd, agent)
     if b == nil then
         ret.code = Errcode.buildingIsNil
         ret.msg = "取得建筑为空"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
+        return pkg4Client(map, ret, nil)
     end
     if b:get_state() ~= IDConstVals.BuildingState.normal then
         ret.code = Errcode.buildingIsBusy
         ret.msg = "建筑状态不是空闲"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
+        return pkg4Client(map, ret, nil)
     end
     if num <= 0 then
         ret.code = Errcode.numError
         ret.msg = "数量必须大于0"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
+        return pkg4Client(map, ret, nil)
     end
     local roleAttr = cfgUtl.getRoleByID(shipAttrID)
     if roleAttr == nil then
         ret.code = Errcode.cfgIsNil
         ret.msg = "舰船配置取得为空"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
+        return pkg4Client(map, ret, nil)
     end
     -----------------------------------------------
     -- 是否解锁
@@ -1567,7 +1566,7 @@ CMD.buildShip = function(map, fd, agent)
     if needDockyardLev > b:get_lev() then
         ret.code = Errcode.shipIsLocked
         ret.msg = "舰船未解锁"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
+        return pkg4Client(map, ret, nil)
     end
     -----------------------------------------------
     -- 空间是否够
@@ -1591,7 +1590,7 @@ CMD.buildShip = function(map, fd, agent)
     if num * roleAttr.SpaceSize > (totalSpace - usedSpace) then
         ret.code = Errcode.dockyardSpaceNotEnough
         ret.msg = "船坞空间不足"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
+        return pkg4Client(map, ret, nil)
     end
 
     -----------------------------------------------
@@ -1607,7 +1606,7 @@ CMD.buildShip = function(map, fd, agent)
         if not succ then
             ret.code = code
             ret.msg = "资源不足"
-            return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
+            return pkg4Client(map, ret, nil)
         end
     end
 
@@ -1629,7 +1628,7 @@ CMD.buildShip = function(map, fd, agent)
     cmd4city.procDockyardBuildShip(b)
 
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy(), map)
+    return pkg4Client(map, ret, b:value2copy())
 end
 ---@public 取得造船厂所有舰艇列表
 CMD.getShipsByBuildingIdx = function(map, fd, agent)
@@ -1642,13 +1641,13 @@ CMD.getShipsByBuildingIdx = function(map, fd, agent)
         -- 说明是客户端请求
         ret.code = Errcode.buildingIsNil
         ret.msg = "取得建筑为空"
-        return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, nil, map)
+        return pkg4Client(map, ret, nil)
     end
 
     ---@type NetProtoIsland.ST_dockyardShips
     local dockyardShips = cmd4city.getShipsInDockyard(buildingIdx)
     ret.code = Errcode.ok
-    return skynet.call(NetProtoIsland, "lua", "send", cmd, ret, dockyardShips, map)
+    return pkg4Client(map, ret, dockyardShips)
 end
 
 CMD.onBuildingChg = function(data, cmd)
@@ -1661,7 +1660,8 @@ CMD.onBuildingChg = function(data, cmd)
         if b then
             local ret = {}
             ret.code = Errcode.ok
-            local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, b:value2copy())
+            local package = pkg4Client({cmd = cmd}, ret, b:value2copy())
+
             if skynet.address(agent) ~= nil then
                 skynet.call(agent, "lua", "sendPackage", package)
             end
@@ -1684,7 +1684,7 @@ CMD.onDockyardShipsChg = function(bidx, shipAttrid, num)
 
     -- 推送给客户端
     cmd = "getShipsByBuildingIdx"
-    local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, dockyardShips)
+    local package = pkg4Client({cmd = cmd}, ret, dockyardShips)
     if skynet.address(agent) ~= nil then
         skynet.call(agent, "lua", "sendPackage", package)
     end
@@ -1692,7 +1692,7 @@ CMD.onDockyardShipsChg = function(bidx, shipAttrid, num)
     if num > 0 then
         -- 推送给客户端
         cmd = "onFinishBuildOneShip"
-        package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, bidx, shipAttrid, num)
+        package = pkg4Client({cmd = cmd}, ret, bidx, shipAttrid, num)
         if skynet.address(agent) ~= nil then
             skynet.call(agent, "lua", "sendPackage", package)
         end
@@ -1703,7 +1703,7 @@ CMD.onMyselfCityChg = function(data)
     local cmd = "onMyselfCityChg"
     local ret = {}
     ret.code = Errcode.ok
-    local package = skynet.call(NetProtoIsland, "lua", "send", cmd, ret, myself:value2copy())
+    local package = pkg4Client({cmd = cmd}, ret, myself:value2copy())
     if skynet.address(agent) ~= nil then
         skynet.call(agent, "lua", "sendPackage", package)
     end

@@ -220,7 +220,7 @@ function genDB.genSql(tableCfg)
     table.insert(str, "DROP TABLE IF EXISTS `" .. tName .. "`;");
     table.insert(str, "CREATE TABLE `" .. tName .. "` (");
     for i, v in ipairs(tableCfg.columns) do
-        table.insert(columns, "  `" .. v[1] .. "` " .. v[2])
+        table.insert(columns, "  `" .. v[1] .. "` " .. v[2] .. " COMMENT '".. v[3] .. "'")
     end
     if tableCfg.primaryKey then
         for _, pk in ipairs(tableCfg.primaryKey) do

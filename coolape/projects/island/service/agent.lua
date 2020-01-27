@@ -88,8 +88,10 @@ function CMD.disconnect()
     skynet.exit()
 end
 
+---@param _player NetProtoIsland.ST_player
 function CMD.onLogin(_player)
     player = _player
+    skynet.call(WATCHDOG, "lua", "bindPlayer", player.idx, client_fd)
 end
 
 function CMD.log(msg)
@@ -143,7 +145,7 @@ function CMD.notifyNetCfg()
     local cfg = CLNetSerialize.getCfg()
     local ret = {}
     ret.code = Errcode.ok
-    local package = skynet.call(NetProtoName, "lua", "send", "sendNetCfg", ret, cfg, dateEx.nowMS())
+    local package = pkg4Client({cmd = "sendNetCfg"}, ret, cfg, dateEx.nowMS())
     CMD.sendPackage(package)
 end
 

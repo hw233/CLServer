@@ -35,6 +35,29 @@ logic4fleet.init = function()
     constDeadMs = cfgUtl.getConstCfg().FleetTimePerOnce * 60 * 1000
 end
 
+---@public 舰队是否自己的
+logic4fleet.isMyFleet = function(session, fidx)
+    local pidx = getPlayerIdx(session)
+    if not pidx then
+        return false
+    end
+    local player = dbplayer.instanse(pidx)
+    if player:isEmpty() then
+        return false
+    end
+    local cidx = player:get_cityidx()
+    local fleet = dbfleet.instanse(fidx)
+    local ret = false
+    if  fleet:get_cidx() == cidx then
+        ret = true
+    else
+        ret = false
+    end
+    player:release()
+    fleet:release()
+    return ret
+end
+
 ---@public 新建筑舰队
 ---@return dbfleet
 logic4fleet.new = function(name, cidx, pos)
@@ -120,6 +143,12 @@ logic4fleet.getFleet = function(idx)
         v3.z = numEx.getIntPart(fromPos.z * 1000)
         result.fromposv3 = v3
     end
+    local city = dbcity.instanse(fleet:get_cidx())
+    local player = dbplayer.instanse(city:get_pidx())
+    -- 设置玩家名
+    result.pname = player:get_name()
+    city:release()
+    player:release()
     fleet:release()
     return result
 end

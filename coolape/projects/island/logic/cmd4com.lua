@@ -9,8 +9,9 @@ local DBUtl = require "DBUtl"
 local NetProto = skynet.getenv("NetProtoName")
 local CMD = {}
 --心跳
+---@param map NetProtoIsland.RC_heart
 CMD.heart = function(map)
-    return skynet.call(NetProto, "lua", "send", "heart", map)
+    return pkg4Client(map)
 end
 
 -- 释放

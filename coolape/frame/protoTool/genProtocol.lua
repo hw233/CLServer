@@ -227,7 +227,7 @@ do
                     add(ret, "            r[" .. getKeyCode(k) .. "] = m." .. k .. "  -- " .. (v[2] or " ") .. " " .. typeName)
                 end
             end
-            add(ret, "            return r;")
+            add(ret, "            return r")
             add(ret, "        end,")
 
             add(ret, "        parse = function(m)")
@@ -280,7 +280,7 @@ do
                     add(ret, "            r." .. k .. " = " .. valueStr .. " -- " .. " " .. typeName )
                 end
             end
-            add(ret, "            return r;")
+            add(ret, "            return r")
             add(ret, "        end,")
             add(ret, "    }");
         end
@@ -357,7 +357,7 @@ do
             add(ret, "    " .. getStName(name) .. " = {");
             add(ret, "        toMap : function(m) {")
             add(ret, "            var r = {};")
-            add(ret, "            if(!m) { return r; }");
+            add(ret, "            if(!m) { return r }");
             local typeName = ""
             for k, v in pairs(val[2]) do
                 typeName = type(v[1])
@@ -405,12 +405,12 @@ do
                     add(ret, "            r[" .. getKeyCode(k) .. "] = m." .. k .. "  // " .. (v[2] or " ") .. " " .. typeName)
                 end
             end
-            add(ret, "            return r;")
+            add(ret, "            return r")
             add(ret, "        },")
 
             add(ret, "        parse : function(m) {")
             add(ret, "            var r = {};")
-            add(ret, "            if(!m) { return r; }");
+            add(ret, "            if(!m) { return r }");
             for k, v in pairs(val[2]) do
                 typeName = type(v[1])
                 if typeName == "table" then
@@ -452,7 +452,7 @@ do
                     add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] // " .. " " .. typeName )
                 end
             end
-            add(ret, "            return r;")
+            add(ret, "            return r")
             add(ret, "        },")
             add(ret, "    }");
         end
@@ -801,7 +801,7 @@ do
                 -- 没有入参数
                 add(serverSend, "    " .. cmd .. " = function(mapOrig) -- mapOrig:客户端原始入参");
             else
-                add(serverSend, "    " .. cmd .. " = function(" .. table.concat(outputParams, ", ") .. ", mapOrig) -- mapOrig:客户端原始入参");
+                add(serverSend, "    " .. cmd .. " = function(mapOrig, " .. table.concat(outputParams, ", ") .. ") -- mapOrig:客户端原始入参");
             end
 
             add(clientSend, "        local ret = {}");
@@ -855,7 +855,7 @@ do
             add(clientRecive, "    end,");
             add(clientReciveJS, "    },");
 
-            add(serverRecive, "    ---@class " .. defProtocol.name .. ".RC_" .. cmd)
+            add(serverRecive, "    ---@class " .. defProtocol.name .. ".RC_" .. cmd .. " : "  .. defProtocol.name .. ".RC_Base")
             if #serverReciveParamsFields > 0 then
                 add(serverRecive, table.concat(serverReciveParamsFields, "\n"));
             end
@@ -877,6 +877,11 @@ do
         add(strsClientJS, table.concat(clientSendJS, "\n"));
         add(strsClient, "    }");
         add(strsClientJS, "    };");
+
+        add(strsServer, "    ---@class " .. defProtocol.name .. ".RC_Base")
+        add(strsServer, "    ---@field public cmd number")
+        add(strsServer, "    ---@field public __session__ string")
+        add(strsServer, "")
 
         add(strsServer, "    " .. defProtocol.name .. ".recive = {");
         add(strsServer, table.concat(serverRecive, "\n"));

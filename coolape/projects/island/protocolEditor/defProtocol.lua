@@ -70,8 +70,10 @@ defProtocol.structs.player = {
         idx = {0, "唯一标识 int"},
         name = {"", "名字"},
         status = {0, "状态 1：正常 int"},
+        exp = {0, "经验值 long"},
         lev = {0, "等级 long"},
         diam = {0, "钻石 long"},
+        diam4reward = {0, "钻石 long"},
         cityidx = {0, "城池id int"},
         unionidx = {0, "联盟id int"}
     }
@@ -122,7 +124,8 @@ defProtocol.structs.unitInfor = {
         id = {0, "配置数量的id int"},
         bidx = {0, "所属建筑idx int"},
         fidx = {0, "所属舰队idx int"},
-        num = {0, "数量 int"}
+        num = {0, "数量 int"},
+        lev = {0, "等级(大部分情况下lev可能是0，而是由科技决定，但是联盟里的兵等级是有值的) int"},
     }
 }
 
@@ -181,6 +184,7 @@ defProtocol.structs.fleetinfor = {
         idx = {0, "唯一标识舰队idx"},
         cidx = {0, "城市idx"},
         name = {"", "名称"},
+        pname = {"", "玩家名"},
         curpos = {0, "当前所在世界grid的index"},
         fromposv3 = {defProtocol.structs.vector3, "坐标"},
         frompos = {0, "出征的开始所在世界grid的index"},
@@ -193,6 +197,16 @@ defProtocol.structs.fleetinfor = {
         arrivetime = {0, "到达时间"},
         deadtime = {0, "沉没的时间"},
         units = {{defProtocol.structs.unitInfor, defProtocol.structs.unitInfor}, "战斗单元列表"}
+    }
+}
+defProtocol.structs.battleresult = {
+    "战斗结果",
+    {
+        iswin = {true, "胜负"},
+        star = {0, "星级"},
+        exp = {0, "获得的经验"},
+        lootRes = {defProtocol.structs.resInfor, "掠夺的资源"},
+        usedUnits = {{defProtocol.structs.unitInfor, defProtocol.structs.unitInfor}, "进攻方投入的战斗单元"}
     }
 }
 --===================================================
@@ -449,20 +463,6 @@ defProtocol.cmds = {
         outputDesc = {"返回信息", "舰队列表"}, -- 出参说明
         logic = "LDSWorld"
     },
-    fleetAttack = {
-        desc = "舰队攻击", -- 接口说明
-        input = {"fidx", "targetPos"}, -- 入参
-        inputDesc = {"舰队idx", "世界地图坐标idx int"}, -- 入参说明
-        output = {
-            structs.retInfor,
-            structs.player,
-            structs.city,
-            {structs.dockyardShips, structs.dockyardShips},
-            {structs.dockyardShips, structs.dockyardShips}
-        }, -- 出参
-        outputDesc = {"返回信息", "被攻击玩家信息", "被攻击主城信息", "被攻击航船的数据", "进攻击方航船的数据"}, -- 出参说明
-        logic = "LDSWorld"
-    },
     fleetDepart = {
         desc = "舰队出征", -- 接口说明
         input = {"idx", "toPos"}, -- 入参
@@ -477,6 +477,94 @@ defProtocol.cmds = {
         inputDesc = {"舰队idx"}, -- 入参说明
         output = {structs.retInfor, defProtocol.structs.fleetinfor}, -- 出参
         outputDesc = {"返回信息", "舰队信息"}, -- 出参说明
+        logic = "LDSWorld"
+    },
+    fleetAttackIsland = {
+        desc = "舰队攻击岛屿", -- 接口说明
+        input = {"fidx", "targetPos"}, -- 入参
+        inputDesc = {"攻击方舰队idx", "攻击目标的世界地图坐标idx int"}, -- 入参说明
+        output = {
+            structs.retInfor,
+            structs.fleetinfor
+        }, -- 出参
+        outputDesc = {
+            "返回信息",
+            "进攻方舰队数据"
+        }, -- 出参说明
+        logic = "LDSWorld"
+    },
+    fleetAttackFleet = {
+        desc = "舰队攻击舰队", -- 接口说明
+        input = {"fidx", "targetPos"}, -- 入参
+        inputDesc = {"攻击方舰队idx", "攻击目标的世界地图坐标idx int"}, -- 入参说明
+        output = {
+            structs.retInfor,
+            structs.mapCell,
+            structs.fleetinfor,
+            structs.fleetinfor
+        }, -- 出参
+        outputDesc = {
+            "返回信息",
+            "被攻击方地块",
+            "被攻击方舰队数据",
+            "进攻方舰队数据"
+        }, -- 出参说明
+        logic = "LDSWorld"
+    },
+    sendPrepareAttackIsland = {
+        desc = "准备攻击岛", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {
+            structs.retInfor,
+            structs.player,
+            structs.city,
+            structs.player,
+            structs.city,
+            structs.fleetinfor
+        }, -- 出参
+        outputDesc = {
+            "返回信息",
+            "被攻击方玩家信息",
+            "被攻击方主城信息",
+            "攻击方玩家信息",
+            "攻击方主城信息",
+            "进攻方舰队数据"
+        }, -- 出参说明
+        logic = "LDSWorld"
+    },
+    sendStartAttackIsland = {
+        desc = "开始攻击岛", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {
+            structs.retInfor,
+            structs.player,
+            structs.city,
+            {structs.dockyardShips, structs.dockyardShips},
+            structs.fleetinfor
+        }, -- 出参
+        outputDesc = {
+            "返回信息",
+            "被攻击方玩家信息",
+            "被攻击方主城信息",
+            "被攻击方舰船数据",
+            "进攻方舰队数据"
+        }, -- 出参说明
+        logic = "LDSWorld"
+    },
+    sendEndAttackIsland = {
+        desc = "结束攻击岛", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {
+            structs.retInfor,
+            structs.battleresult,
+        }, -- 出参
+        outputDesc = {
+            "返回信息",
+            "战斗结果",
+        }, -- 出参说明
         logic = "LDSWorld"
     }
 }

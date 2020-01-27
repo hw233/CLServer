@@ -40,4 +40,7 @@ Errcode.goldNotEnough = 35  -- 金币不足
 Errcode.oilNotEnough = 36  -- 油不足
 Errcode.diamNotEnough = 37  -- 钻石不足
 Errcode.fleetCannotMoveTo = 38 -- 舰队不能到达
+Errcode.cannontFoundPlayerInWorld = 39 -- 无法在世界地图上找到玩家
+Errcode.toFarCannotAttack = 40 -- 距离太远无法进行攻击
+Errcode.fleetIsNotMine = 41 -- 舰队不是自己的，不可操作
 return Errcode
