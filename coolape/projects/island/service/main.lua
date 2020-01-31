@@ -36,10 +36,6 @@ skynet.start(
             skynet.uniqueservice("CLDB")
             skynet.call("CLDB", "lua", "SETTIMEOUT", 20 * dataSynSec)     -- 设置数据缓存时间 秒
 
-            -- world Grid
-            skynet.uniqueservice("LDSWorld")
-            skynet.call("LDSWorld", "lua", "init")
-
             -- 监听socket
             local watchdog = skynet.uniqueservice("watchdog")
             skynet.call(watchdog, "lua", "start", {
@@ -49,6 +45,10 @@ skynet.start(
                 mysql = mysql,
             })
             skynet.error("Watchdog listen on", skynet.getenv("socketPort"))
+
+            -- world Grid
+            skynet.uniqueservice("LDSWorld")
+            skynet.call("LDSWorld", "lua", "init")
 
             -- http server
             skynet.newservice("myweb",

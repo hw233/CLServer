@@ -70,6 +70,8 @@ defProtocol.structs.player = {
         idx = {0, "唯一标识 int"},
         name = {"", "名字"},
         status = {0, "状态 1：正常 int"},
+        attacking = {true, "正在攻击玩家的岛屿"},
+        beingattacked = {true, "正在被玩家攻击"},
         exp = {0, "经验值 long"},
         lev = {0, "等级 long"},
         diam = {0, "钻石 long"},
@@ -113,6 +115,7 @@ defProtocol.structs.city = {
         pidx = {0, "玩家idx int"},
         pos = {0, "城所在世界grid的index int"},
         status = {0, "状态 1:正常; int"},
+        protectEndTime = {0, "免战结束时间"},
         lev = {0, "等级 int"},
         buildings = {{buildingIdx = defProtocol.structs.building}, "建筑信息 key=idx, map"},
         tiles = {{tileIdx = defProtocol.structs.tile}, "地块信息 key=idx, map"}
@@ -125,7 +128,7 @@ defProtocol.structs.unitInfor = {
         bidx = {0, "所属建筑idx int"},
         fidx = {0, "所属舰队idx int"},
         num = {0, "数量 int"},
-        lev = {0, "等级(大部分情况下lev可能是0，而是由科技决定，但是联盟里的兵等级是有值的) int"},
+        lev = {0, "等级(大部分情况下lev可能是0，而是由科技决定，但是联盟里的兵等级是有值的) int"}
     }
 }
 
@@ -542,14 +545,18 @@ defProtocol.cmds = {
             structs.player,
             structs.city,
             {structs.dockyardShips, structs.dockyardShips},
-            structs.fleetinfor
+            structs.player,
+            structs.fleetinfor,
+            "endTimeLimit"
         }, -- 出参
         outputDesc = {
             "返回信息",
             "被攻击方玩家信息",
             "被攻击方主城信息",
             "被攻击方舰船数据",
-            "进攻方舰队数据"
+            "攻击方玩家信息",
+            "进攻方舰队数据",
+            "战斗限制时间"
         }, -- 出参说明
         logic = "LDSWorld"
     },
@@ -559,11 +566,23 @@ defProtocol.cmds = {
         inputDesc = {}, -- 入参说明
         output = {
             structs.retInfor,
-            structs.battleresult,
+            structs.battleresult
         }, -- 出参
         outputDesc = {
             "返回信息",
-            "战斗结果",
+            "战斗结果"
+        }, -- 出参说明
+        logic = "LDSWorld"
+    },
+    quitIslandBattle = {
+        desc = "主动离开攻击岛", -- 接口说明
+        input = {"fidx"}, -- 入参
+        inputDesc = {"攻击方舰队idx"}, -- 入参说明
+        output = {
+            structs.retInfor
+        }, -- 出参
+        outputDesc = {
+            "返回信息"
         }, -- 出参说明
         logic = "LDSWorld"
     }

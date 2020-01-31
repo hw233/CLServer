@@ -22,6 +22,10 @@ IDConstVals.BuildingGID = {
 
 IDConstVals.PlayerState = {
     normal = 1, -- 正常
+}
+
+IDConstVals.CityState = {
+    normal = 1, -- 正常
     protect = 2 -- 免战保护
 }
 
@@ -78,6 +82,13 @@ IDConstVals.FleetState = {
     moving = 2, -- 航行中
     docked = 3, -- 停泊在港口
     stay = 4, -- 停留在海面
-    fighting = 5 -- 正在战斗中
+    fightingFleet = 5, -- 正在战斗中
+    fightingIsland = 6 -- 正在战斗中
+}
+---@public 免战保护
+IDConstVals.ProtectLev = {
+    [1] = 60, -- 1星时，分钟
+    [2] = 240, -- 1星时，分钟
+    [3] = 480 -- 1星时，分钟
 }
 return IDConstVals

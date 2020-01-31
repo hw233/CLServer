@@ -48,7 +48,7 @@ logic4fleet.isMyFleet = function(session, fidx)
     local cidx = player:get_cityidx()
     local fleet = dbfleet.instanse(fidx)
     local ret = false
-    if  fleet:get_cidx() == cidx then
+    if fleet:get_cidx() == cidx then
         ret = true
     else
         ret = false
@@ -56,6 +56,22 @@ logic4fleet.isMyFleet = function(session, fidx)
     player:release()
     fleet:release()
     return ret
+end
+
+---@public 判断舰队是否为空
+logic4fleet.isEmpty = function(fidx)
+    local fleet = dbfleet.instanse(fidx)
+    local units = dbunit.getListByfidx(fidx)
+    if #units == 0 then
+        return true
+    end
+    for i, v in ipairs(units) do
+        if v[dbunit.keys.num] > 0 then
+            -- 说明至少有一种战斗单元的数量大于0
+            return false
+        end
+    end
+    return true
 end
 
 ---@public 新建筑舰队

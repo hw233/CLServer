@@ -41,31 +41,37 @@ function cfgUtl.initCurves()
 end
 
 ---@public 取得常量配置
+---@return DBCFCfgData
 function cfgUtl.getConstCfg()
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFCfgData", 1)
 end
 
 ---@public 取得主基地等级开放
+---@return DBCFHeadquartersLevsData
 function cfgUtl.getHeadquartersLevsByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFHeadquartersLevsData", id)
 end
 
 ---@public 取得地块的cfg
+---@return DBCFTileData
 function cfgUtl.getTileByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFTileData", id)
 end
 
 ---@public 取得建筑
+---@return DBCFBuildingData
 function cfgUtl.getBuildingByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFBuildingData", id)
 end
 
 ---@public 取得兵种数据
+---@return DBCFRoleData
 function cfgUtl.getRoleByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFRoleData", id)
 end
 
 ---@public 取得大地图地块数据
+---@return DBCFMapTileData
 function cfgUtl.getMapTileByID(id)
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFMapTileData", id)
 end

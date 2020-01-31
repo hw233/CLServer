@@ -7,6 +7,7 @@ local tab = {
         { "pidx", "int(11) NOT NULL", "玩家idx" },
         { "pos", "int(11)", "城所在世界grid的index" },
         { "status", "TINYINT", "状态 1:正常;" },
+        {"protectEndTime", "Datetime", "免战结束时间" },
         --{ "lev", "int(4)", "等级" },
         --{ "iron", "int(11)", "铁" },
         --{ "oil", "int(11)", "油" },

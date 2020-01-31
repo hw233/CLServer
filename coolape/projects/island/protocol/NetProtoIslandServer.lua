@@ -87,27 +87,30 @@ do
         end,
     }
     ---@class NetProtoIsland.ST_unitInfor 单元(舰船、萌宠等)
+    ---@field public lev number 等级(大部分情况下lev可能是0，而是由科技决定，但是联盟里的兵等级是有值的) int
+    ---@field public fidx number 所属舰队idx int
     ---@field public id number 配置数量的id int
     ---@field public bidx number 所属建筑idx int
     ---@field public num number 数量 int
-    ---@field public fidx number 所属舰队idx int
     NetProtoIsland.ST_unitInfor = {
         toMap = function(m)
             local r = {}
             if m == nil then return r end
+            r[24] =  BioUtl.number2bio(m.lev)  -- 等级(大部分情况下lev可能是0，而是由科技决定，但是联盟里的兵等级是有值的) int int
+            r[101] =  BioUtl.number2bio(m.fidx)  -- 所属舰队idx int int
             r[99] =  BioUtl.number2bio(m.id)  -- 配置数量的id int int
             r[100] =  BioUtl.number2bio(m.bidx)  -- 所属建筑idx int int
             r[67] =  BioUtl.number2bio(m.num)  -- 数量 int int
-            r[101] =  BioUtl.number2bio(m.fidx)  -- 所属舰队idx int int
             return r
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
+            r.lev = m[24] --  int
+            r.fidx = m[101] --  int
             r.id = m[99] --  int
             r.bidx = m[100] --  int
             r.num = m[67] --  int
-            r.fidx = m[101] --  int
             return r
         end,
     }
@@ -190,58 +193,58 @@ do
     }
     ---@class NetProtoIsland.ST_mapCell 大地图地块数据
     ---@field public idx number 网格index
+    ---@field public type number 地块类型 3：玩家，4：npc
     ---@field public pageIdx number 所在屏的index
     ---@field public val2 number 值2
-    ---@field public val3 number 值3
     ---@field public lev number 等级
-    ---@field public type number 地块类型 3：玩家，4：npc
+    ---@field public fidx number 舰队idx
     ---@field public cidx number 主城idx
-    ---@field public val1 number 值1
+    ---@field public val3 number 值3
     ---@field public attrid number 配置id
+    ---@field public val1 number 值1
     ---@field public state number 状态  1:正常; int
     ---@field public name string 名称
-    ---@field public fidx number 舰队idx
     NetProtoIsland.ST_mapCell = {
         toMap = function(m)
             local r = {}
             if m == nil then return r end
             r[16] =  BioUtl.number2bio(m.idx)  -- 网格index int
+            r[30] =  BioUtl.number2bio(m.type)  -- 地块类型 3：玩家，4：npc int
             r[13] =  BioUtl.number2bio(m.pageIdx)  -- 所在屏的index int
             r[22] =  BioUtl.number2bio(m.val2)  -- 值2 int
-            r[21] =  BioUtl.number2bio(m.val3)  -- 值3 int
             r[24] =  BioUtl.number2bio(m.lev)  -- 等级 int
-            r[30] =  BioUtl.number2bio(m.type)  -- 地块类型 3：玩家，4：npc int
+            r[101] =  BioUtl.number2bio(m.fidx)  -- 舰队idx int
             r[18] =  BioUtl.number2bio(m.cidx)  -- 主城idx int
-            r[29] =  BioUtl.number2bio(m.val1)  -- 值1 int
+            r[21] =  BioUtl.number2bio(m.val3)  -- 值3 int
             r[17] =  BioUtl.number2bio(m.attrid)  -- 配置id int
+            r[29] =  BioUtl.number2bio(m.val1)  -- 值1 int
             r[28] =  BioUtl.number2bio(m.state)  -- 状态  1:正常; int int
             r[35] = m.name  -- 名称 string
-            r[101] =  BioUtl.number2bio(m.fidx)  -- 舰队idx int
             return r
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.idx = m[16] --  int
+            r.type = m[30] --  int
             r.pageIdx = m[13] --  int
             r.val2 = m[22] --  int
-            r.val3 = m[21] --  int
             r.lev = m[24] --  int
-            r.type = m[30] --  int
+            r.fidx = m[101] --  int
             r.cidx = m[18] --  int
-            r.val1 = m[29] --  int
+            r.val3 = m[21] --  int
             r.attrid = m[17] --  int
+            r.val1 = m[29] --  int
             r.state = m[28] --  int
             r.name = m[35] --  string
-            r.fidx = m[101] --  int
             return r
         end,
     }
     ---@class NetProtoIsland.ST_battleresult 战斗结果
     ---@field public lootRes resInfor 掠夺的资源
     ---@field public exp number 获得的经验
-    ---@field public usedUnits table 进攻方投入的战斗单元
     ---@field public iswin useData 胜负
+    ---@field public usedUnits table 进攻方投入的战斗单元
     ---@field public star number 星级
     NetProtoIsland.ST_battleresult = {
         toMap = function(m)
@@ -249,8 +252,8 @@ do
             if m == nil then return r end
             r[131] = NetProtoIsland.ST_resInfor.toMap(m.lootRes) -- 掠夺的资源
             r[132] =  BioUtl.number2bio(m.exp)  -- 获得的经验 int
-            r[133] = NetProtoIsland._toList(NetProtoIsland.ST_unitInfor, m.usedUnits)  -- 进攻方投入的战斗单元
             r[134] = m.iswin  -- 胜负 boolean
+            r[133] = NetProtoIsland._toList(NetProtoIsland.ST_unitInfor, m.usedUnits)  -- 进攻方投入的战斗单元
             r[135] =  BioUtl.number2bio(m.star)  -- 星级 int
             return r
         end,
@@ -259,8 +262,8 @@ do
             if m == nil then return r end
             r.lootRes = NetProtoIsland.ST_resInfor.parse(m[131]) --  table
             r.exp = m[132] --  int
-            r.usedUnits = NetProtoIsland._parseList(NetProtoIsland.ST_unitInfor, m[133])  -- 进攻方投入的战斗单元
             r.iswin = m[134] --  boolean
+            r.usedUnits = NetProtoIsland._parseList(NetProtoIsland.ST_unitInfor, m[133])  -- 进攻方投入的战斗单元
             r.star = m[135] --  int
             return r
         end,
@@ -289,11 +292,12 @@ do
     }
     ---@class NetProtoIsland.ST_city 主城
     ---@field public idx number 唯一标识 int
+    ---@field public protectEndTime number 免战结束时间
     ---@field public tiles table 地块信息 key=idx, map
-    ---@field public name string 名称
     ---@field public status number 状态 1:正常; int
-    ---@field public buildings table 建筑信息 key=idx, map
     ---@field public lev number 等级 int
+    ---@field public name string 名称
+    ---@field public buildings table 建筑信息 key=idx, map
     ---@field public pos number 城所在世界grid的index int
     ---@field public pidx number 玩家idx int
     NetProtoIsland.ST_city = {
@@ -301,11 +305,12 @@ do
             local r = {}
             if m == nil then return r end
             r[16] =  BioUtl.number2bio(m.idx)  -- 唯一标识 int int
+            r[144] =  BioUtl.number2bio(m.protectEndTime)  -- 免战结束时间 int
             r[34] = NetProtoIsland._toMap(NetProtoIsland.ST_tile, m.tiles)  -- 地块信息 key=idx, map
-            r[35] = m.name  -- 名称 string
             r[37] =  BioUtl.number2bio(m.status)  -- 状态 1:正常; int int
-            r[36] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
             r[24] =  BioUtl.number2bio(m.lev)  -- 等级 int int
+            r[35] = m.name  -- 名称 string
+            r[36] = NetProtoIsland._toMap(NetProtoIsland.ST_building, m.buildings)  -- 建筑信息 key=idx, map
             r[19] =  BioUtl.number2bio(m.pos)  -- 城所在世界grid的index int int
             r[38] =  BioUtl.number2bio(m.pidx)  -- 玩家idx int int
             return r
@@ -314,11 +319,12 @@ do
             local r = {}
             if m == nil then return r end
             r.idx = m[16] --  int
+            r.protectEndTime = m[144] --  int
             r.tiles = NetProtoIsland._parseMap(NetProtoIsland.ST_tile, m[34])  -- 地块信息 key=idx, map
-            r.name = m[35] --  string
             r.status = m[37] --  int
-            r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[36])  -- 建筑信息 key=idx, map
             r.lev = m[24] --  int
+            r.name = m[35] --  string
+            r.buildings = NetProtoIsland._parseMap(NetProtoIsland.ST_building, m[36])  -- 建筑信息 key=idx, map
             r.pos = m[19] --  int
             r.pidx = m[38] --  int
             return r
@@ -423,10 +429,12 @@ do
     ---@field public status number 状态 1：正常 int
     ---@field public cityidx number 城池id int
     ---@field public lev number 等级 long
-    ---@field public diam number 钻石 long
+    ---@field public attacking useData 正在攻击玩家的岛屿
     ---@field public name string 名字
-    ---@field public diam4reward number 钻石 long
     ---@field public exp number 经验值 long
+    ---@field public diam number 钻石 long
+    ---@field public diam4reward number 钻石 long
+    ---@field public beingattacked useData 正在被玩家攻击
     NetProtoIsland.ST_player = {
         toMap = function(m)
             local r = {}
@@ -436,10 +444,12 @@ do
             r[37] =  BioUtl.number2bio(m.status)  -- 状态 1：正常 int int
             r[40] =  BioUtl.number2bio(m.cityidx)  -- 城池id int int
             r[24] =  BioUtl.number2bio(m.lev)  -- 等级 long int
-            r[39] =  BioUtl.number2bio(m.diam)  -- 钻石 long int
+            r[146] = m.attacking  -- 正在攻击玩家的岛屿 boolean
             r[35] = m.name  -- 名字 string
-            r[136] =  BioUtl.number2bio(m.diam4reward)  -- 钻石 long int
             r[132] =  BioUtl.number2bio(m.exp)  -- 经验值 long int
+            r[39] =  BioUtl.number2bio(m.diam)  -- 钻石 long int
+            r[136] =  BioUtl.number2bio(m.diam4reward)  -- 钻石 long int
+            r[147] = m.beingattacked  -- 正在被玩家攻击 boolean
             return r
         end,
         parse = function(m)
@@ -450,10 +460,12 @@ do
             r.status = m[37] --  int
             r.cityidx = m[40] --  int
             r.lev = m[24] --  int
-            r.diam = m[39] --  int
+            r.attacking = m[146] --  boolean
             r.name = m[35] --  string
-            r.diam4reward = m[136] --  int
             r.exp = m[132] --  int
+            r.diam = m[39] --  int
+            r.diam4reward = m[136] --  int
+            r.beingattacked = m[147] --  boolean
             return r
         end,
     }
@@ -771,6 +783,17 @@ do
         ret.callback = map[3]
         return ret
     end,
+    -- 主动离开攻击岛
+    ---@class NetProtoIsland.RC_quitIslandBattle : NetProtoIsland.RC_Base
+    ---@field public fidx  攻击方舰队idx
+    quitIslandBattle = function(map)
+        local ret = {}
+        ret.cmd = "quitIslandBattle"
+        ret.__session__ = map[1] or map["1"]
+        ret.callback = map[3]
+        ret.fidx = map[101] -- 攻击方舰队idx
+        return ret
+    end,
     -- 搬迁
     ---@class NetProtoIsland.RC_moveCity : NetProtoIsland.RC_Base
     ---@field public cidx  城市idx
@@ -1035,7 +1058,7 @@ do
         ret[70] = NetProtoIsland.ST_tile.toMap(tile); -- 地块信息
         return ret
     end,
-    sendStartAttackIsland = function(mapOrig, retInfor, player, city, dockyardShipss, fleetinfor) -- mapOrig:客户端原始入参
+    sendStartAttackIsland = function(mapOrig, retInfor, player, city, dockyardShipss, player2, fleetinfor, endTimeLimit) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 139
         ret[3] = mapOrig and mapOrig.callback or nil
@@ -1043,7 +1066,13 @@ do
         ret[53] = NetProtoIsland.ST_player.toMap(player); -- 被攻击方玩家信息
         ret[54] = NetProtoIsland.ST_city.toMap(city); -- 被攻击方主城信息
         ret[91] = NetProtoIsland._toList(NetProtoIsland.ST_dockyardShips, dockyardShipss)  -- 被攻击方舰船数据
+        ret[53] = NetProtoIsland.ST_player.toMap(player); -- 攻击方玩家信息
         ret[107] = NetProtoIsland.ST_fleetinfor.toMap(fleetinfor); -- 进攻方舰队数据
+        if type(endTimeLimit) == "number" then
+            ret[145] = BioUtl.number2bio(endTimeLimit); -- 战斗限制时间
+        else
+            ret[145] = endTimeLimit; -- 战斗限制时间
+        end
         return ret
     end,
     sendFleet = function(mapOrig, retInfor, fleetinfor, isRemove) -- mapOrig:客户端原始入参
@@ -1146,6 +1175,13 @@ do
         ret[63] = NetProtoIsland.ST_resInfor.toMap(resInfor); -- 资源信息
         return ret
     end,
+    quitIslandBattle = function(mapOrig, retInfor) -- mapOrig:客户端原始入参
+        local ret = {}
+        ret[0] = 143
+        ret[3] = mapOrig and mapOrig.callback or nil
+        ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
+        return ret
+    end,
     moveCity = function(mapOrig, retInfor) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 88
@@ -1153,15 +1189,12 @@ do
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
         return ret
     end,
-    fleetAttackIsland = function(mapOrig, retInfor, player, city, dockyardShipss, fleetinfor) -- mapOrig:客户端原始入参
+    fleetAttackIsland = function(mapOrig, retInfor, fleetinfor) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 129
         ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoIsland.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[53] = NetProtoIsland.ST_player.toMap(player); -- 进攻方舰队数据
-        ret[54] = NetProtoIsland.ST_city.toMap(city); -- 
-        ret[91] = NetProtoIsland._toList(NetProtoIsland.ST_dockyardShips, dockyardShipss)  -- 
-        ret[107] = NetProtoIsland.ST_fleetinfor.toMap(fleetinfor); -- 
+        ret[107] = NetProtoIsland.ST_fleetinfor.toMap(fleetinfor); -- 进攻方舰队数据
         return ret
     end,
     fleetDepart = function(mapOrig, retInfor, fleetinfor) -- mapOrig:客户端原始入参
@@ -1289,6 +1322,7 @@ do
     NetProtoIsland.dispatch[140]={onReceive = NetProtoIsland.recive.sendPrepareAttackIsland, send = NetProtoIsland.send.sendPrepareAttackIsland, logicName = "LDSWorld"}
     NetProtoIsland.dispatch[116]={onReceive = NetProtoIsland.recive.setPlayerCurrLook4WorldPage, send = NetProtoIsland.send.setPlayerCurrLook4WorldPage, logicName = "LDSWorld"}
     NetProtoIsland.dispatch[62]={onReceive = NetProtoIsland.recive.onResChg, send = NetProtoIsland.send.onResChg, logicName = "cmd4city"}
+    NetProtoIsland.dispatch[143]={onReceive = NetProtoIsland.recive.quitIslandBattle, send = NetProtoIsland.send.quitIslandBattle, logicName = "LDSWorld"}
     NetProtoIsland.dispatch[88]={onReceive = NetProtoIsland.recive.moveCity, send = NetProtoIsland.send.moveCity, logicName = "LDSWorld"}
     NetProtoIsland.dispatch[129]={onReceive = NetProtoIsland.recive.fleetAttackIsland, send = NetProtoIsland.send.fleetAttackIsland, logicName = "LDSWorld"}
     NetProtoIsland.dispatch[108]={onReceive = NetProtoIsland.recive.fleetDepart, send = NetProtoIsland.send.fleetDepart, logicName = "LDSWorld"}
@@ -1328,6 +1362,7 @@ do
         sendPrepareAttackIsland = "sendPrepareAttackIsland", -- 准备攻击岛,
         setPlayerCurrLook4WorldPage = "setPlayerCurrLook4WorldPage", -- 设置用户当前正在查看大地图的哪一页，便于后续推送数据,
         onResChg = "onResChg", -- 资源变化时推送,
+        quitIslandBattle = "quitIslandBattle", -- 主动离开攻击岛,
         moveCity = "moveCity", -- 搬迁,
         fleetAttackIsland = "fleetAttackIsland", -- 舰队攻击岛屿,
         fleetDepart = "fleetDepart", -- 舰队出征,

@@ -39,6 +39,7 @@ local headquarters  -- 主基地
 local buildingCountMap = {} -- key=buildingAttrid;value=count
 local hadTileCount = 0 -- 地块总量
 
+--//TODO:如何处理免战保护时间
 --======================================================
 --======================================================
 cmd4city.new = function(uidx)
@@ -831,7 +832,7 @@ cmd4city.consumeRes2 = function(data)
     local food = data[IDConstVals.ResType.food] or 0
     local oil = data[IDConstVals.ResType.oil] or 0
     local gold = data[IDConstVals.ResType.gold] or 0
-    cmd4city.consumeRes(food, gold, oil)
+    return cmd4city.consumeRes(food, gold, oil)
 end
 
 ---@public 消耗资源。注意：负数时就是增加资源

@@ -10,3 +10,4 @@
 ---@field public FleetTimePerOnce
 ---@field public FleetMoveSpeed
 ---@field public FleetAtLeastSec
+---@field public LimitSecBattle

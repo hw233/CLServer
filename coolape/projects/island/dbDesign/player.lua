@@ -4,6 +4,8 @@ local tab = {
     columns = {
         { "idx", "int(11) NOT NULL", "唯一标识" },
         { "status", "int(11)", "状态 1:正常;" },
+        { "attacking", "Boolean", "正在攻击玩家的岛屿"},
+        { "beingattacked", "Boolean", "正在被玩家攻击"},
         { "name", "varchar(45)", "名称" },
         { "lev", "int(4)", "等级" },
         { "exp", "int(11)", "经验值" },

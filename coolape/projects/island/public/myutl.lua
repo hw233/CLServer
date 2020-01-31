@@ -4,17 +4,27 @@ local NetProtoIsland = skynet.getenv("NetProtoName")
 
 ---@public 玩家是否在线
 isPlayerOnline = function(pidx)
-    return skynet.call(WATCHDOG, "lua", "isPlayerOnline", pidx)
+    if skynet.address(WATCHDOG) then
+        return skynet.call(WATCHDOG, "lua", "isPlayerOnline", pidx)
+    end
+    return nil
 end
 
 ---@public 取得玩家的agent
 getPlayerAgent = function(pidx)
-    return skynet.call(WATCHDOG, "lua", "getAgent", pidx)
+    printw(skynet.address(WATCHDOG))
+    if skynet.address(WATCHDOG) then
+        return skynet.call(WATCHDOG, "lua", "getAgent", pidx)
+    end
+    return nil
 end
 
 ---@public 取得玩家的idx
 getPlayerIdx = function(session)
-    return skynet.call(WATCHDOG, "lua", "getPidx", session)
+    if skynet.address(WATCHDOG) then
+        return skynet.call(WATCHDOG, "lua", "getPidx", session)
+    end
+    return nil
 end
 
 ---@public 组装发送客户端数据包
@@ -22,5 +32,8 @@ end
 ---@param ret NetProtoIsland.ST_retInfor 返回数据
 ---@param ... ... 其它的返回数据
 pkg4Client = function(mapOrig, ret, ...)
-    return skynet.call(NetProtoIsland, "lua", "send", mapOrig.cmd, mapOrig, ret, ...)
+    if skynet.address(NetProtoIsland) then
+        return skynet.call(NetProtoIsland, "lua", "send", mapOrig.cmd, mapOrig, ret, ...)
+    end
+    return nil
 end

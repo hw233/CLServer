@@ -106,6 +106,7 @@ CREATE TABLE `city` (
   `pidx` int(11) NOT NULL COMMENT '玩家idx',
   `pos` int(11) COMMENT '城所在世界grid的index',
   `status` TINYINT COMMENT '状态 1:正常;',
+  `protectEndTime` Datetime COMMENT '免战结束时间',
   PRIMARY KEY (`idx`, `pidx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
@@ -130,6 +131,8 @@ DROP TABLE IF EXISTS `player`;
 CREATE TABLE `player` (
   `idx` int(11) NOT NULL COMMENT '唯一标识',
   `status` int(11) COMMENT '状态 1:正常;',
+  `attacking` Boolean COMMENT '正在攻击玩家的岛屿',
+  `beingattacked` Boolean COMMENT '正在被玩家攻击',
   `name` varchar(45) COMMENT '名称',
   `lev` int(4) COMMENT '等级',
   `exp` int(11) COMMENT '经验值',

@@ -28,6 +28,8 @@ dbplayer.name = "player"
 dbplayer.keys = {
     idx = "idx", -- 唯一标识
     status = "status", -- 状态 1:正常;
+    attacking = "attacking", -- 正在攻击玩家的岛屿
+    beingattacked = "beingattacked", -- 正在被玩家攻击
     name = "name", -- 名称
     lev = "lev", -- 等级
     exp = "exp", -- 经验值
@@ -94,6 +96,8 @@ end
 function dbplayer:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
     local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
     if ret then
+        ret.attacking = self:get_attacking()
+        ret.beingattacked = self:get_beingattacked()
         ret.crtTime = self:get_crtTime()
         ret.lastEnTime = self:get_lastEnTime()
     end
@@ -144,6 +148,74 @@ function dbplayer:get_status()
     -- 状态 1:正常;
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
     return (tonumber(val) or 0)
+end
+
+function dbplayer:set_attacking(v)
+    -- 正在攻击玩家的岛屿
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_attacking],please init first!!")
+        return nil
+    end
+    local val = 0
+    if type(v) == "string" then
+        if v == "false" or v =="0" then
+            v = 0
+        else
+            v = 1
+        end
+    elseif type(v) == "number" then
+        if v == 0 then
+            v = 0
+        else
+            v = 1
+        end
+    else
+        val = 1
+    end
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "attacking", v)
+end
+function dbplayer:get_attacking()
+    -- 正在攻击玩家的岛屿
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "attacking")
+    if val == nil or val == 0 or val == false then
+        return false
+    else
+        return true
+    end
+end
+
+function dbplayer:set_beingattacked(v)
+    -- 正在被玩家攻击
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_beingattacked],please init first!!")
+        return nil
+    end
+    local val = 0
+    if type(v) == "string" then
+        if v == "false" or v =="0" then
+            v = 0
+        else
+            v = 1
+        end
+    elseif type(v) == "number" then
+        if v == 0 then
+            v = 0
+        else
+            v = 1
+        end
+    else
+        val = 1
+    end
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "beingattacked", v)
+end
+function dbplayer:get_beingattacked()
+    -- 正在被玩家攻击
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "beingattacked")
+    if val == nil or val == 0 or val == false then
+        return false
+    else
+        return true
+    end
 end
 
 function dbplayer:set_name(v)
@@ -402,6 +474,36 @@ function dbplayer.validData(data)
     end
     if type(data.status) ~= "number" then
         data.status = tonumber(data.status) or 0
+    end
+    if type(data.attacking) == "string" then
+        if data.attacking == "false" or data.attacking =="0" then
+            data.attacking = 0
+        else
+            data.attacking = 1
+        end
+    elseif type(data.attacking) == "number" then
+        if data.attacking == 0 then
+            data.attacking = 0
+        else
+            data.attacking = 1
+        end
+    else
+        data.attacking = 0
+    end
+    if type(data.beingattacked) == "string" then
+        if data.beingattacked == "false" or data.beingattacked =="0" then
+            data.beingattacked = 0
+        else
+            data.beingattacked = 1
+        end
+    elseif type(data.beingattacked) == "number" then
+        if data.beingattacked == 0 then
+            data.beingattacked = 0
+        else
+            data.beingattacked = 1
+        end
+    else
+        data.beingattacked = 0
     end
     if type(data.lev) ~= "number" then
         data.lev = tonumber(data.lev) or 0

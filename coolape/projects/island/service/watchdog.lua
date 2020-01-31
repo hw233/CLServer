@@ -28,6 +28,7 @@ local function close_agent(fd)
     fdLastMsgTime[fd] = nil
 end
 
+---@public 处理客户端连接超时、断开的情况
 local checkTimeOut = function(fdLastMsgTime)
     local currTime
     while true do
@@ -85,6 +86,12 @@ function CMD.alivefd(fd)
 end
 
 function CMD.bindPlayer(pidx, fd)
+    -- 踢掉重复登陆的
+    local oldfd = playersWithFd[pidx]
+    if oldfd then
+        close_agent(oldfd)
+    end
+    -- 记录下用户信息
     playersWithFd[pidx] = fd
     fdWithPlayers[fd] = pidx
 end

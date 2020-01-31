@@ -84,7 +84,8 @@ function CMD.disconnect()
     LogicMap = {}
     -- 通知大地图服移除我
     skynet.call("LDSWorld", "lua", "rmPlayerCurrLook4WorldPage", skynet.self())
-
+    local pidx = (player and player.idx or nil)
+    skynet.call("LDSWorld", "lua", "onPlayerOffline", pidx, client_fd, skynet.self())
     skynet.exit()
 end
 

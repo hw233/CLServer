@@ -10,9 +10,17 @@ timerQueue = {
     build = {}, -- 建筑队列
     ship = {}, -- 兵队列
     tech = {}, -- 科技队列
-    fleet4Moving = {}, -- 舰队
-    fleet4Dead = {} -- 舰队
 }
+
+---@public 加入建筑队列
+---@param b dbbuilding
+timerQueue.addtimerQueue = function(b, callback)
+    local endtime = b:get_endtime()
+    local diff = endtime - dateEx.nowMS()
+    local cor = timerEx.new(diff / 1000, callback, b)
+    table.insert(timerQueue.build, cor)
+end
+
 ---@param b dbbuilding
 timerQueue.removetimerQueue = function(b)
     ---@type dbbuilding
@@ -25,15 +33,6 @@ timerQueue.removetimerQueue = function(b)
             break
         end
     end
-end
-
----@public 加入建筑队列
----@param b dbbuilding
-timerQueue.addtimerQueue = function(b, callback)
-    local endtime = b:get_endtime()
-    local diff = endtime - dateEx.nowMS()
-    local cor = timerEx.new(diff / 1000, callback, b)
-    table.insert(timerQueue.build, cor)
 end
 
 ---@public 加入造兵队列

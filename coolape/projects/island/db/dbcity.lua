@@ -31,6 +31,7 @@ dbcity.keys = {
     pidx = "pidx", -- 玩家idx
     pos = "pos", -- 城所在世界grid的index
     status = "status", -- 状态 1:正常;
+    protectEndTime = "protectEndTime", -- 免战结束时间
 }
 
 function dbcity:ctor(v)
@@ -85,6 +86,7 @@ end
 function dbcity:value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set
     local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)
     if ret then
+        ret.protectEndTime = self:get_protectEndTime()
     end
     return ret
 end
@@ -177,6 +179,27 @@ function dbcity:get_status()
     -- 状态 1:正常;
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
     return (tonumber(val) or 0)
+end
+
+function dbcity:set_protectEndTime(v)
+    -- 免战结束时间
+    if self:isEmpty() then
+        skynet.error("[dbcity:set_protectEndTime],please init first!!")
+        return nil
+    end
+    if type(v) == "number" then
+        v = dateEx.seconds2Str(v/1000)
+    end
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "protectEndTime", v)
+end
+function dbcity:get_protectEndTime()
+    -- 免战结束时间
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "protectEndTime")
+    if type(val) == "string" then
+        return dateEx.str2Seconds(val)*1000 -- 转成毫秒
+    else
+        return val
+    end
 end
 
 -- 把数据flush到mysql里， immd=true 立即生效
@@ -307,6 +330,9 @@ function dbcity.validData(data)
     end
     if type(data.status) ~= "number" then
         data.status = tonumber(data.status) or 0
+    end
+    if type(data.protectEndTime) == "number" then
+        data.protectEndTime = dateEx.seconds2Str(data.protectEndTime/1000)
     end
     return data
 end

@@ -269,15 +269,15 @@ local procFleetArrived = function(fidx)
     end
     local index = fleet:get_topos()
     fleet:set_curpos(index)
-    local type = logic.getTileType(index)
+    local targetTileType = logic.getTileType(index) -- 目标地块类型
     if fleet:get_task() == IDConstVals.FleetTask.voyage then
         -- //TODO:如果目标地块是npc，进攻
-        if type == IDConstVals.WorldmapCellType.empty then
+        if targetTileType == IDConstVals.WorldmapCellType.empty then
             -- 如果目标地块是空地，更改状态
             fleet:set_status(IDConstVals.FleetState.stay)
             -- 同时改变地块信息
             logic.occupyMapCell(index, fleet:get_cidx(), IDConstVals.WorldmapCellType.fleet, 0, fidx)
-        elseif type == IDConstVals.WorldmapCellType.fleet then
+        elseif targetTileType == IDConstVals.WorldmapCellType.fleet then
             -- 有舰队在地块上
             local mapcell = dbworldmap.instanse(index)
             --//TODO:给玩家发个邮件告知你的舰队为何返航了
@@ -286,7 +286,7 @@ local procFleetArrived = function(fidx)
             if not mapcell:isEmpty() then
                 mapcell:release()
             end
-        elseif type == IDConstVals.WorldmapCellType.port then
+        elseif targetTileType == IDConstVals.WorldmapCellType.port then
             -- 如果目标地块是港口，如果没人更改状态，清空沉没时间，如果有人进入战场
             local mapcell = dbworldmap.instanse(index)
             if mapcell:isEmpty() or mapcell:get_cidx() <= 0 then
@@ -313,7 +313,7 @@ local procFleetArrived = function(fidx)
             if not mapcell:isEmpty() then
                 mapcell:release()
             end
-        elseif type == IDConstVals.WorldmapCellType.user then
+        elseif targetTileType == IDConstVals.WorldmapCellType.user then
             -- 如果目标地块是玩家岛，如果是自己的岛，更改状态，如果是别人的岛，进攻
             local mapcell = dbworldmap.instanse(index)
             -- 走到这里mapcell不可能是empty
@@ -331,12 +331,12 @@ local procFleetArrived = function(fidx)
         end
     elseif fleet:get_task() == IDConstVals.FleetTask.attack then
         -- 是战斗状态
-        if type == IDConstVals.WorldmapCellType.empty then
+        if targetTileType == IDConstVals.WorldmapCellType.empty then
             -- 如果目标地块是空地，直接返回
             --//TODO:给玩家发个邮件告知你的舰队为何返航了
             -- 直接返回
             logic.doFleetBack(fleet:get_idx())
-        elseif type == IDConstVals.WorldmapCellType.fleet then
+        elseif targetTileType == IDConstVals.WorldmapCellType.fleet then
             -- 有舰队在地块上
             local mapcell = dbworldmap.instanse(index)
             if mapcell:get_cidx() == fleet:get_cidx() then
@@ -349,7 +349,7 @@ local procFleetArrived = function(fidx)
             if not mapcell:isEmpty() then
                 mapcell:release()
             end
-        elseif type == IDConstVals.WorldmapCellType.port then
+        elseif targetTileType == IDConstVals.WorldmapCellType.port then
             -- 如果目标地块是港口，如果没人更改状态，清空沉没时间，如果有人进入战场
             local mapcell = dbworldmap.instanse(index)
             if mapcell:isEmpty() or mapcell:get_cidx() <= 0 then
@@ -369,7 +369,7 @@ local procFleetArrived = function(fidx)
             if not mapcell:isEmpty() then
                 mapcell:release()
             end
-        elseif type == IDConstVals.WorldmapCellType.user then
+        elseif targetTileType == IDConstVals.WorldmapCellType.user then
             -- 如果目标地块是玩家岛，如果是自己的岛，更改状态，如果是别人的岛，进攻
             local mapcell = dbworldmap.instanse(index)
             -- 走到这里mapcell不可能是empty
@@ -378,6 +378,7 @@ local procFleetArrived = function(fidx)
                 logic.doFleetBack(fidx)
             else
                 -- 进入攻击岛屿的战斗
+                fleet:set_status(IDConstVals.FleetState.fightingIsland)
                 logic4battle.startAttackIsland(fidx)
             end
         end
@@ -389,8 +390,6 @@ local procFleetArrived = function(fidx)
         local city = dbcity.instanse(fleet:get_cidx())
         fleet:set_curpos(city:get_pos())
         city:release()
-    elseif fleet:get_task() == IDConstVals.FleetTask.attack then
-    --TODO:
     end
     --------------------------------------------
     if fleet:get_status() ~= IDConstVals.FleetState.moving then
@@ -471,6 +470,8 @@ end
 --============================================
 ---@public 初始化
 logic.init = function()
+    --==========================================================
+    -- 初始为每一屏
     local center
     local x, y
     local cells
@@ -484,15 +485,18 @@ logic.init = function()
             table.insert(screenCneterIndexs, center)
         end
     end
+    --==========================================================
     -- 加载地图配置
     loadCfgData()
-
+    --==========================================================
+    -- 常量
     moveSpeed = cfgUtl.getConstCfg().FleetMoveSpeed * 1000
     constDeadMs = cfgUtl.getConstCfg().FleetTimePerOnce * 60 * 1000
     atleaseTime = cfgUtl.getConstCfg().FleetAtLeastSec * 1000
-
+    --==========================================================
+    -- 舰队逻辑处理的初始化
     logic4fleet.init()
-
+    --==========================================================
     -- 初始化需要处理的舰队列表
     local sql =
         "select * from fleet where status=" ..
@@ -500,13 +504,24 @@ logic.init = function()
     local list = skynet.call("CLMySQL", "lua", "exesql", sql)
     if list and list.errno then
         skynet.error("[fleet] sql error==" .. sql)
-        return nil
     end
     local fidx
     for i, v in ipairs(list) do
         fidx = v[dbfleet.keys.idx]
         needPollingFleets[fidx] = fidx
         setFleetPassScreen(fidx)
+    end
+    --==========================================================
+    -- 处理正在攻击岛屿的舰队，这种情况只有在停服时发生，但是也要处理
+    sql = "select * from fleet where status=" .. IDConstVals.FleetState.fightingIsland .. ";"
+    list = skynet.call("CLMySQL", "lua", "exesql", sql)
+    if list and list.errno then
+        skynet.error("[fleet] sql error==" .. sql)
+    end
+    for i, v in ipairs(list) do
+        -- 停止战斗
+        fidx = v[dbfleet.keys.idx]
+        logic4battle.stopBattle4Island(fidx)
     end
 end
 
@@ -785,7 +800,7 @@ logic.fleetMoveTo = function(fidx, toPos, task, agent)
             fromPosV3 = realPos
             fleet:set_curpos(curPos)
         end
-    elseif fleet:get_task() == IDConstVals.FleetState.fighting then
+    elseif fleet:get_task() == IDConstVals.FleetTask.attack then
     --//TODO: 正在战斗
     end
 
@@ -873,7 +888,10 @@ logic.onFleetArrived = function(fidx)
     -- 先推送再清空
     logic.pushFleetChg(fidx)
     local fleet = dbfleet.instanse(fidx)
-    if fleet:get_status() == IDConstVals.FleetState.stay or fleet:get_status() == IDConstVals.FleetState.fighting then
+    if
+        fleet:get_status() == IDConstVals.FleetState.stay or fleet:get_status() == IDConstVals.FleetState.fightingIsland or
+            fleet:get_status() == IDConstVals.FleetState.fightingFleet
+     then
         setFleetPassScreen(fidx)
     else
         cleanFleetPassScreen(fidx)
@@ -911,6 +929,17 @@ end
 logic.onFinishBattle = function(fidx)
     logic4battle.onFinishBattle(fidx)
 end
+
+---@public 当有玩家离线时
+---@param pidx number 玩家idx
+logic.onPlayerOffline = function(pidx, fd, agent)
+    if pidx == nil or pidx == 0 then
+        return
+    end
+    -- 如果玩家正在战斗中时，需要处理相关的释放
+    logic4battle.onPlayerOffline(pidx)
+end
+
 --============================================================
 --============================================================
 --============================================================
@@ -1182,6 +1211,7 @@ CMD.fleetAttackIsland = function(map, fd, agent)
     ---@type NetProtoIsland.ST_resInfor
     local ret = {}
 
+    --//TODO:为了控制pvp的次数，每个玩家第天只能pvp3次
     local fleet = dbfleet.instanse(map.fidx)
     if fleet:isEmpty() then
         ret.code = Errcode.fleetIsNil
@@ -1217,13 +1247,21 @@ CMD.fleetAttackIsland = function(map, fd, agent)
     local targetCity = dbcity.instanse(cidx)
     local pidx = targetCity:get_pidx()
     local targetPlayer = dbplayer.instanse(pidx)
-    --//TODO:判断能否攻击该玩家，比如是免战状态,是否正在被攻击
-    if targetPlayer:get_status() == IDConstVals.PlayerState.protect then
+    -- 判断能否攻击该玩家，比如是免战状态,是否正在被攻击
+    if targetCity:get_status() == IDConstVals.CityState.protect then
         targetCity:release()
         targetPlayer:release()
         fleet:release()
         ret.code = Errcode.protectedCannotAttack
         ret.msg = "玩家处在免战保护中，不可攻击"
+        return pkg4Client(map, ret, nil, nil, nil, nil)
+    end
+    if targetPlayer:get_beingattacked() then
+        targetCity:release()
+        targetPlayer:release()
+        fleet:release()
+        ret.code = Errcode.targetBeingAttackedCannotAttack
+        ret.msg = "玩家正在被其它玩家攻击，暂时不可攻击"
         return pkg4Client(map, ret, nil, nil, nil, nil)
     end
     -- 是否超过可攻击的距离
@@ -1249,6 +1287,30 @@ CMD.fleetAttackIsland = function(map, fd, agent)
     targetPlayer:release()
     fleet:release()
     return retMsg
+end
+---@param map NetProtoIsland.RC_quitIslandBattle
+CMD.quitIslandBattle = function(map, fd, agent)
+    ---@type NetProtoIsland.ST_resInfor
+    local ret = {}
+
+    local fleet = dbfleet.instanse(map.fidx)
+    if fleet:isEmpty() then
+        ret.code = Errcode.fleetIsNil
+        ret.msg = "舰队不存在"
+        return pkg4Client(map, ret, nil, nil, nil, nil)
+    end
+
+    if not logic4fleet.isMyFleet(map.__session__, map.fidx) then
+        fleet:release()
+        local ret = {}
+        ret.code = Errcode.fleetIsNotMine
+        ret.msg = "舰队不是自己的，不可操作"
+        return pkg4Client(map, ret, nil, nil, nil, nil)
+    end
+
+    logic4battle.stopBattle4Island(map.fidx)
+    ret.code = Errcode.ok
+    return pkg4Client(map, ret)
 end
 --============================================================
 --============================================================

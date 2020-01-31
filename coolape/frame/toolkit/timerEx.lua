@@ -4,8 +4,15 @@
 --- DateTime: 18/9/15 12:04
 
 ---
+---@class Coroutine 携程
+local Coroutine = {}
+function Coroutine.cancel() 
+end
+
 local skynet = require "skynet"
 local numEx = require("numEx")
+
+---@class timerEx
 timerEx = {}
 
 ---@public 新建定时器
