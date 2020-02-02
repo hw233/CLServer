@@ -212,77 +212,77 @@ do
     }
     ---@class NetProtoIsland.ST_mapCell 大地图地块数据
     ---@field public idx number 网格index
-    ---@field public type number 地块类型 3：玩家，4：npc
     ---@field public pageIdx number 所在屏的index
     ---@field public val2 number 值2
+    ---@field public val3 number 值3
     ---@field public lev number 等级
     ---@field public fidx number 舰队idx
     ---@field public cidx number 主城idx
-    ---@field public val3 number 值3
-    ---@field public attrid number 配置id
     ---@field public val1 number 值1
+    ---@field public type number 地块类型 3：玩家，4：npc
     ---@field public state number 状态  1:正常; int
     ---@field public name string 名称
+    ---@field public attrid number 配置id
     NetProtoIsland.ST_mapCell = {
         toMap = function(m)
             local r = {}
             if m == nil then return r end
             r[16] = m.idx  -- 网格index int
-            r[30] = m.type  -- 地块类型 3：玩家，4：npc int
             r[13] = m.pageIdx  -- 所在屏的index int
             r[22] = m.val2  -- 值2 int
+            r[21] = m.val3  -- 值3 int
             r[24] = m.lev  -- 等级 int
             r[101] = m.fidx  -- 舰队idx int
             r[18] = m.cidx  -- 主城idx int
-            r[21] = m.val3  -- 值3 int
-            r[17] = m.attrid  -- 配置id int
             r[29] = m.val1  -- 值1 int
+            r[30] = m.type  -- 地块类型 3：玩家，4：npc int
             r[28] = m.state  -- 状态  1:正常; int int
             r[35] = m.name  -- 名称 string
+            r[17] = m.attrid  -- 配置id int
             return r
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.idx = m[16] --  int
-            r.type = m[30] --  int
             r.pageIdx = m[13] --  int
             r.val2 = m[22] --  int
+            r.val3 = m[21] --  int
             r.lev = m[24] --  int
             r.fidx = m[101] --  int
             r.cidx = m[18] --  int
-            r.val3 = m[21] --  int
-            r.attrid = m[17] --  int
             r.val1 = m[29] --  int
+            r.type = m[30] --  int
             r.state = m[28] --  int
             r.name = m[35] --  string
+            r.attrid = m[17] --  int
             return r
         end,
     }
     ---@class NetProtoIsland.ST_battleresult 战斗结果
-    ---@field public lootRes resInfor 掠夺的资源
     ---@field public exp number 获得的经验
-    ---@field public iswin useData 胜负
+    ---@field public lootRes resInfor 掠夺的资源
     ---@field public usedUnits table 进攻方投入的战斗单元
+    ---@field public iswin useData 胜负
     ---@field public star number 星级
     NetProtoIsland.ST_battleresult = {
         toMap = function(m)
             local r = {}
             if m == nil then return r end
-            r[131] = NetProtoIsland.ST_resInfor.toMap(m.lootRes) -- 掠夺的资源
             r[132] = m.exp  -- 获得的经验 int
-            r[134] = m.iswin  -- 胜负 boolean
+            r[131] = NetProtoIsland.ST_resInfor.toMap(m.lootRes) -- 掠夺的资源
             r[133] = NetProtoIsland._toList(NetProtoIsland.ST_unitInfor, m.usedUnits)  -- 进攻方投入的战斗单元
+            r[134] = m.iswin  -- 胜负 boolean
             r[135] = m.star  -- 星级 int
             return r
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
-            r.lootRes = NetProtoIsland.ST_resInfor.parse(m[131]) --  table
             r.exp = m[132] --  int
-            r.iswin = m[134] --  boolean
+            r.lootRes = NetProtoIsland.ST_resInfor.parse(m[131]) --  table
             r.usedUnits = NetProtoIsland._parseList(NetProtoIsland.ST_unitInfor, m[133])  -- 进攻方投入的战斗单元
+            r.iswin = m[134] --  boolean
             r.star = m[135] --  int
             return r
         end,

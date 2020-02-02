@@ -21,13 +21,31 @@ local NetProtoIsland = skynet.getenv("NetProtoName")
 local ClassBattleIsland = require("logic.ClassBattleIsland")
 ---@type CLLPool
 local poolBattleIsland = CLLPool.new(ClassBattleIsland)
-local battles = {}
+local battles = {} --
+local battles4Attacker = {} -- 进攻方玩家的战场（必须分开，因为可能我正在攻击其它人时，其它玩家正好也来进攻我）
+local battles4Defener = {} -- 防守方玩家的战场（必须分开，因为可能我正在攻击其它人时，其它玩家正好也来进攻我）
 
-logic4battle.prepareAttackIsland = function(fidx)
+logic4battle.newBattle = function(fidx)
     ---@type ClassBattleIsland
     local b = poolBattleIsland:borrow()
     b:init(fidx)
     battles[fidx] = b
+    battles4Defener[b.targetPlayer:get_idx()] = b
+    battles4Attacker[b.attackPlayer:get_idx()] = b
+    return b
+end
+
+---@public 取得进攻方的战场
+logic4battle.getBattleOfAttacker = function(pidx)
+    return battles4Attacker[pidx]
+end
+---@public 取得防守方的战场
+logic4battle.getBattleOfDefener = function(pidx)
+    return battles4Defener[pidx]
+end
+
+logic4battle.prepareAttackIsland = function(fidx)
+    local b = logic4battle.newBattle(fidx)
     b:prepare()
 end
 
@@ -53,9 +71,7 @@ logic4battle.stopBattle4Island = function(fidx)
     local b = battles[fidx]
     if b == nil then
         -- 因为有可以重启服务器时，要处理之前在战斗状态的舰队
-        b = poolBattleIsland:borrow()
-        b:init(fidx)
-        battles[fidx] = b
+        logic4battle.newBattle(fidx)
     end
 
     if b then
@@ -68,9 +84,12 @@ logic4battle.onFinishBattle = function(fidx)
     ---@type ClassBattleIsland
     local b = battles[fidx]
     if b then
+        battles4Defener[b.targetPlayer:get_idx()] = nil
+        battles4Attacker[b.attackPlayer:get_idx()] = nil
+        battles[fidx] = nil
         b:release()
         poolBattleIsland:retObj(b)
-        battles[fidx] = nil
+        b = nil
     end
 end
 

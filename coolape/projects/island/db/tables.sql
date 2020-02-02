@@ -145,7 +145,7 @@ CREATE TABLE `player` (
   `lastEnTime` datetime COMMENT '最后登陆时间',
   `channel` varchar(45) COMMENT '渠道',
   `deviceid` varchar(45) COMMENT '机器id',
-  PRIMARY KEY (`idx`)
+  PRIMARY KEY (`idx`, `name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 地块表

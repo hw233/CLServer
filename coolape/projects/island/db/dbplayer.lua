@@ -59,7 +59,7 @@ function dbplayer:init(data, isNew)
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbplayer.name, self.__key__)
         if d == nil then
-            d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(data.idx))
+            d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(data.idx, nil))
             if d and d.errno == nil and #d > 0 then
                 self.__isNew__ = false
             else
@@ -156,7 +156,6 @@ function dbplayer:set_attacking(v)
         skynet.error("[dbplayer:set_attacking],please init first!!")
         return nil
     end
-    local val = 0
     if type(v) == "string" then
         if v == "false" or v =="0" then
             v = 0
@@ -169,8 +168,14 @@ function dbplayer:set_attacking(v)
         else
             v = 1
         end
+    elseif type(v) == "boolean" then
+        if v then
+            v = 1
+        else
+            v = 0
+        end
     else
-        val = 1
+        v = 0
     end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "attacking", v)
 end
@@ -190,7 +195,6 @@ function dbplayer:set_beingattacked(v)
         skynet.error("[dbplayer:set_beingattacked],please init first!!")
         return nil
     end
-    local val = 0
     if type(v) == "string" then
         if v == "false" or v =="0" then
             v = 0
@@ -203,8 +207,14 @@ function dbplayer:set_beingattacked(v)
         else
             v = 1
         end
+    elseif type(v) == "boolean" then
+        if v then
+            v = 1
+        else
+            v = 0
+        end
     else
-        val = 1
+        v = 0
     end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "beingattacked", v)
 end
@@ -453,11 +463,14 @@ function dbplayer:unsetTrigger(server, cmd, fieldKey)
     skynet.call("CLDB", "lua", "REMOVETRIGGER", self.__name__, self.__key__, server, cmd, fieldKey)
 end
 
-function dbplayer.querySql(idx)
+function dbplayer.querySql(idx, name)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}
     if idx then
         table.insert(where, "`idx`=" .. idx)
+    end
+    if name then
+        table.insert(where, "`name`=" .. "'" .. name  .. "'")
     end
     if #where > 0 then
         return "SELECT * FROM player WHERE " .. table.concat(where, " and ") .. ";"
@@ -552,7 +565,7 @@ function dbplayer.instanse(idx)
     local obj = dbplayer.new()
     local d = skynet.call("CLDB", "lua", "get", dbplayer.name, key)
     if d == nil then
-        d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(idx))
+        d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(idx, nil))
         if d and d.errno == nil and #d > 0 then
             if #d == 1 then
                 d = d[1]

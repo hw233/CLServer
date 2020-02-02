@@ -744,7 +744,7 @@ do
                             end
                         else
                             paramName = getParamName(pname)
-                            add(toMapStrServer, "        ret[" .. getKeyCode(pname) .. "] = " .. defProtocol.name .. "." .. StructHead .. pname .. ".toMap(" .. pname .. "); -- " .. (inputDesList[i] or ""));
+                            add(toMapStrServer, "        ret[" .. getKeyCode(paramName) .. "] = " .. defProtocol.name .. "." .. StructHead .. pname .. ".toMap(" .. paramName .. "); -- " .. (inputDesList[i] or ""));
                         end
                     else
                         paramName = getParamName(pname)

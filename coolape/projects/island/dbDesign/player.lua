@@ -19,7 +19,7 @@ local tab = {
         { "channel", "varchar(45)", "渠道" },
         { "deviceid", "varchar(45)", "机器id" },
     },
-    primaryKey = { "idx"},
+    primaryKey = { "idx", "name"},
     cacheKey = { "idx" }, -- 缓存key
     groupKey = {}, -- 组key
     defaultData = {}, -- 初始数据

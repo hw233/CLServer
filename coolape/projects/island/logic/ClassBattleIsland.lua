@@ -141,10 +141,6 @@ function ClassBattleIsland:start()
     self.timeLimitCor = timerEx.new(limitSec, ClassBattleIsland.onTimeOut, self)
 end
 
----@public 控制战斗的时限
-function ClassBattleIsland:setBattleTimeLimit()
-end
-
 ---@param battle ClassBattleIsland
 function ClassBattleIsland.onTimeOut(battle)
     -- 超时，结束战斗

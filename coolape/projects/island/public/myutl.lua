@@ -12,7 +12,6 @@ end
 
 ---@public 取得玩家的agent
 getPlayerAgent = function(pidx)
-    printw(skynet.address(WATCHDOG))
     if skynet.address(WATCHDOG) then
         return skynet.call(WATCHDOG, "lua", "getAgent", pidx)
     end
