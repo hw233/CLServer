@@ -368,10 +368,16 @@ function dbbuilding:isEmpty()
     return (self.__key__ == nil) or (self:get_idx() == nil)
 end
 
-function dbbuilding:release()
+function dbbuilding:release(returnVal)
+    local val = nil
+    if returnVal then
+        val = self:value2copy()
+    end
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     self.__isNew__ = nil
     self.__key__ = nil
+    self = nil
+    return val
 end
 
 function dbbuilding:delete()

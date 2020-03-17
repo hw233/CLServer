@@ -56,7 +56,7 @@ function dbuserserver:init(data, isNew)
             hadCacheData = true
             self.__isNew__ = false
         end
-    else
+    elseif isNew ~= nil then
         self.__isNew__ = isNew
     end
     if self.__isNew__ then
@@ -164,10 +164,16 @@ function dbuserserver:isEmpty()
     return (self.__key__ == nil) or (self:get_uidx() == nil) or (self:get_appid() == nil)
 end
 
-function dbuserserver:release()
+function dbuserserver:release(returnVal)
+    local val = nil
+    if returnVal then
+        val = self:value2copy()
+    end
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     self.__isNew__ = nil
     self.__key__ = nil
+    self = nil
+    return val
 end
 
 function dbuserserver:delete()
@@ -175,6 +181,7 @@ function dbuserserver:delete()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     skynet.call("CLDB", "lua", "REMOVE", self.__name__, self.__key__)
     local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, d)
+    self.__key__ = nil
     return skynet.call("CLMySQL", "lua", "exesql", sql)
 end
 

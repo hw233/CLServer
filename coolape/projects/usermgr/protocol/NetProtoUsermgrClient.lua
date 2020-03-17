@@ -76,14 +76,14 @@ do
             if m == nil then return r end
             r[10] = m.msg  -- 返回消息 string
             r[11] = m.code  -- 返回值 int
-            return r;
+            return r
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.msg = m[10] or m["10"] --  string
             r.code = m[11] or m["11"] --  int
-            return r;
+            return r
         end,
     }
     ---@class NetProtoUsermgr.ST_server 服务器
@@ -107,7 +107,7 @@ do
             r[18] = m.androidVer  -- 客户端android版本 string
             r[19] = m.isnew  -- 新服 boolean
             r[13] = m.status  -- 状态 1:正常; 2:爆满; 3:维护 int
-            return r;
+            return r
         end,
         parse = function(m)
             local r = {}
@@ -120,7 +120,7 @@ do
             r.androidVer = m[18] or m["18"] --  string
             r.isnew = m[19] or m["19"] --  boolean
             r.status = m[13] or m["13"] --  int
-            return r;
+            return r
         end,
     }
     ---@class NetProtoUsermgr.ST_userInfor 用户信息
@@ -130,13 +130,13 @@ do
             local r = {}
             if m == nil then return r end
             r[12] = m.idx  -- 唯一标识 int
-            return r;
+            return r
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.idx = m[12] or m["12"] --  int
-            return r;
+            return r
         end,
     }
     --==============================

@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>database</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../../../3rd/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <!-- <link href="../../dashboard.css" rel="stylesheet"> -->
+</head>
+
+<body>
+    <div class="container-fluid">
+        <!-- <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot"> -->
+        <div class="form-group row">
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="searchStr" placeholder="输入要查找的内容(支持模糊)">
+            </div>
+            <button type="button" class="btn btn-info" onclick="seek()">查询</button>
+        </div>
+
+        <div class="table-responsive pt-1 pb-1 mb-1 border-bottom" id="tablecontent">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>操作</th>
+                        <th>语言</th>
+                        <th>内容键</th>
+                        <th>内容</th>
+                    </tr>
+                </thead>
+                <tbody id="contents">
+                </tbody>
+            </table>
+        </div>
+
+        <div id="contentRoot2">
+            <!-- <h5>查询结果</h5> -->
+
+            <!-- <nav>
+                <ul class="pagination d-flex justify-content-between">
+                    <li class="page-item" id="pageprev"><a class="page-prev page-link" href="#"
+                            onclick="prePage()">上一页</a></li>
+                    <li class="page-item" id="pagenum"></li>
+                    <li class="page-item" id="pagenext"><a class="page-next page-link" href="#"
+                            onclick="nextPage()">下一页</a></li>
+                </ul>
+            </nav> -->
+
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead id="datalisthead">
+                    </thead>
+                    <tbody id="datalist">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- </main> -->
+    </div>
+
+    <!-- Bootstrap core JavaScript
+================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script> -->
+    <script src="../../../../3rd/jquery/jquery-3.4.1.min.js"></script>
+    <script src="../../../../3rd/popper/dist/umd/popper.min.js"></script>
+    <script src="../../../../3rd/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../../js/jquery.url.js"></script>
+    <script src="../../../../3rd/Bootstrap-Confirmation/dist/bootstrap-confirmation.js"></script>
+    <!-- Icons -->
+    <script src="../../../../3rd/feather-icons/dist/feather.min.js"></script>
+
+    <!-- tab 处理-->
+    <script src="js/glcfg.js"></script>
+    <script src="../../js/myutl.js"></script>
+    <script src="../../js/tabEx.js"></script>
+
+    <script>
+        // console.log($.url.param("id"))
+        // var projectName = $.url.param("name")
+        var baseUrl = $.url.param("url")
+        var dataList = null;
+        var currsql = "";
+        var pagesize = 10;
+        var currpageIndex = 0;
+        var languageTypes = {}
+        var languageTypesMap = {}
+
+        $("#contentRoot2").hide();
+
+        function refreshContent() {
+            // console.log(dataList);
+            if (dataList == null || dataList.errno != null) {
+                alert("查询失败！")
+                return;
+            }
+
+            $("#contentRoot2").show();
+            // $("#pagenum").text(currpageIndex);
+
+            var datalisthead = $("#datalisthead");
+            datalisthead.empty();
+
+            //设置dataList
+            var count = dataList.length;
+            var datalist = $("#datalist");
+            datalist.empty();
+            var keys = [];
+            for (var i = 0; i < count; i++) {
+                var d = dataList[i];
+                var tr = "<tr>";
+                tr = tr + "<td ><a class='text-danger' id='delLanguageBtn" + i + "' data-feather=\"minus-circle\" onclick='delrow(" + i + ")'></a></td>";
+                tr = tr + "<td ><label class='form-control' >" + d.language + ":" + languageTypesMap[d.language] + "</label></td>";
+                tr = tr + "<td ><label class='form-control' >" + d.ckey + "</label></td>";
+                tr = tr + "<td ><textarea class='form-control' >" + d.content + "</textarea></td>";
+                tr = tr + "</tr>";
+                datalist.append(tr);
+            }
+
+            feather.replace();
+        }
+
+        function seek() {
+            var searchStr = $("#searchStr").val();
+            if (searchStr == null || searchStr == "") {
+                return;
+            }
+
+            var params = { cmd: "seekLanguage", seekStr: searchStr, uid: "000" };
+            myutl.ajaxJSONP(baseUrl, params,
+                function (result, status, xhr) {  //成功的回调函数
+                    dataList = result;
+                    if(dataList.length == 0) {
+                        alert("查询数据为空！");
+                    }
+                    refreshContent();
+                    feather.replace();
+                },
+                function (jqXHR, textStatus, errorThrown) {
+                    alert("error:" + textStatus);
+                }
+            );
+        }
+
+        function onselectLanguage(obj) {
+            var inputid = obj.attr("inputid");
+            $("#" + inputid).val(obj.text());
+            $("#new-row-language-id").val(obj.attr("val"));
+        }
+        function createselectinput(inputid, optionlist, defaultVal) {
+            var tr = "";
+            tr = tr + "<td><div class=\"input-group\">";
+            tr = tr + "<input type='text' id='" + inputid + "' class='form-control' aria-label='Text input with dropdown button' value='" + defaultVal + "' disabled>";
+            tr = tr + "<div class='input-group-append'>";
+            tr = tr + "<button class='btn btn-outline-secondary dropdown-toggle' type='button' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'></button>";
+            tr = tr + "<div class='dropdown-menu'>";
+            for (var i in optionlist) {
+                tr = tr + "<div class='border-bottom row d-flex justify-content-start align-items-center'>"
+                tr = tr + "<a class='col' class='dropdown-item' href='#" + inputid + "' inputid='" + inputid + "' val='" + optionlist[i].ID + "' onclick='onselectLanguage($(this))'>" + optionlist[i].ID + ":" + optionlist[i].Language + "</a>";
+                // tr = tr + "<a class='col'><input id='notnull' type='checkbox' value='NOT NULL' checked/>NULL</a>";
+                tr = tr + "</div>";
+            }
+            tr = tr + "</div>";
+            tr = tr + "</div>";
+            tr = tr + "</div></td>";
+            return tr;
+        }
+
+        //增加字段
+        function addrow() {
+            var language = $("#new-row-language").val();
+            language = language.split(":")[0];
+            var key = $("#new-row-key").val();
+            var content = $("#new-row-content").val();
+
+            if (key == "" || content == "" || language == "") {
+                alert("所有字段不能为空！")
+                return;
+            }
+            var doAddRow = function () {
+                var params2 = { cmd: "setLanguage", uid: "000", language: language, ckey: key, content: content };
+                myutl.ajaxJSONP(baseUrl, params2,
+                    function (result, status, xhr) {
+                        console.log(result);
+                        $("#new-row-language").val("");
+                        $("#new-row-key").val("");
+                        $("#new-row-content").val("");
+                        alert("成功！");
+                    },
+                    function (jqXHR, textStatus, errorThrown) {
+                        alert("取得语言类型失败");
+                    });
+            };
+
+            var params = { cmd: "isNewLanguageKey", uid: "000", language: language, ckey: key };
+            myutl.ajaxJSONP(baseUrl, params,
+                function (result, status, xhr) {
+                    if (!result) {
+                        // 说明已经有数据了，
+                        $('#newLanguageBtn').confirmation({
+                            rootSelector: '#newLanguageBtn',
+                            label: '内容已经存在，是否覆盖？',
+                            container: 'body',
+                            btnOkLabel: "确定",
+                            btnCancelLabel: "取消",
+                            onConfirm: function (val) {
+                                // var rowid = $(this).parent().parent().attr("id");
+                                $(this).confirmation('hide');
+                                doAddRow();
+                            },
+                            onCancel: function () {
+                                //null
+                            }
+                        });
+                    } else {
+                        doAddRow();
+                    }
+                },
+                null);
+        }
+
+        function delrow(i) {
+            $('#delLanguageBtn' + i).confirmation({
+                rootSelector: '#newLanguageBtn',
+                label: '确认要删除？',
+                container: 'body',
+                btnOkLabel: "删除",
+                btnCancelLabel: "取消",
+                onConfirm: function (val) {
+                    var d = dataList[i];
+                    var params = { cmd: "delLanguages", language: d.language, ckey: d.ckey, uid: "000" };
+                    myutl.ajaxJSONP(baseUrl, params,
+                        function (result, status, xhr) {
+                            dataList.splice(i, 1);
+                            refreshContent();
+                            alert("删除成功！");
+                        }, null);
+                },
+                onCancel: function () {
+                    //null
+                }
+            });
+        }
+
+        function init() {
+            // $("#inputsql").focus();
+            // 取得语言种类
+            var params = { cmd: "getLanguages", uid: "000" };
+            myutl.ajaxJSONP(baseUrl, params,
+                function (result, status, xhr) {
+                    // console.log(result);
+                    languageTypes = result;
+                    for (var i in languageTypes) {
+                        languageTypesMap[languageTypes[i].ID] = languageTypes[i].Language
+                    }
+                    var tr = "<tr>";
+                    tr = tr + "<td ><a class='text-success' id='newLanguageBtn' data-feather=\"plus-circle\" onclick='addrow()'></a></td>";
+                    tr = tr + createselectinput("new-row-language", languageTypes, "");
+                    tr = tr + "<td ><input class='form-control' id='new-row-key' type='text' ></td>";
+                    tr = tr + "<td ><textarea class='form-control' id='new-row-content' type='text' placeholder='格式化${xxx}'></textarea></td>";
+                    tr = tr + "</tr>";
+                    $("#contents").append(tr);
+                    feather.replace();
+                },
+                function (jqXHR, textStatus, errorThrown) {
+                    alert("取得语言类型失败");
+                });
+        }
+
+        $(document).ready(init)
+    </script>
+
+</body>
+
+</html>

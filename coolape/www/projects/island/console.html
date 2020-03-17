@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>database</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../../../3rd/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <!-- <link href="../../dashboard.css" rel="stylesheet"> -->
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="form-group row">
+                <button type="button" class="btn btn-danger" onclick="restartConsole()">重启后台管理</button>
+                <button type="button" class="btn btn-info" onclick="print()">Print</button>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script> -->
+    <script src="../../../../3rd/jquery/jquery-3.4.1.min.js"></script>
+    <script src="../../../../3rd/popper/dist/umd/popper.min.js"></script>
+    <script src="../../../../3rd/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../../js/jquery.url.js"></script>
+    <script src="../../../../3rd/Bootstrap-Confirmation/dist/bootstrap-confirmation.js"></script>
+    <!-- Icons -->
+    <script src="../../../../3rd/feather-icons/dist/feather.min.js"></script>
+
+    <!-- tab 处理-->
+    <script src="js/glcfg.js"></script>
+    <script src="../../js/myutl.js"></script>
+    <script src="../../js/tabEx.js"></script>
+
+    <script>
+        // console.log($.url.param("id"))
+        // var projectName = $.url.param("name")
+        var baseUrl = $.url.param("url")
+
+        function print() {
+            var params = { cmd: "print", uid: "000" };
+            myutl.ajaxJSONP(baseUrl, params,
+                function (result, status, xhr) {
+                    alert(result);
+                }, null);
+        }
+
+        function restartConsole() {
+            var params = { cmd: "reloadConsole", uid: "000" };
+            myutl.ajaxJSONP(baseUrl, params,
+                function (result, status, xhr) {
+                    alert("重启完成！");
+                }, null);
+        }
+
+        $(document).ready()
+    </script>
+
+</body>
+
+</html>

@@ -16,7 +16,7 @@
 
 <body>
 <div class="container-fluid">
-    <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot">
+    <!-- <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot"> -->
         <!--<div class="nav nav-pills nav-fill d-flex justify-content-start">-->
         <h3><span id="title2">表信息</span>&nbsp;&nbsp;
             &nbsp;&nbsp;<button id="btnrefresh" class="btn btn-success" onclick="getTableInfor()"><span
@@ -54,24 +54,25 @@
                 </tbody>
             </table>
         </div>
-    </main>
+    <!-- </main> -->
 </div>
 
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-<script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+<!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script> -->
+<!-- <script>window.jQuery || document.write('<script src="../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script> -->
 
+<script src="../../3rd/jquery/jquery-3.4.1.min.js"></script>
+<!-- Icons -->
+<script src="../../3rd/feather-icons/dist/feather.min.js"></script>
 <script src="../../3rd/popper/dist/umd/popper.min.js"></script>
 <script src="../../3rd/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="../../3rd/Bootstrap-Confirmation-master/dist/bootstrap-confirmation.js"></script>
+<script src="../../3rd/Bootstrap-Confirmation/dist/bootstrap-confirmation.js"></script>
 
 <script src="js/jquery.url.js"></script>
 <script src="js/myutl.js"></script>
 
-<!-- Icons -->
-<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
 <script>
     var tableName = $.url.param("id");
     var baseUrl = $.url.param("url");
@@ -243,7 +244,7 @@
         var k = d[0];
         tabledesign.columnsmap[k] = d;
         var tr = "<tr id='row-id-" + k + "'>";
-        tr = tr + "<td ><a class='row-del text-danger' data-feather=\"minus-circle\" data-toggle=\"confirmation\" data-singleton=\"true\" data-title=\"确认要删除?\"></a></td>";
+        tr = tr + "<td ><a class='row-del text-danger' data-feather=\"minus-circle\" data-toggle=\"confirmation\" data-singleton=\"true\" data-title=\"确认要删除?\" btnOkLabel=\"删除\" btnCancelLabel=\"取消\"></a></td>";
         tr = tr + "<td id='row-key'>" + d[0] + "</td>";
 //        tr = tr + "<td id='row-type'><input value='" + d[1] + "'></td>";
 
@@ -258,6 +259,8 @@
             $('[data-toggle=confirmation]').confirmation({
                 rootSelector: '[data-toggle=confirmation]',
                 container: 'body',
+                btnOkLabel:"删除",
+                btnCancelLabel:"取消",
                 onConfirm: function (val) {
                     var rowid = $(this).parent().parent().attr("id");
                     $(this).confirmation('hide');

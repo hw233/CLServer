@@ -76,7 +76,7 @@ function CMD.onrequset(url, method, header, body)
             end
             local cmdFunc = CMD[cmd]
             if cmdFunc == nil then
-                printe("cannot deal the cmd==" .. cmd)
+                printw("cannot deal the cmd==" .. cmd)
                 return "cannot deal the cmd==" .. cmd
             end
             local ret = cmdFunc(requst)
@@ -179,7 +179,7 @@ function CMD.getProjectInfor(map)
             infor.logSize = 0
         else
             local result = s:read("*all")
-            printe(result)
+            printw(result)
             s:close()
             infor.logSize = tonumber(result)
         end
@@ -240,7 +240,7 @@ function CMD.getProjectInfor(map)
         infor.totalMem = totalMem
         infor.totalCPU = totalCPU
     end
-    printe( CLUtl.dump(infor))
+    printw( CLUtl.dump(infor))
     return infor
 end
 

@@ -28,6 +28,7 @@ dbunit.name = "unit"
 dbunit.keys = {
     idx = "idx", -- 唯一标识
     id = "id", -- 配置数量的id
+    type = "type", -- 类别的id
     bidx = "bidx", -- 所属建筑idx
     fidx = "fidx", -- 所属舰队idx
     num = "num", -- 数量
@@ -135,6 +136,21 @@ function dbunit:get_id()
     return (tonumber(val) or 0)
 end
 
+function dbunit:set_type(v)
+    -- 类别的id
+    if self:isEmpty() then
+        skynet.error("[dbunit:set_type],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "type", v)
+end
+function dbunit:get_type()
+    -- 类别的id
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "type")
+    return (tonumber(val) or 0)
+end
+
 function dbunit:set_bidx(v)
     -- 所属建筑idx
     if self:isEmpty() then
@@ -196,10 +212,16 @@ function dbunit:isEmpty()
     return (self.__key__ == nil) or (self:get_idx() == nil)
 end
 
-function dbunit:release()
+function dbunit:release(returnVal)
+    local val = nil
+    if returnVal then
+        val = self:value2copy()
+    end
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     self.__isNew__ = nil
     self.__key__ = nil
+    self = nil
+    return val
 end
 
 function dbunit:delete()
@@ -351,6 +373,9 @@ function dbunit.validData(data)
     end
     if type(data.id) ~= "number" then
         data.id = tonumber(data.id) or 0
+    end
+    if type(data.type) ~= "number" then
+        data.type = tonumber(data.type) or 0
     end
     if type(data.bidx) ~= "number" then
         data.bidx = tonumber(data.bidx) or 0

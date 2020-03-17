@@ -11,7 +11,7 @@ require("dbbuilding")
 require("dbplayer")
 require("dbunit")
 require("dbfleet")
-local IDConstVals = require("IDConstVals")
+local IDConst = require("IDConst")
 
 ---@type logic4fleet
 local logic4fleet = require("logic.logic4fleet")
@@ -64,6 +64,62 @@ end
 logic4battle.startAttackFleet = function(fidx)
     -- //TODO:
 end
+---@param map NetProtoIsland.RC_onBattleDeployUnit
+logic4battle.onBattleDeployUnit = function(map, fd, agent)
+    ---@type NetProtoIsland.ST_retInfor
+    local ret = {}
+    local fidx = map.battleFidx
+    ---@type ClassBattleIsland
+    local b = battles[fidx]
+    if b then
+        ret.code = b:onDeployUnit(map)
+    else
+        ret.code = Errcode.error
+    end
+    return pkg4Client(map, ret)
+end
+---@param map NetProtoIsland.RC_onBattleUnitDie
+logic4battle.onBattleUnitDie = function(map, fd, agent)
+    ---@type NetProtoIsland.ST_retInfor
+    local ret = {}
+    local fidx = map.battleFidx
+    ---@type ClassBattleIsland
+    local b = battles[fidx]
+    if b then
+        ret.code = b:onUnitDie(map.unitInfor)
+    else
+        ret.code = Errcode.error
+    end
+    return pkg4Client(map, ret)
+end
+---@param map NetProtoIsland.RC_onBattleBuildingDie
+logic4battle.onBattleBuildingDie = function(map, fd, agent)
+    local fidx = map.battleFidx
+    ---@type NetProtoIsland.ST_retInfor
+    local ret = {}
+    ---@type ClassBattleIsland
+    local b = battles[fidx]
+    if b then
+        ret.code = b:onBuildingDie(map.bidx)
+    else
+        ret.code = Errcode.error
+    end
+    return pkg4Client(map, ret)
+end
+---@param map NetProtoIsland.RC_onBattleLootRes
+logic4battle.onBattleLootRes = function(map, fd, agent)
+    local fidx = map.battleFidx
+    ---@type NetProtoIsland.ST_retInfor
+    local ret = {}
+    ---@type ClassBattleIsland
+    local b = battles[fidx]
+    if b then
+        ret.code = b:onLootRes(map)
+    else
+        ret.code = Errcode.error
+    end
+    return pkg4Client(map, ret)
+end
 
 ---@public 结束攻岛战斗
 logic4battle.stopBattle4Island = function(fidx)
@@ -71,7 +127,7 @@ logic4battle.stopBattle4Island = function(fidx)
     local b = battles[fidx]
     if b == nil then
         -- 因为有可以重启服务器时，要处理之前在战斗状态的舰队
-        logic4battle.newBattle(fidx)
+        b = logic4battle.newBattle(fidx)
     end
 
     if b then
@@ -105,7 +161,7 @@ logic4battle.onPlayerOffline = function(pidx)
         local fleets = dbfleet.getListBycidx(player:get_cityidx())
         if fleets then
             for i, v in ipairs(fleets) do
-                if v[dbfleet.keys.status] == IDConstVals.FleetState.fightingIsland then
+                if v[dbfleet.keys.status] == IDConst.FleetState.fightingIsland then
                     logic4battle.stopBattle4Island(v[dbfleet.keys.idx])
                 end
             end

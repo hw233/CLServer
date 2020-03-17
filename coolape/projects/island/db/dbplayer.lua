@@ -27,17 +27,22 @@ dbplayer.name = "player"
 
 dbplayer.keys = {
     idx = "idx", -- 唯一标识
-    status = "status", -- 状态 1:正常;
-    attacking = "attacking", -- 正在攻击玩家的岛屿
-    beingattacked = "beingattacked", -- 正在被玩家攻击
+    status = "status", -- 状态 1:正常;2:封号
+    type = "type", -- 类型 -1:GM,0:普通
     name = "name", -- 名称
+    icon = "icon", -- 头像id
+    language = "language", -- 语言id
     lev = "lev", -- 等级
     exp = "exp", -- 经验值
+    exp = "exp", -- 经验值
+    point = "point", -- 功勋
     money = "money", -- 充值总数
     diam = "diam", -- 钻石
     diam4reward = "diam4reward", -- 系统奖励钻石
     cityidx = "cityidx", -- 主城idx
     unionidx = "unionidx", -- 联盟idx
+    attacking = "attacking", -- 正在攻击玩家的岛屿
+    beingattacked = "beingattacked", -- 正在被玩家攻击
     crtTime = "crtTime", -- 创建时间
     lastEnTime = "lastEnTime", -- 最后登陆时间
     channel = "channel", -- 渠道
@@ -136,7 +141,7 @@ function dbplayer:get_idx()
 end
 
 function dbplayer:set_status(v)
-    -- 状态 1:正常;
+    -- 状态 1:正常;2:封号
     if self:isEmpty() then
         skynet.error("[dbplayer:set_status],please init first!!")
         return nil
@@ -145,8 +150,202 @@ function dbplayer:set_status(v)
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "status", v)
 end
 function dbplayer:get_status()
-    -- 状态 1:正常;
+    -- 状态 1:正常;2:封号
     local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "status")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_type(v)
+    -- 类型 -1:GM,0:普通
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_type],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "type", v)
+end
+function dbplayer:get_type()
+    -- 类型 -1:GM,0:普通
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "type")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_name(v)
+    -- 名称
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_name],please init first!!")
+        return nil
+    end
+    v = v or ""
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
+end
+function dbplayer:get_name()
+    -- 名称
+    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "name")
+end
+
+function dbplayer:set_icon(v)
+    -- 头像id
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_icon],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "icon", v)
+end
+function dbplayer:get_icon()
+    -- 头像id
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "icon")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_language(v)
+    -- 语言id
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_language],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "language", v)
+end
+function dbplayer:get_language()
+    -- 语言id
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "language")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_lev(v)
+    -- 等级
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_lev],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lev", v)
+end
+function dbplayer:get_lev()
+    -- 等级
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lev")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_exp(v)
+    -- 经验值
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_exp],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "exp", v)
+end
+function dbplayer:get_exp()
+    -- 经验值
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "exp")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_exp(v)
+    -- 经验值
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_exp],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "exp", v)
+end
+function dbplayer:get_exp()
+    -- 经验值
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "exp")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_point(v)
+    -- 功勋
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_point],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "point", v)
+end
+function dbplayer:get_point()
+    -- 功勋
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "point")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_money(v)
+    -- 充值总数
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_money],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "money", v)
+end
+function dbplayer:get_money()
+    -- 充值总数
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "money")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_diam(v)
+    -- 钻石
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_diam],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "diam", v)
+end
+function dbplayer:get_diam()
+    -- 钻石
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "diam")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_diam4reward(v)
+    -- 系统奖励钻石
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_diam4reward],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "diam4reward", v)
+end
+function dbplayer:get_diam4reward()
+    -- 系统奖励钻石
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "diam4reward")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_cityidx(v)
+    -- 主城idx
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_cityidx],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "cityidx", v)
+end
+function dbplayer:get_cityidx()
+    -- 主城idx
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cityidx")
+    return (tonumber(val) or 0)
+end
+
+function dbplayer:set_unionidx(v)
+    -- 联盟idx
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_unionidx],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "unionidx", v)
+end
+function dbplayer:get_unionidx()
+    -- 联盟idx
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "unionidx")
     return (tonumber(val) or 0)
 end
 
@@ -226,125 +425,6 @@ function dbplayer:get_beingattacked()
     else
         return true
     end
-end
-
-function dbplayer:set_name(v)
-    -- 名称
-    if self:isEmpty() then
-        skynet.error("[dbplayer:set_name],please init first!!")
-        return nil
-    end
-    v = v or ""
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "name", v)
-end
-function dbplayer:get_name()
-    -- 名称
-    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "name")
-end
-
-function dbplayer:set_lev(v)
-    -- 等级
-    if self:isEmpty() then
-        skynet.error("[dbplayer:set_lev],please init first!!")
-        return nil
-    end
-    v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "lev", v)
-end
-function dbplayer:get_lev()
-    -- 等级
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "lev")
-    return (tonumber(val) or 0)
-end
-
-function dbplayer:set_exp(v)
-    -- 经验值
-    if self:isEmpty() then
-        skynet.error("[dbplayer:set_exp],please init first!!")
-        return nil
-    end
-    v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "exp", v)
-end
-function dbplayer:get_exp()
-    -- 经验值
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "exp")
-    return (tonumber(val) or 0)
-end
-
-function dbplayer:set_money(v)
-    -- 充值总数
-    if self:isEmpty() then
-        skynet.error("[dbplayer:set_money],please init first!!")
-        return nil
-    end
-    v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "money", v)
-end
-function dbplayer:get_money()
-    -- 充值总数
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "money")
-    return (tonumber(val) or 0)
-end
-
-function dbplayer:set_diam(v)
-    -- 钻石
-    if self:isEmpty() then
-        skynet.error("[dbplayer:set_diam],please init first!!")
-        return nil
-    end
-    v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "diam", v)
-end
-function dbplayer:get_diam()
-    -- 钻石
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "diam")
-    return (tonumber(val) or 0)
-end
-
-function dbplayer:set_diam4reward(v)
-    -- 系统奖励钻石
-    if self:isEmpty() then
-        skynet.error("[dbplayer:set_diam4reward],please init first!!")
-        return nil
-    end
-    v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "diam4reward", v)
-end
-function dbplayer:get_diam4reward()
-    -- 系统奖励钻石
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "diam4reward")
-    return (tonumber(val) or 0)
-end
-
-function dbplayer:set_cityidx(v)
-    -- 主城idx
-    if self:isEmpty() then
-        skynet.error("[dbplayer:set_cityidx],please init first!!")
-        return nil
-    end
-    v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "cityidx", v)
-end
-function dbplayer:get_cityidx()
-    -- 主城idx
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "cityidx")
-    return (tonumber(val) or 0)
-end
-
-function dbplayer:set_unionidx(v)
-    -- 联盟idx
-    if self:isEmpty() then
-        skynet.error("[dbplayer:set_unionidx],please init first!!")
-        return nil
-    end
-    v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "unionidx", v)
-end
-function dbplayer:get_unionidx()
-    -- 联盟idx
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "unionidx")
-    return (tonumber(val) or 0)
 end
 
 function dbplayer:set_crtTime(v)
@@ -433,10 +513,16 @@ function dbplayer:isEmpty()
     return (self.__key__ == nil) or (self:get_idx() == nil)
 end
 
-function dbplayer:release()
+function dbplayer:release(returnVal)
+    local val = nil
+    if returnVal then
+        val = self:value2copy()
+    end
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     self.__isNew__ = nil
     self.__key__ = nil
+    self = nil
+    return val
 end
 
 function dbplayer:delete()
@@ -488,6 +574,42 @@ function dbplayer.validData(data)
     if type(data.status) ~= "number" then
         data.status = tonumber(data.status) or 0
     end
+    if type(data.type) ~= "number" then
+        data.type = tonumber(data.type) or 0
+    end
+    if type(data.icon) ~= "number" then
+        data.icon = tonumber(data.icon) or 0
+    end
+    if type(data.language) ~= "number" then
+        data.language = tonumber(data.language) or 0
+    end
+    if type(data.lev) ~= "number" then
+        data.lev = tonumber(data.lev) or 0
+    end
+    if type(data.exp) ~= "number" then
+        data.exp = tonumber(data.exp) or 0
+    end
+    if type(data.exp) ~= "number" then
+        data.exp = tonumber(data.exp) or 0
+    end
+    if type(data.point) ~= "number" then
+        data.point = tonumber(data.point) or 0
+    end
+    if type(data.money) ~= "number" then
+        data.money = tonumber(data.money) or 0
+    end
+    if type(data.diam) ~= "number" then
+        data.diam = tonumber(data.diam) or 0
+    end
+    if type(data.diam4reward) ~= "number" then
+        data.diam4reward = tonumber(data.diam4reward) or 0
+    end
+    if type(data.cityidx) ~= "number" then
+        data.cityidx = tonumber(data.cityidx) or 0
+    end
+    if type(data.unionidx) ~= "number" then
+        data.unionidx = tonumber(data.unionidx) or 0
+    end
     if type(data.attacking) == "string" then
         if data.attacking == "false" or data.attacking =="0" then
             data.attacking = 0
@@ -517,27 +639,6 @@ function dbplayer.validData(data)
         end
     else
         data.beingattacked = 0
-    end
-    if type(data.lev) ~= "number" then
-        data.lev = tonumber(data.lev) or 0
-    end
-    if type(data.exp) ~= "number" then
-        data.exp = tonumber(data.exp) or 0
-    end
-    if type(data.money) ~= "number" then
-        data.money = tonumber(data.money) or 0
-    end
-    if type(data.diam) ~= "number" then
-        data.diam = tonumber(data.diam) or 0
-    end
-    if type(data.diam4reward) ~= "number" then
-        data.diam4reward = tonumber(data.diam4reward) or 0
-    end
-    if type(data.cityidx) ~= "number" then
-        data.cityidx = tonumber(data.cityidx) or 0
-    end
-    if type(data.unionidx) ~= "number" then
-        data.unionidx = tonumber(data.unionidx) or 0
     end
     if type(data.crtTime) == "number" then
         data.crtTime = dateEx.seconds2Str(data.crtTime/1000)

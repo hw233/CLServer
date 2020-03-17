@@ -57,14 +57,14 @@ do
             if m == nil then return r end
             r[10] = m.msg  -- 返回消息 string
             r[11] = m.code  -- 返回值 int
-            return r;
+            return r
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.msg = m[10] or m["10"] --  string
             r.code = m[11] or m["11"] --  int
-            return r;
+            return r
         end,
     }
     ---@class NetProtoUsermgr.ST_server 服务器
@@ -88,7 +88,7 @@ do
             r[18] = m.androidVer  -- 客户端android版本 string
             r[19] = m.isnew  -- 新服 boolean
             r[13] = m.status  -- 状态 1:正常; 2:爆满; 3:维护 int
-            return r;
+            return r
         end,
         parse = function(m)
             local r = {}
@@ -101,7 +101,7 @@ do
             r.androidVer = m[18] or m["18"] --  string
             r.isnew = m[19] or m["19"] --  boolean
             r.status = m[13] or m["13"] --  int
-            return r;
+            return r
         end,
     }
     ---@class NetProtoUsermgr.ST_userInfor 用户信息
@@ -111,19 +111,23 @@ do
             local r = {}
             if m == nil then return r end
             r[12] = m.idx  -- 唯一标识 int
-            return r;
+            return r
         end,
         parse = function(m)
             local r = {}
             if m == nil then return r end
             r.idx = m[12] or m["12"] --  int
-            return r;
+            return r
         end,
     }
     --==============================
+    ---@class NetProtoUsermgr.RC_Base
+    ---@field public cmd number
+    ---@field public __session__ string
+
     NetProtoUsermgr.recive = {
     -- 注册
-    ---@class NetProtoUsermgr.RC_registAccount
+    ---@class NetProtoUsermgr.RC_registAccount : NetProtoUsermgr.RC_Base
     ---@field public userId  用户名
     ---@field public password  密码
     ---@field public email  邮箱
@@ -146,7 +150,7 @@ do
         return ret
     end,
     -- 取得服务器列表
-    ---@class NetProtoUsermgr.RC_getServers
+    ---@class NetProtoUsermgr.RC_getServers : NetProtoUsermgr.RC_Base
     ---@field public appid  应用id
     ---@field public channel  渠道号
     getServers = function(map)
@@ -159,7 +163,7 @@ do
         return ret
     end,
     -- session是否有效
-    ---@class NetProtoUsermgr.RC_isSessionAlived
+    ---@class NetProtoUsermgr.RC_isSessionAlived : NetProtoUsermgr.RC_Base
     isSessionAlived = function(map)
         local ret = {}
         ret.cmd = "isSessionAlived"
@@ -168,7 +172,7 @@ do
         return ret
     end,
     -- 取得服务器信息
-    ---@class NetProtoUsermgr.RC_getServerInfor
+    ---@class NetProtoUsermgr.RC_getServerInfor : NetProtoUsermgr.RC_Base
     ---@field public idx  服务器id
     getServerInfor = function(map)
         local ret = {}
@@ -179,7 +183,7 @@ do
         return ret
     end,
     -- 保存所选服务器
-    ---@class NetProtoUsermgr.RC_setEnterServer
+    ---@class NetProtoUsermgr.RC_setEnterServer : NetProtoUsermgr.RC_Base
     ---@field public sidx  服务器id
     ---@field public uidx  用户id
     ---@field public appid  应用id
@@ -194,7 +198,7 @@ do
         return ret
     end,
     -- 登陆
-    ---@class NetProtoUsermgr.RC_loginAccount
+    ---@class NetProtoUsermgr.RC_loginAccount : NetProtoUsermgr.RC_Base
     ---@field public userId  用户名
     ---@field public password  密码
     ---@field public appid  应用id int
@@ -211,7 +215,7 @@ do
         return ret
     end,
     -- 渠道登陆
-    ---@class NetProtoUsermgr.RC_loginAccountChannel
+    ---@class NetProtoUsermgr.RC_loginAccountChannel : NetProtoUsermgr.RC_Base
     ---@field public userId  用户名
     ---@field public appid  应用id int
     ---@field public channel  渠道号 string
@@ -232,7 +236,7 @@ do
     }
     --==============================
     NetProtoUsermgr.send = {
-    registAccount = function(retInfor, userInfor, serverid, systime, session, mapOrig) -- mapOrig:客户端原始入参
+    registAccount = function(mapOrig, retInfor, userInfor, serverid, systime, session) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 20
         ret[3] = mapOrig and mapOrig.callback or nil
@@ -243,7 +247,7 @@ do
         ret[40] = session; -- 会话id
         return ret
     end,
-    getServers = function(retInfor, servers, mapOrig) -- mapOrig:客户端原始入参
+    getServers = function(mapOrig, retInfor, servers) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 31
         ret[3] = mapOrig and mapOrig.callback or nil
@@ -251,14 +255,14 @@ do
         ret[32] = NetProtoUsermgr._toList(NetProtoUsermgr.ST_server, servers)  -- 服务器列表
         return ret
     end,
-    isSessionAlived = function(retInfor, mapOrig) -- mapOrig:客户端原始入参
+    isSessionAlived = function(mapOrig, retInfor) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 41
         ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         return ret
     end,
-    getServerInfor = function(retInfor, server, mapOrig) -- mapOrig:客户端原始入参
+    getServerInfor = function(mapOrig, retInfor, server) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 33
         ret[3] = mapOrig and mapOrig.callback or nil
@@ -266,14 +270,14 @@ do
         ret[34] = NetProtoUsermgr.ST_server.toMap(server); -- 服务器信息
         return ret
     end,
-    setEnterServer = function(retInfor, mapOrig) -- mapOrig:客户端原始入参
+    setEnterServer = function(mapOrig, retInfor) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 35
         ret[3] = mapOrig and mapOrig.callback or nil
         ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
         return ret
     end,
-    loginAccount = function(retInfor, userInfor, serverid, systime, session, mapOrig) -- mapOrig:客户端原始入参
+    loginAccount = function(mapOrig, retInfor, userInfor, serverid, systime, session) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 38
         ret[3] = mapOrig and mapOrig.callback or nil
@@ -284,7 +288,7 @@ do
         ret[40] = session; -- 会话id
         return ret
     end,
-    loginAccountChannel = function(retInfor, userInfor, serverid, systime, session, mapOrig) -- mapOrig:客户端原始入参
+    loginAccountChannel = function(mapOrig, retInfor, userInfor, serverid, systime, session) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 39
         ret[3] = mapOrig and mapOrig.callback or nil

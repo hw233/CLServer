@@ -126,17 +126,17 @@
     NetProtoUsermgr.ST_retInfor = {
         toMap : function(m) {
             var r = {};
-            if(!m) { return r; }
+            if(!m) { return r }
             r[10] = m.msg  // 返回消息 string
             r[11] = m.code  // 返回值 int
-            return r;
+            return r
         },
         parse : function(m) {
             var r = {};
-            if(!m) { return r; }
+            if(!m) { return r }
             r.msg = m[10] //  string
             r.code = m[11] //  int
-            return r;
+            return r
         },
     }
     ///@class NetProtoUsermgr.ST_server 服务器
@@ -151,7 +151,7 @@
     NetProtoUsermgr.ST_server = {
         toMap : function(m) {
             var r = {};
-            if(!m) { return r; }
+            if(!m) { return r }
             r[12] = m.idx  // id int
             r[15] = m.port  // 端口 int
             r[14] = m.name  // 名称 string
@@ -160,11 +160,11 @@
             r[18] = m.androidVer  // 客户端android版本 string
             r[19] = m.isnew  // 新服 boolean
             r[13] = m.status  // 状态 1:正常; 2:爆满; 3:维护 int
-            return r;
+            return r
         },
         parse : function(m) {
             var r = {};
-            if(!m) { return r; }
+            if(!m) { return r }
             r.idx = m[12] //  int
             r.port = m[15] //  int
             r.name = m[14] //  string
@@ -173,7 +173,7 @@
             r.androidVer = m[18] //  string
             r.isnew = m[19] //  boolean
             r.status = m[13] //  int
-            return r;
+            return r
         },
     }
     ///@class NetProtoUsermgr.ST_userInfor 用户信息
@@ -181,15 +181,15 @@
     NetProtoUsermgr.ST_userInfor = {
         toMap : function(m) {
             var r = {};
-            if(!m) { return r; }
+            if(!m) { return r }
             r[12] = m.idx  // 唯一标识 int
-            return r;
+            return r
         },
         parse : function(m) {
             var r = {};
-            if(!m) { return r; }
+            if(!m) { return r }
             r.idx = m[12] //  int
-            return r;
+            return r
         },
     }
     //==============================

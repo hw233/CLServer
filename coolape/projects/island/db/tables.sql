@@ -126,26 +126,79 @@ CREATE TABLE `fleet` (
   PRIMARY KEY (`idx`, `cidx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
+#---- 语言表(国际化)
+DROP TABLE IF EXISTS `language`;
+CREATE TABLE `language` (
+  `language` TINYINT NOT NULL COMMENT '语言类别',
+  `ckey` varchar(128) NOT NULL COMMENT '内容key',
+  `content` text COMMENT '内容',
+  PRIMARY KEY (`language`, `ckey`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 邮件表
+DROP TABLE IF EXISTS `mail`;
+CREATE TABLE `mail` (
+  `idx` int(11) NOT NULL COMMENT '唯一标识',
+  `parent` int(11) COMMENT '父idx(其实就是邮件的idx，回复的邮件指向的主邮件的idx)',
+  `type` TINYINT COMMENT '类型，1：系统，2：战报；3：私信，4:联盟，5：客服',
+  `fromPidx` int(11) COMMENT '发件人',
+  `toPidx` int(11) COMMENT '收件人',
+  `titleKey` varchar(128) COMMENT '标题key',
+  `titleParams` varchar(512) COMMENT '标题的参数(json的map)',
+  `contentKey` varchar(128) COMMENT '内容key',
+  `contentParams` varchar(512) COMMENT '内容参数(json的map)',
+  `date` datetime COMMENT '时间',
+  `rewardIdx` int(11) COMMENT '奖励idx',
+  `comIdx` int(11) COMMENT '通用ID,可以关联到比如战报id等',
+  `backup` VARCHAR(256) COMMENT '备用',
+  PRIMARY KEY (`idx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 邮件与用户的关系表
+DROP TABLE IF EXISTS `mailplayer`;
+CREATE TABLE `mailplayer` (
+  `pidx` int(11) NOT NULL COMMENT '玩家唯一标识',
+  `midx` int(11) NOT NULL COMMENT '邮件唯一标识',
+  `state` TINYINT COMMENT '状态，0：未读，1：已读&未领奖，2：已读&已领奖',
+  PRIMARY KEY (`pidx`, `midx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
 #---- 玩家表
 DROP TABLE IF EXISTS `player`;
 CREATE TABLE `player` (
   `idx` int(11) NOT NULL COMMENT '唯一标识',
-  `status` int(11) COMMENT '状态 1:正常;',
-  `attacking` Boolean COMMENT '正在攻击玩家的岛屿',
-  `beingattacked` Boolean COMMENT '正在被玩家攻击',
+  `status` TINYINT COMMENT '状态 1:正常;2:封号',
+  `type` TINYINT COMMENT '类型 -1:GM,0:普通',
   `name` varchar(45) COMMENT '名称',
+  `icon` int(11) COMMENT '头像id',
+  `language` TINYINT COMMENT '语言id',
   `lev` int(4) COMMENT '等级',
   `exp` int(11) COMMENT '经验值',
+  `exp` int(11) COMMENT '经验值',
+  `point` int(11) COMMENT '功勋',
   `money` int(11) COMMENT '充值总数',
   `diam` int(11) COMMENT '钻石',
   `diam4reward` int(11) COMMENT '系统奖励钻石',
   `cityidx` int(11) COMMENT '主城idx',
   `unionidx` int(11) COMMENT '联盟idx',
+  `attacking` Boolean COMMENT '正在攻击玩家的岛屿',
+  `beingattacked` Boolean COMMENT '正在被玩家攻击',
   `crtTime` datetime COMMENT '创建时间',
   `lastEnTime` datetime COMMENT '最后登陆时间',
   `channel` varchar(45) COMMENT '渠道',
   `deviceid` varchar(45) COMMENT '机器id',
   PRIMARY KEY (`idx`, `name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 战报
+DROP TABLE IF EXISTS `report`;
+CREATE TABLE `report` (
+  `idx` int(11) NOT NULL COMMENT '唯一标识',
+  `type` TINYINT NOT NULL COMMENT '类型 1:攻击岛,2:攻击舰队',
+  `result` text COMMENT '战斗结果(json)，方便可以快速查看战报',
+  `content` text COMMENT '战报过程等更详细的内容(json)',
+  `crttime` datetime COMMENT '创建时间',
+  PRIMARY KEY (`idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 地块表
@@ -163,6 +216,7 @@ DROP TABLE IF EXISTS `unit`;
 CREATE TABLE `unit` (
   `idx` int(11) NOT NULL COMMENT '唯一标识',
   `id` TINYINT COMMENT '配置数量的id',
+  `type` TINYINT COMMENT '类别的id',
   `bidx` int(11) NOT NULL COMMENT '所属建筑idx',
   `fidx` int(11) COMMENT '所属舰队idx',
   `num` int(11) COMMENT '数量',

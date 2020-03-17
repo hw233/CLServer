@@ -11,7 +11,9 @@ require("dbbuilding")
 require("dbplayer")
 require("dbunit")
 require("dbfleet")
-local IDConstVals = require("IDConstVals")
+local IDConst = require("IDConst")
+---@type logic4city
+local logic4city = require("logic.logic4city")
 
 local CMD = {}
 local moveSpeed
@@ -85,8 +87,8 @@ logic4fleet.new = function(name, cidx, pos)
     fleetData[dbfleet.keys.cidx] = cidx
     fleetData[dbfleet.keys.name] = name
     fleetData[dbfleet.keys.curpos] = pos
-    fleetData[dbfleet.keys.task] = IDConstVals.FleetTask.idel
-    fleetData[dbfleet.keys.status] = IDConstVals.FleetState.none
+    fleetData[dbfleet.keys.task] = IDConst.FleetTask.idel
+    fleetData[dbfleet.keys.status] = IDConst.FleetState.none
     fleet:init(fleetData)
     return fleet
 end
@@ -115,7 +117,7 @@ logic4fleet.refreshUnits = function(idx, units, agent)
             local diff = v.num - unit:get_num()
             if diff > 0 then
                 -- 从造舰厂里扣除舰船,只能在idle状态时才可以增加舰船数量
-                if fleet:get_task() == IDConstVals.FleetTask.idel and deductShipsInDockyard(v.id, diff, agent) then
+                if fleet:get_task() == IDConst.FleetTask.idel and deductShipsInDockyard(v.id, diff, agent) then
                     unit:set_num(v.num)
                 end
             elseif diff < 0 then
@@ -126,7 +128,7 @@ logic4fleet.refreshUnits = function(idx, units, agent)
             oldShips[v.id] = nil
         else
             -- 说明是新加入的舰船数据,只能在idle状态时才可以增加舰船数量
-            if fleet:get_task() == IDConstVals.FleetTask.idel and deductShipsInDockyard(v.id, v.num, agent) then
+            if fleet:get_task() == IDConst.FleetTask.idel and deductShipsInDockyard(v.id, v.num, agent) then
                 v[dbunit.keys.idx] = DBUtl.nextVal(DBUtl.Keys.unit)
                 v[dbunit.keys.fidx] = fleet:get_idx()
                 dbunit.new(v):release()
@@ -139,6 +141,27 @@ logic4fleet.refreshUnits = function(idx, units, agent)
         v:delete()
     end
     fleet:release()
+end
+
+---@public 消耗战斗单元
+---@param fidx number 舰队idx
+---@param unitId number 战斗单元
+---@return boolean 成功？
+logic4fleet.consumeUnit = function(fidx, unitId, num)
+    local fleet = logic4fleet.getFleet(fidx)
+    for i, unit in ipairs(fleet.units) do
+        if unit[dbunit.keys.id] == unitId then
+            if unit[dbunit.keys.num] >= num then
+                local u = dbunit.instanse(unit[dbunit.keys.idx])
+                u:set_num(u:get_num() - num)
+                u:release()
+                return true
+            else
+                return false
+            end
+        end
+    end
+    return false
 end
 
 ---@public 取得舰队的信息
@@ -176,12 +199,12 @@ logic4fleet.delete = function(idx)
         return
     end
 
-    if fleet:get_task() ~= IDConstVals.FleetTask.idel then
-        if fleet:get_status() == IDConstVals.FleetState.docked or fleet:get_status() == IDConstVals.FleetState.stay then
+    if fleet:get_task() ~= IDConst.FleetTask.idel then
+        if fleet:get_status() == IDConst.FleetState.docked or fleet:get_status() == IDConst.FleetState.stay then
             local tile = dbworldmap.instanse(fleet:get_curpos())
             if not tile:isEmpty() then
                 tile:delete()
-                skynet.call("LDSWorld", "lua", "pushMapCellChg", fleet:get_curpos())
+                skynet.call("USWorld", "lua", "pushMapCellChg", fleet:get_curpos())
             end
         end
     end

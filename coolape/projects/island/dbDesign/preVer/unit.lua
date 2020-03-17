@@ -4,6 +4,7 @@ local tab = {
     columns = {
         {"idx", "int(11) NOT NULL", "唯一标识"},
         {"id", "TINYINT", "配置数量的id"},
+        {"type", "TINYINT", "类别的id"},
         {"bidx", "int(11) NOT NULL", "所属建筑idx"},
         {"fidx", "int(11)", "所属舰队idx"},
         {"num", "int(11)", "数量"}

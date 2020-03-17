@@ -82,10 +82,8 @@ function CMD.disconnect()
         end
     end
     LogicMap = {}
-    -- 通知大地图服移除我
-    skynet.call("LDSWorld", "lua", "rmPlayerCurrLook4WorldPage", skynet.self())
     local pidx = (player and player.idx or nil)
-    skynet.call("LDSWorld", "lua", "onPlayerOffline", pidx, client_fd, skynet.self())
+    skynet.call("USWorld", "lua", "onPlayerOffline", pidx, client_fd, skynet.self())
     skynet.exit()
 end
 
@@ -105,7 +103,7 @@ end
 
 ---@public 取得逻辑处理类
 function CMD.getLogic(logicName)
-    if logicName == "LDSWorld" then
+    if logicName == "USWorld" then
         -- 全局服务器（已经启动了），直接返回
         return logicName
     end

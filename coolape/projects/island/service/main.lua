@@ -47,15 +47,16 @@ skynet.start(
             skynet.error("Watchdog listen on", skynet.getenv("socketPort"))
 
             -- world Grid
-            skynet.uniqueservice("LDSWorld")
-            skynet.call("LDSWorld", "lua", "init")
+            skynet.uniqueservice("USWorld")
+            skynet.call("USWorld", "lua", "init")
+
+            -- 多语言支持
+            skynet.uniqueservice("USLanguage")
 
             -- http server
-            skynet.newservice("myweb",
-                    skynet.getenv("httpPort"), -- http port
-                    10 -- 代理个数
-            )
-
+            skynet.newservice("myweb")
+            -- 启动后的初始化
+            skynet.newservice("initAfterServerStarted")
             skynet.exit()
         end
 )

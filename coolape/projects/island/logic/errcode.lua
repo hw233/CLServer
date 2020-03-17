@@ -43,5 +43,9 @@ Errcode.fleetCannotMoveTo = 38 -- 舰队不能到达
 Errcode.cannontFoundPlayerInWorld = 39 -- 无法在世界地图上找到玩家
 Errcode.toFarCannotAttack = 40 -- 距离太远无法进行攻击
 Errcode.fleetIsNotMine = 41 -- 舰队不是自己的，不可操作
-Errcode.targetBeingAttackedCannotAttack = 42 -- "玩家正在被其它玩家攻击，暂时不可攻击"
+Errcode.targetBeingAttackedCannotAttack = 42 -- 玩家正在被其它玩家攻击，暂时不可攻击
+Errcode.unitNotEnough = 43 -- 战斗单元数量不足
+Errcode.reportIsNil = 44 -- 战报数据为空
+Errcode.mailIsNil = 45 -- 邮件为空
+Errcode.mailHadReaded = 46 -- 邮件已经读过
 return Errcode

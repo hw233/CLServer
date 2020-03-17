@@ -31,6 +31,43 @@ cmd4player.getEditMode = function()
     return isEditMode
 end
 
+---@public 是否是可用的玩家名
+cmd4player.isAvailableName = function(name)
+    --//TODO:
+end
+
+---@param m NetProtoIsland.RC_login
+cmd4player.newPlayer = function(m, type)
+    local player = {}
+    player.idx = m.uidx
+    player.status = IDConst.PlayerState.normal
+    player.type = type or IDConst.PlayerType.player
+    if player.type == IDConst.PlayerType.gm then
+        player.name = "GM"
+    else
+        player.name = m.name or "pl-" .. m.uidx
+    end
+    player.lev = 1
+    player.money = 0
+    player.diam = 90000
+    player.cityidx = 0
+    player.unionidx = 0
+    player.crtTime = dateEx.nowStr()
+    player.lastEnTime = dateEx.nowStr()
+    player.channel = m.channel
+    player.deviceid = m.deviceID
+    player[dbplayer.keys.language] = m.language or 1
+    player[dbplayer.keys.beingattacked] = false
+    player[dbplayer.keys.attacking] = false
+
+    local p = dbplayer.new()
+    p:init(player, true)
+
+    local val = p:value2copy()
+    p:release()
+    return val
+end
+
 cmd4player.release = function()
     print("player release")
     if myself then
@@ -64,6 +101,7 @@ end
 ------------------------------------------
 ------------------------------------------
 ------------------------------------------
+---@param m NetProtoIsland.RC_login
 CMD.login = function(m, fd, _agent)
     local cmd = m.cmd
     isEditMode = m.isEditMode
@@ -80,20 +118,9 @@ CMD.login = function(m, fd, _agent)
     end
     if myself:isEmpty() then
         -- 说明是没有数据,新号
-        local player = {}
-        player.idx = m.uidx
-        player.status = 1
-        player.name = "new player"
-        player.lev = 1
-        player.money = 0
-        player.diam = 100
-        player.cityidx = 0
-        player.unionidx = 0
-        player.crtTime = dateEx.nowStr()
-        player.lastEnTime = dateEx.nowStr()
-        player.channel = m.channel
-        player.deviceid = m.deviceID
-        if myself:init(player, true) then
+        cmd4player.newPlayer(m)
+        myself = dbplayer.instanse(m.uidx)
+        if not myself:isEmpty() then
             local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
             city = skynet.call(cityServer, "lua", "new", m.uidx, agent)
             myself:set_cityidx(city.idx)

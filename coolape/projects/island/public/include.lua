@@ -6,7 +6,7 @@ require("CLLQueue")
 require("CLLStack")
 json = require("json")
 require("BioUtl")
-
+MD5 = require("md5")
 require("BitUtl")
 require("DBUtl")
 require("numEx")
@@ -24,6 +24,7 @@ require("Vector3")
 require("Vector4")
 
 -- island
+require("logic.IDConst")
 require("public.cfgUtl")
 require("public.myutl")
 

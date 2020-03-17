@@ -26,7 +26,7 @@ cmd4server.CMD = {
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return skynet.call(NetProto, "lua", "send", "setEnterServer", ret, m)
+            return skynet.call(NetProto, "lua", "send", "setEnterServer", m, ret)
         end
 
         ---@type dbuserserver
@@ -44,7 +44,7 @@ cmd4server.CMD = {
         local ret = {}
         ret.msg = nil;
         ret.code = Errcode.ok
-        return skynet.call(NetProto, "lua", "send", "setEnterServer", ret, m)
+        return skynet.call(NetProto, "lua", "send", "setEnterServer", m, ret)
     end,
 
     getServerInfor = function(m, fd)
@@ -53,7 +53,7 @@ cmd4server.CMD = {
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return skynet.call(NetProto, "lua", "send", "getServerInfor", ret, nil, m)
+            return skynet.call(NetProto, "lua", "send", "getServerInfor", m, ret, nil)
         end
         local s = dbservers.instanse(m.idx)
         if s:isEmpty() then
@@ -61,14 +61,14 @@ cmd4server.CMD = {
             local ret = {}
             ret.msg = "未找到数据";
             ret.code = Errcode.error
-            return skynet.call(NetProto, "lua", "send", "getServerInfor", ret, nil, m)
+            return skynet.call(NetProto, "lua", "send", "getServerInfor", m, ret, nil)
         end
         local ret = {}
         ret.msg = nil
         ret.code = Errcode.ok
         local result = s:value2copy()
         s:release()
-        return skynet.call(NetProto, "lua", "send", "getServerInfor", ret, result, m)
+        return skynet.call(NetProto, "lua", "send", "getServerInfor", m, ret, result)
     end,
 
     getServers = function(m, fg)
@@ -79,7 +79,7 @@ cmd4server.CMD = {
             local ret = {}
             ret.msg = "参数错误！";
             ret.code = Errcode.error
-            return skynet.call(NetProto, "lua", "send", "getServers", ret, nil, m)
+            return skynet.call(NetProto, "lua", "send", "getServers", m, ret, nil)
         end
 
         local list = dbservers.getListByappid(appid, " idx desc ")
@@ -87,7 +87,7 @@ cmd4server.CMD = {
         local ret = {}
         ret.msg = nil
         ret.code = Errcode.ok
-        return skynet.call(NetProto, "lua", "send", "getServers", ret, list, m)
+        return skynet.call(NetProto, "lua", "send", "getServers", m, ret, list)
     end
 }
 

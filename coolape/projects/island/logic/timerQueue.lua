@@ -10,7 +10,16 @@ timerQueue = {
     build = {}, -- 建筑队列
     ship = {}, -- 兵队列
     tech = {}, -- 科技队列
+    other = {}, -- others
 }
+
+---@public 新建定时器
+---@return Coroutine
+timerQueue.newTimer = function(sec, callback, param)
+    local cor = timerEx.new(sec, callback, param)
+    table.insert(timerQueue.other, cor)
+    return cor
+end
 
 ---@public 加入建筑队列
 ---@param b dbbuilding
@@ -38,7 +47,7 @@ end
 ---@public 加入造兵队列
 ---@param b dbbuilding
 timerQueue.addShipQueue = function(b, seconds, callback)
-    if b:get_state() ~= IDConstVals.BuildingState.working then
+    if b:get_state() ~= IDConst.BuildingState.working then
         timerQueue.removeShipQueue(b)
         return
     end
@@ -77,6 +86,11 @@ timerQueue.release = function()
         timerEx.cancel(v)
     end
     timerQueue.tech = {}
+
+    for i, v in ipairs(timerQueue.other) do
+        timerEx.cancel(v)
+    end
+    timerQueue.other = {}
 end
 
 return timerQueue

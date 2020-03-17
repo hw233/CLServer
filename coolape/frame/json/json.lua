@@ -369,7 +369,7 @@ end
 -- @return The string appropriately escaped.
 
 local escapeList = {
-    ['"']  = '\\"',
+    ['"']  = '\\\"',
     ['\\'] = '\\\\',
     ['/']  = '\\/', 
     ['\b'] = '\\b',

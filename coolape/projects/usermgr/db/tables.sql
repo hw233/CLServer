@@ -80,46 +80,46 @@ DELIMITER ;
 #---- 服务器列表
 DROP TABLE IF EXISTS `servers`;
 CREATE TABLE `servers` (
-  `idx` int(11) NOT NULL,
-  `appid` int(11)  NOT NULL,
-  `channel` varchar(11)  NOT NULL,
-  `name` varchar(45) NOT NULL,
-  `status` int(1),
-  `isnew` bool,
-  `host` varchar(32) NOT NULL,
-  `port` int(11) NOT NULL,
-  `androidVer` varchar(24),
-  `iosVer` varchar(24),
-  `pcVer` varchar(24),
-  `macVer` varchar(24),
-  `note` varchar(256),
+  `idx` int(11) NOT NULL COMMENT '唯一标识',
+  `appid` int(11)  NOT NULL COMMENT '应用id',
+  `channel` varchar(11)  NOT NULL COMMENT '渠道id',
+  `name` varchar(45) NOT NULL COMMENT '服务器名',
+  `status` int(1) COMMENT '状态 1:正常; 2:爆满; 3:维护',
+  `isnew` bool COMMENT '新服',
+  `host` varchar(32) NOT NULL COMMENT 'ip',
+  `port` int(11) NOT NULL COMMENT 'port',
+  `androidVer` varchar(24) COMMENT '客户端android版本',
+  `iosVer` varchar(24) COMMENT '客户端ios版本',
+  `pcVer` varchar(24) COMMENT '客户端PC版本',
+  `macVer` varchar(24) COMMENT '客户端Mac版本',
+  `note` varchar(256) COMMENT '备注说明',
   PRIMARY KEY (`idx`, `appid`, `channel`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 用户表
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
-  `idx` int(11) NOT NULL,
-  `uidChl` varchar(45) NOT NULL,
-  `uid` varchar(45) NOT NULL,
-  `password` varchar(45) NOT NULL,
-  `crtTime` datetime,
-  `lastEnTime` datetime,
-  `status` int(11),
-  `email` varchar(45),
-  `appid` int(11) ,
-  `channel` varchar(45),
-  `deviceid` varchar(45),
-  `deviceinfor` varchar(128),
-  `groupid` TINYINT,
+  `idx` int(11) NOT NULL COMMENT '唯一标识',
+  `uidChl` varchar(45) NOT NULL COMMENT '用户id(第三方渠道用户)',
+  `uid` varchar(45) NOT NULL COMMENT '用户id',
+  `password` varchar(45) NOT NULL COMMENT '用户密码',
+  `crtTime` datetime COMMENT '创建时间',
+  `lastEnTime` datetime COMMENT '最后登陆时间',
+  `status` int(11) COMMENT '状态 0:正常;',
+  `email` varchar(45) COMMENT '邮箱',
+  `appid` int(11)  COMMENT '应用id',
+  `channel` varchar(45) COMMENT '渠道',
+  `deviceid` varchar(45) COMMENT '机器id',
+  `deviceinfor` varchar(128) COMMENT '机器信息',
+  `groupid` TINYINT COMMENT '组id',
   PRIMARY KEY (`idx`, `uid`, `uidChl`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 用户与服务器关系
 DROP TABLE IF EXISTS `userserver`;
 CREATE TABLE `userserver` (
-  `sidx` int(11) NOT NULL,
-  `uidx` int(11) NOT NULL,
-  `appid` int(11) NOT NULL,
+  `sidx` int(11) NOT NULL COMMENT '服务器id',
+  `uidx` int(11) NOT NULL COMMENT '用户id',
+  `appid` int(11) NOT NULL COMMENT '应用id',
   PRIMARY KEY (`uidx`, `appid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

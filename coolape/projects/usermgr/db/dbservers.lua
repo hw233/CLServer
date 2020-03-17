@@ -66,7 +66,7 @@ function dbservers:init(data, isNew)
             hadCacheData = true
             self.__isNew__ = false
         end
-    else
+    elseif isNew ~= nil then
         self.__isNew__ = isNew
     end
     if self.__isNew__ then
@@ -193,7 +193,6 @@ function dbservers:set_isnew(v)
         skynet.error("[dbservers:set_isnew],please init first!!")
         return nil
     end
-    local val = 0
     if type(v) == "string" then
         if v == "false" or v =="0" then
             v = 0
@@ -206,8 +205,14 @@ function dbservers:set_isnew(v)
         else
             v = 1
         end
+    elseif type(v) == "boolean" then
+        if v then
+            v = 1
+        else
+            v = 0
+        end
     else
-        val = 1
+        v = 0
     end
     skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "isnew", v)
 end
@@ -336,10 +341,16 @@ function dbservers:isEmpty()
     return (self.__key__ == nil) or (self:get_idx() == nil)
 end
 
-function dbservers:release()
+function dbservers:release(returnVal)
+    local val = nil
+    if returnVal then
+        val = self:value2copy()
+    end
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     self.__isNew__ = nil
     self.__key__ = nil
+    self = nil
+    return val
 end
 
 function dbservers:delete()
@@ -347,6 +358,7 @@ function dbservers:delete()
     skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     skynet.call("CLDB", "lua", "REMOVE", self.__name__, self.__key__)
     local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, d)
+    self.__key__ = nil
     return skynet.call("CLMySQL", "lua", "exesql", sql)
 end
 

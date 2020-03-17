@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local WATCHDOG = "watchdog"
 local NetProtoIsland = skynet.getenv("NetProtoName")
+local string = string
 
 ---@public 玩家是否在线
 isPlayerOnline = function(pidx)
@@ -35,4 +36,27 @@ pkg4Client = function(mapOrig, ret, ...)
         return skynet.call(NetProtoIsland, "lua", "send", mapOrig.cmd, mapOrig, ret, ...)
     end
     return nil
+end
+
+---@public 取得本地化
+---@return string
+LGet = function(language, key)
+    return skynet.call("USLanguage", "lua", "get", language, key)
+end
+
+---@public 包装语言内容
+---@param content string 原始内容，支持${xxx}的格式化
+---@param paramsJson string 内容参数，是json格式map
+LWrap = function(content, paramsJson)
+    if not CLUtl.isNilOrEmpty(paramsJson) then
+        local paramMap = json.decode(paramsJson)
+        if paramMap then
+            local key
+            for k, v in pairs(paramMap) do
+                key = "${" .. k .. "}"
+                content = string.gsub(content, key, v)
+            end
+        end
+    end
+    return content
 end

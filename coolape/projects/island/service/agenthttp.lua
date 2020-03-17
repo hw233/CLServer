@@ -1,4 +1,5 @@
 ﻿local skynet = require "skynet"
+require "skynet.manager" -- import skynet.register
 local socket = require "skynet.socket"
 local urllib = require "http.url"
 ---@type BioUtl
@@ -50,8 +51,8 @@ end
 
 -- ======================================================
 -- ======================================================
-function CMD.onrequset(url, method, header, body)
-    -- 有http请求
+---@public 有http请求
+CMD.onrequset = function(url, method, header, body)
     --printhttp(url, method, header, body) -- debug log
     local path, query = urllib.parse(url)
     if method:upper() == "POST" then
@@ -77,7 +78,7 @@ function CMD.onrequset(url, method, header, body)
             skynet.send("watchdog", "lua", "stop")
             return ""
         elseif path == httpCMD.httpManage then
-            -- 处理统一的get请求
+            -- 后台管理的请求
             local requst = urllib.parse_query(query)
             local cmd = requst.cmd
             local service = CMD.getLogic("proManager")
@@ -96,8 +97,8 @@ function CMD.onrequset(url, method, header, body)
     end
 end
 
--- 取得逻辑处理类
-function CMD.getLogic(logicName)
+---@public  取得逻辑处理类
+CMD.getLogic = function(logicName)
     local logic = LogicMap[logicName]
     if logic == nil then
         logic = skynet.newservice(logicName)
@@ -106,6 +107,21 @@ function CMD.getLogic(logicName)
     return logic
 end
 
+---@public 停止
+CMD.stop = function()
+    for k, v in pairs(LogicMap) do
+        if skynet.address(v) then
+            skynet.kill(v)
+        end
+    end
+    LogicMap = {}
+    skynet.exit()
+end
+
+CMD.reloadServer = function(serverName)
+    local server = CMD.getLogic(serverName)
+    skynet.send(server, "lua", "reload")
+end
 -- ======================================================
 skynet.start(
     function()

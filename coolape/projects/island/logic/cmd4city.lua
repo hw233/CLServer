@@ -11,7 +11,7 @@ require("dbunit")
 require("Errcode")
 require("timerQueue")
 local timerEx = require("timerEx")
-local IDConstVals = require("IDConstVals")
+local IDConst = require("IDConst")
 local CMD = {}
 local math = math
 local table = table
@@ -39,7 +39,6 @@ local headquarters  -- 主基地
 local buildingCountMap = {} -- key=buildingAttrid;value=count
 local hadTileCount = 0 -- 地块总量
 
---//TODO:如何处理免战保护时间
 --======================================================
 --======================================================
 cmd4city.new = function(uidx)
@@ -51,7 +50,7 @@ cmd4city.new = function(uidx)
 
     local attrid = 7
     -- 分配一个世界坐标
-    local mapcell = skynet.call("LDSWorld", "lua", "occupyMapCell", 0, idx, IDConstVals.WorldmapCellType.user, attrid)
+    local mapcell = skynet.call("USWorld", "lua", "occupyMapCell", 0, idx, IDConst.WorldmapCellType.user, attrid)
     myself = dbcity.new()
     local d = {}
     d.idx = idx
@@ -73,17 +72,17 @@ cmd4city.new = function(uidx)
     headquarters:refreshData(
         {
             [dbbuilding.keys.lev] = 1, -- 初始成一级
-            [dbbuilding.keys.val] = IDConstVals.baseRes, -- 粮
-            [dbbuilding.keys.val2] = IDConstVals.baseRes, -- 金
-            [dbbuilding.keys.val3] = IDConstVals.baseRes -- 油
+            [dbbuilding.keys.val] = IDConst.baseRes, -- 粮
+            [dbbuilding.keys.val2] = IDConst.baseRes, -- 金
+            [dbbuilding.keys.val3] = IDConst.baseRes -- 油
         }
     )
     buildings[headquarters:get_idx()] = headquarters
 
     local v4 = Vector4.New(0, 0, 59, 59)
-    --初始化地块
+    -- 初始化地块
     cmd4city.initTiles(myself)
-    --初始化建筑
+    -- 初始化建筑
     -- 邮箱
     local building = cmd4city.newBuilding(39, cmd4city.getFreeGridIdx4Building(v4, 39), idx)
 
@@ -356,6 +355,20 @@ cmd4city.getTileAttrWithAround = function(leftAttrId, righAttrId, upAttrId, down
     end
 end
 
+local function onProtectTimeOut()
+    local diff = myself:get_protectEndTime() - dateEx.nowMS()
+    if diff <= 0 then
+        myself:set_status(IDConst.CityState.normal)
+    else
+        -- 可能又被重新设置新的保护时间
+        timerQueue.newTimer(diff / 1000 + 0.1, onProtectTimeOut)
+    end
+end
+
+cmd4city.init = function(idx)
+    cmd4city.getSelf(idx)
+end
+
 ---@param idx 城的idx
 cmd4city.getSelf = function(idx)
     -- 取得城数据
@@ -364,6 +377,15 @@ cmd4city.getSelf = function(idx)
         if myself:isEmpty() then
             printe("[cmd4city.get].get city data is nil. idx==" .. idx)
             return nil
+        end
+        if myself:get_status() == IDConst.CityState.protect then
+            -- 如果是保护状态
+            local diff = myself:get_protectEndTime() - dateEx.nowMS()
+            if diff <= 0 then
+                myself:set_status(IDConst.CityState.normal)
+            else
+                timerQueue.newTimer(diff / 1000, onProtectTimeOut)
+            end
         end
         --设置触发器
         myself:setTrigger(skynet.self(), "onMyselfCityChg")
@@ -511,7 +533,7 @@ cmd4city.getBuildingCountAtCurrLev = function(buildingAttrId)
         return 1
     end
     local attr = cfgUtl.getBuildingByID(buildingAttrId)
-    if attr.GID == IDConstVals.BuildingGID.tree then
+    if attr.GID == IDConst.BuildingGID.tree then
         return 9999
     end
 
@@ -528,7 +550,7 @@ cmd4city.newBuilding = function(attrid, pos, cidx)
     -- 数量判断
     local hadNum = (buildingCountMap[attrid] or 0)
     local attr = cfgUtl.getBuildingByID(attrid)
-    if attrid ~= IDConstVals.headquartersBuildingID and attr.GID ~= IDConstVals.BuildingGID.tree then
+    if attrid ~= IDConst.BuildingID.headquarters and attr.GID ~= IDConst.BuildingGID.tree then
         local maxNum = cmd4city.getBuildingCountAtCurrLev(attrid)
         if hadNum >= maxNum then
             printe("已经达到建筑最大数量！")
@@ -598,17 +620,24 @@ cmd4city.setSelfBuildings = function()
         b:setTrigger(skynet.self(), "onBuildingChg")
         buildingCountMap[b:get_attrid()] = (buildingCountMap[b:get_attrid()] or 0) + 1
 
-        if b:get_state() == IDConstVals.BuildingState.upgrade then
+        if b:get_state() == IDConst.BuildingState.upgrade then
             if b:get_endtime() <= dateEx.nowMS() then
                 cmd4city.onFinishBuildingUpgrade(b)
             else
                 timerQueue.addtimerQueue(b, cmd4city.onFinishBuildingUpgrade)
             end
-        elseif b:get_state() == IDConstVals.BuildingState.working then
+        elseif b:get_state() == IDConst.BuildingState.working then
             -- 正生产
-            if b:get_attrid() == IDConstVals.dockyardBuildingID then
+            if b:get_attrid() == IDConst.BuildingID.dockyard then
                 -- 造船厂
                 cmd4city.procDockyardBuildShip(b)
+            end
+        elseif b:get_state() == IDConst.BuildingState.renew then
+            -- 正在恢复
+            if b:get_endtime() <= dateEx.nowMS() then
+                cmd4city.onFinishBuildingRenew(b)
+            else
+                timerQueue.addtimerQueue(b, cmd4city.onFinishBuildingRenew)
             end
         end
 
@@ -650,41 +679,41 @@ end
 local getResTypeByBuildingAttrID = function(attrid)
     local resType
     if attrid == 6 or attrid == 7 then
-        resType = IDConstVals.ResType.food
+        resType = IDConst.ResType.food
     elseif attrid == 8 or attrid == 9 then
-        resType = IDConstVals.ResType.oil
+        resType = IDConst.ResType.oil
     elseif attrid == 10 or attrid == 11 then
-        resType = IDConstVals.ResType.gold
+        resType = IDConst.ResType.gold
     end
     return resType
 end
 
 ---@class _ParamResInfor
----@field public type number IDConstVals.ResType
+---@field public type number IDConst.ResType
 ---@field stored number 当前存储的量
 ---@field maxstore number 最大存储量
 
 ---@public 取得某种资源的信息
----@param resType IDConstVals.ResType
+---@param resType IDConst.ResType
 ---@return _ParamResInfor
 cmd4city.getResInforByType = function(resType)
     local attrid = 0
     local hadRes = 0 -- 已有资源
     local maxstore = 0
-    if resType == IDConstVals.ResType.food then
-        attrid = IDConstVals.foodStorageBuildingID
+    if resType == IDConst.ResType.food then
+        attrid = IDConst.BuildingID.foodStorage
         hadRes = headquarters:get_val()
-    elseif resType == IDConstVals.ResType.gold then
-        attrid = IDConstVals.goldStorageBuildingID
+    elseif resType == IDConst.ResType.gold then
+        attrid = IDConst.BuildingID.goldStorage
         hadRes = headquarters:get_val2()
-    elseif resType == IDConstVals.ResType.oil then
-        attrid = IDConstVals.oildStorageBuildingID
+    elseif resType == IDConst.ResType.oil then
+        attrid = IDConst.BuildingID.oildStorage
         hadRes = headquarters:get_val3()
     end
     if attrid > 0 then
         local _, stored, _maxstore = cmd4city.getStoreBuildings(attrid)
         hadRes = hadRes + stored
-        maxstore = _maxstore + IDConstVals.baseRes
+        maxstore = _maxstore + IDConst.baseRes
     end
     return {type = resType, stored = hadRes, maxstore = maxstore}
 end
@@ -768,9 +797,9 @@ cmd4city.consumeRes4Base = function(food, gold, oil)
             val = -tmpval
         else
             -- 说明是存储
-            if tmpval > IDConstVals.baseRes then
-                headquarters:set_val(IDConstVals.baseRes)
-                val = IDConstVals.baseRes - tmpval
+            if tmpval > IDConst.baseRes then
+                headquarters:set_val(IDConst.baseRes)
+                val = IDConst.baseRes - tmpval
             else
                 headquarters:set_val((tmpval))
                 val = 0
@@ -788,9 +817,9 @@ cmd4city.consumeRes4Base = function(food, gold, oil)
             val = -tmpval
         else
             -- 说明是存储
-            if tmpval > IDConstVals.baseRes then
-                headquarters:set_val2(IDConstVals.baseRes)
-                val = IDConstVals.baseRes - tmpval
+            if tmpval > IDConst.baseRes then
+                headquarters:set_val2(IDConst.baseRes)
+                val = IDConst.baseRes - tmpval
             else
                 headquarters:set_val2((tmpval))
                 val = 0
@@ -808,9 +837,9 @@ cmd4city.consumeRes4Base = function(food, gold, oil)
             val = -tmpval
         else
             -- 说明是存储
-            if tmpval > IDConstVals.baseRes then
-                headquarters:set_val3(IDConstVals.baseRes)
-                val = IDConstVals.baseRes - tmpval
+            if tmpval > IDConst.baseRes then
+                headquarters:set_val3(IDConst.baseRes)
+                val = IDConst.baseRes - tmpval
             else
                 headquarters:set_val3((tmpval))
                 val = 0
@@ -829,29 +858,29 @@ cmd4city.consumeRes2 = function(data)
     if data == nil then
         return
     end
-    local food = data[IDConstVals.ResType.food] or 0
-    local oil = data[IDConstVals.ResType.oil] or 0
-    local gold = data[IDConstVals.ResType.gold] or 0
+    local food = data[IDConst.ResType.food] or 0
+    local oil = data[IDConst.ResType.oil] or 0
+    local gold = data[IDConst.ResType.gold] or 0
     return cmd4city.consumeRes(food, gold, oil)
 end
 
 ---@public 消耗资源。注意：负数时就是增加资源
----@param food 粮
----@param gold 金
----@param oil 油
+---@param food number 粮
+---@param gold number 金
+---@param oil number 油
 ---@return boolean 是否扣除成功
 cmd4city.consumeRes = function(food, gold, oil)
-    local list1, total1 = cmd4city.getStoreBuildings(IDConstVals.foodStorageBuildingID)
+    local list1, total1 = cmd4city.getStoreBuildings(IDConst.BuildingID.foodStorage)
     if food > total1 + headquarters:get_val() then
         return false, Errcode.resNotEnough
     end
 
-    local list2, total2 = cmd4city.getStoreBuildings(IDConstVals.goldStorageBuildingID)
+    local list2, total2 = cmd4city.getStoreBuildings(IDConst.BuildingID.goldStorage)
     if gold > total2 + headquarters:get_val2() then
         return false, Errcode.resNotEnough
     end
 
-    local list3, total3 = cmd4city.getStoreBuildings(IDConstVals.oildStorageBuildingID)
+    local list3, total3 = cmd4city.getStoreBuildings(IDConst.BuildingID.oildStorage)
     if oil > total3 + headquarters:get_val3() then
         return false, Errcode.resNotEnough
     end
@@ -877,7 +906,7 @@ cmd4city.onFinishBuildingUpgrade = function(b)
     --移除升级队列
     timerQueue.removetimerQueue(b)
     local v = {}
-    v[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
+    v[dbbuilding.keys.state] = IDConst.BuildingState.normal
     v[dbbuilding.keys.lev] = b:get_lev() + 1
     v[dbbuilding.keys.starttime] = b:get_endtime()
     b:refreshData(v) -- 这样处理的目的是保证不会多次触发通知客户端
@@ -926,7 +955,7 @@ end
 ---@public 处理造船厂建造舰船的逻辑
 ---@param b dbbuilding
 cmd4city.procDockyardBuildShip = function(b)
-    if b:get_state() == IDConstVals.BuildingState.working then
+    if b:get_state() == IDConst.BuildingState.working then
         local roleAttrId = b:get_val()
         local num = b:get_val2()
         if roleAttrId <= 0 or num <= 0 then
@@ -935,7 +964,7 @@ cmd4city.procDockyardBuildShip = function(b)
             data[dbbuilding.keys.val2] = 0
             data[dbbuilding.keys.val3] = 0
             data[dbbuilding.keys.starttime] = b:get_endtime()
-            data[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
+            data[dbbuilding.keys.state] = IDConst.BuildingState.normal
             b:refreshData(data)
             return
         end
@@ -954,7 +983,7 @@ cmd4city.procDockyardBuildShip = function(b)
                 data[dbbuilding.keys.val2] = 0
                 data[dbbuilding.keys.val3] = 0
                 data[dbbuilding.keys.starttime] = b:get_endtime()
-                data[dbbuilding.keys.state] = IDConstVals.BuildingState.normal
+                data[dbbuilding.keys.state] = IDConst.BuildingState.normal
                 b:refreshData(data)
             else
                 local leftSec = diffSec % BuildTimeS
@@ -966,12 +995,26 @@ cmd4city.procDockyardBuildShip = function(b)
             cmd4city.onChgShipInDockyard(b, roleAttrId, finishBuildNum)
         end
 
-        if b:get_state() == IDConstVals.BuildingState.working then
+        if b:get_state() == IDConst.BuildingState.working then
             timerQueue.addShipQueue(b, BuildTimeS, cmd4city.procDockyardBuildShip)
         else
             timerQueue.removeShipQueue(b)
         end
     end
+end
+
+---@public 当建筑恢复完成时
+---@param b dbbuilding
+cmd4city.onFinishBuildingRenew = function(b)
+    --移除升级队列
+    timerQueue.removetimerQueue(b)
+    local v = {}
+    v[dbbuilding.keys.state] = IDConst.BuildingState.normal
+    v[dbbuilding.keys.starttime] = b:get_endtime()
+    b:refreshData(v) -- 这样处理的目的是保证不会多次触发通知客户端
+
+    -- 通知客户端
+    CMD.onBuildingChg(b:value2copy(), "onBuildingChg")
 end
 
 -- 释放数据
@@ -1018,7 +1061,7 @@ cmd4city.getAllShips = function()
     local shipList = {}
     ---@param building dbbuilding
     for idx, building in pairs(buildings) do
-        if building:get_attrid() == IDConstVals.dockyardBuildingID then
+        if building:get_attrid() == IDConst.BuildingID.dockyard then
             local shipMap = cmd4city.getShipsInDockyard(idx)
             if shipMap then
                 table.insert(shipList, shipMap)
@@ -1180,7 +1223,7 @@ CMD.newBuilding = function(m, fd)
         local _v = {
             [dbbuilding.keys.starttime] = dateEx.nowMS(),
             [dbbuilding.keys.endtime] = endTime,
-            [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade
+            [dbbuilding.keys.state] = IDConst.BuildingState.upgrade
         }
         building:refreshData(_v)
         timerQueue.addtimerQueue(building, cmd4city.onFinishBuildingUpgrade)
@@ -1248,7 +1291,7 @@ CMD.upLevBuilding = function(m, fd, agent)
         return pkg4Client(m, ret, nil)
     end
 
-    if b:get_state() ~= IDConstVals.BuildingState.normal then
+    if b:get_state() ~= IDConst.BuildingState.normal then
         ret.code = Errcode.buildingNotIdel
         ret.msg = "取得建筑不是空闲"
         return pkg4Client(m, ret, nil)
@@ -1272,7 +1315,7 @@ CMD.upLevBuilding = function(m, fd, agent)
     end
 
     -- 非主基地时，基它建筑要不能超过主基地
-    if b:get_attrid() ~= IDConstVals.headquartersBuildingID then
+    if b:get_attrid() ~= IDConst.BuildingID.headquarters then
         if b:get_lev() >= headquarters:get_lev() then
             ret.code = Errcode.exceedHeadquarters
             ret.msg = "不能超过主基地等级"
@@ -1306,7 +1349,7 @@ CMD.upLevBuilding = function(m, fd, agent)
         local v = {
             [dbbuilding.keys.starttime] = dateEx.nowMS(),
             [dbbuilding.keys.endtime] = endTime,
-            [dbbuilding.keys.state] = IDConstVals.BuildingState.upgrade
+            [dbbuilding.keys.state] = IDConst.BuildingState.upgrade
         }
         b:refreshData(v)
         timerQueue.addtimerQueue(b, cmd4city.onFinishBuildingUpgrade)
@@ -1344,7 +1387,7 @@ CMD.upLevBuildingImm = function(m, fd, agent)
     end
 
     -- 非主基地时，基它建筑要不能超过主基地
-    if b:get_attrid() ~= IDConstVals.headquartersBuildingID then
+    if b:get_attrid() ~= IDConst.BuildingID.headquarters then
         if b:get_lev() >= headquarters:get_lev() then
             ret.code = Errcode.exceedHeadquarters
             ret.msg = "不能超过主基地等级"
@@ -1355,12 +1398,12 @@ CMD.upLevBuildingImm = function(m, fd, agent)
     -- 看建筑状态
     local leftMinutes = 0
     local needDiam = 0
-    if b:get_state() == IDConstVals.BuildingState.upgrade then
+    if b:get_state() == IDConst.BuildingState.upgrade then
         -- 正在升级
         leftMinutes = (b:get_endtime() - dateEx.nowMS()) / 60000
         leftMinutes = math.ceil(leftMinutes)
         needDiam = cfgUtl.minutes2Diam(leftMinutes)
-    elseif b:get_state() == IDConstVals.BuildingState.normal then
+    elseif b:get_state() == IDConst.BuildingState.normal then
         -- 空闲状态
         local persent = (b:get_lev() + 1) / attr.MaxLev
         leftMinutes = cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, persent)
@@ -1484,13 +1527,13 @@ CMD.collectRes = function(m, fd, agent)
     end
 
     local val = 0
-    if b:get_state() == IDConstVals.BuildingState.normal then
+    if b:get_state() == IDConst.BuildingState.normal then
         local proTime = dateEx.nowMS() - (b:get_starttime() or 0)
         proTime = numEx.getIntPart(proTime / 60000)
         -- 转成分钟
         if proTime > 0 then
             local constcfg = cfgUtl.getConstCfg()
-            -- 判断时长是否超过最大生产时长(目前配置的时最大只可生产8小时产量)
+            -- 判断时长是否超过最大生产时长(目前配置的最大只可生产8小时产量)
             if proTime > constcfg.MaxTimeLen4ResYields then
                 proTime = constcfg.MaxTimeLen4ResYields
             end
@@ -1545,7 +1588,7 @@ CMD.buildShip = function(map, fd, agent)
         ret.msg = "取得建筑为空"
         return pkg4Client(map, ret, nil)
     end
-    if b:get_state() ~= IDConstVals.BuildingState.normal then
+    if b:get_state() ~= IDConst.BuildingState.normal then
         ret.code = Errcode.buildingIsBusy
         ret.msg = "建筑状态不是空闲"
         return pkg4Client(map, ret, nil)
@@ -1622,7 +1665,7 @@ CMD.buildShip = function(map, fd, agent)
     data[dbbuilding.keys.val3] = dateEx.nowMS() -- 用于计算用
     data[dbbuilding.keys.starttime] = dateEx.nowMS()
     data[dbbuilding.keys.endtime] = numEx.getIntPart(dateEx.nowMS() + totalSec * 1000)
-    data[dbbuilding.keys.state] = IDConstVals.BuildingState.working
+    data[dbbuilding.keys.state] = IDConst.BuildingState.working
     b:refreshData(data)
 
     -- 添加造兵队列
@@ -1663,7 +1706,7 @@ CMD.onBuildingChg = function(data, cmd)
             ret.code = Errcode.ok
             local package = pkg4Client({cmd = cmd}, ret, b:value2copy())
 
-            if skynet.address(agent) ~= nil then
+            if agent and skynet.address(agent) ~= nil then
                 skynet.call(agent, "lua", "sendPackage", package)
             end
         end

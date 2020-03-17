@@ -138,6 +138,7 @@ function CMD.stop()
     -- skynet.kill("CLDB")
     skynet.call("CLMySQL", "lua", "stop", false)
     skynet.kill("CLMySQL")
+
     -- kill进程
     local projectname = skynet.getenv("projectName")
     local stopcmd = "ps -ef|grep config_" .. projectname .. "|grep -v grep |awk '{print $2}'|xargs -n1 kill -9"
