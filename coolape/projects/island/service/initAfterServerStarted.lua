@@ -1,17 +1,20 @@
----@public 当服务器启动后的初始化
+---public 当服务器启动后的初始化
 local skynet = require("skynet")
 require "skynet.manager" -- import skynet.register
 require("public.include")
 require "db.dbplayer"
 
----@public 添加gm账号
+---public 添加gm账号
 local addGMPlayerIfNotExist = function()
     local gmPidx = IDConst.gmPidx
     local player = dbplayer.instanse(gmPidx)
     if not player:isEmpty() then
+        player:release()
         -- 说明已经有gm账号了
         return
     end
+    player:release()
+    -- 创建gm账号
     local playerServer = skynet.newservice("cmd4player")
     ---@type NetProtoIsland.RC_login
     local p = {}

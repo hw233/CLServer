@@ -86,6 +86,14 @@ function dbmail:init(data, isNew)
     return true
 end
 
+function dbmail:getInsertSql()
+    if self:isEmpty() then
+        return nil
+    end
+    local data = dbmail.validData(self:value2copy())
+    local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
+    return sql
+end
 function dbmail:tablename() -- 取得表名
     return self.__name__
 end
@@ -262,7 +270,7 @@ function dbmail:get_date()
     if type(val) == "string" then
         return dateEx.str2Seconds(val)*1000 -- 转成毫秒
     else
-        return val
+        return val or 0
     end
 end
 
@@ -313,11 +321,12 @@ end
 -- 把数据flush到mysql里， immd=true 立即生效
 function dbmail:flush(immd)
     local sql
+    local data = dbmail.validData(self:value2copy())
     if self.__isNew__ then
-        sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, self:value2copy())
+        sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
         return skynet.call("CLMySQL", "lua", "exesql", sql, immd)
     else
-        sql = skynet.call("CLDB", "lua", "GETUPDATESQL", self.__name__, self:value2copy())
+        sql = skynet.call("CLDB", "lua", "GETUPDATESQL", self.__name__, data)
         return skynet.call("CLMySQL", "lua", "save", sql, immd)
     end
 end
@@ -328,10 +337,12 @@ end
 
 function dbmail:release(returnVal)
     local val = nil
-    if returnVal then
-        val = self:value2copy()
+    if not self:isEmpty() then
+        if returnVal then
+            val = self:value2copy()
+        end
+        skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     end
-    skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     self.__isNew__ = nil
     self.__key__ = nil
     self = nil
@@ -347,7 +358,7 @@ function dbmail:delete()
     return skynet.call("CLMySQL", "lua", "exesql", sql)
 end
 
----@public 设置触发器（当有数据改变时回调）
+---public 设置触发器（当有数据改变时回调）
 ---@param server 触发回调服务地址
 ---@param cmd 触发回调服务方法
 ---@param fieldKey 字段key(可为nil)
@@ -375,7 +386,7 @@ function dbmail.querySql(idx)
     end
 end
 
----@public 取得一个组
+---public 取得一个组
 ---@param forceSelect boolean 强制从mysql取数据
 ---@param orderby string 排序
 function dbmail.getListByparent(parent, forceSelect, orderby, limitOffset, limitNum)
@@ -385,7 +396,8 @@ function dbmail.getListByparent(parent, forceSelect, orderby, limitOffset, limit
     local data
     local ret = {}
     local cachlist, isFullCached, list
-    local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbmail.name, parent) or {}
+    local groupKey = "parent_" .. parent
+    local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", dbmail.name,  groupKey) or {}
     cachlist = groupInfor[1] or {}
     isFullCached = groupInfor[2]
     if isFullCached == true and (not forceSelect) then
@@ -423,7 +435,7 @@ function dbmail.getListByparent(parent, forceSelect, orderby, limitOffset, limit
      end
      list = nil
      -- 设置当前缓存数据是全的数据
-     skynet.call("CLDB", "lua", "SETGROUPISFULL", dbmail.name, parent)
+     skynet.call("CLDB", "lua", "SETGROUPISFULL", dbmail.name, groupKey)
      return ret
 end
 

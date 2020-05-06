@@ -6,13 +6,13 @@ end
 function m:ctor(...)
 end
 
----@public 包装函数给c#用
+---public 包装函数给c#用
 function m:wrapFunc(func)
 end
 function m:wrapFunction4CS(func)
 end
 
----@public 创建类
+---public 创建类
 ---使用例：
 --[[
     A = class("A")  -- 创建类A
@@ -116,11 +116,11 @@ function class(classname, super)
         cls.__ctype = 2 -- lua
         cls.__index = cls
 
-        ---@public 包装函数给c#用
+        ---public 包装函数给c#用
         function cls:wrapFunc(func)
             return self:wrapFunction4CS(func)
         end
-        ---@public 包装函数给c#用
+        ---public 包装函数给c#用
         function cls:wrapFunction4CS(func)
             if func == nil then
                 return nil

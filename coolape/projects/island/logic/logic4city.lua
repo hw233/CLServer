@@ -11,9 +11,10 @@ require("dbbuilding")
 require("dbplayer")
 require("dbunit")
 require("dbfleet")
+require("dbtech")
 local IDConst = require("IDConst")
 
----@public 取得城市实例同时会处理城市的相关timer(注意要释放）
+---public 取得城市实例同时会处理城市的相关timer(注意要释放）
 ---@return dbcity
 logic4city.insCityAndRefresh = function(cidx)
     local city = dbcity.instanse(cidx)
@@ -83,6 +84,24 @@ logic4city.insCityAndRefresh = function(cidx)
                             end
                         end
                     end
+                elseif b:get_attrid() == IDConst.BuildingID.techCenter then
+                    -- 科技中心
+                    if b:get_endtime() <= dateEx.nowMS() then
+                        local idx = b:get_val()
+                        local tech = dbtech.instanse(idx)
+                        if tech:isEmpty() then
+                            printe("取得科技为空")
+                        else
+                            tech:set_lev(tech:get_lev() + 1)
+                        end
+                        tech:release()
+
+                        local val = {}
+                        val[dbbuilding.keys.state] = IDConst.BuildingState.normal
+                        val[dbbuilding.keys.val] = 0
+                        val[dbbuilding.keys.starttime] = b:get_endtime()
+                        b:refreshData(val) -- 这样处理的目的是保证不会多次触发通知客户端
+                    end
                 end
             elseif b:get_state() == IDConst.BuildingState.renew then
                 -- 正在恢复
@@ -93,8 +112,7 @@ logic4city.insCityAndRefresh = function(cidx)
                     b:refreshData(val) -- 这样处理的目的是保证不会多次触发通知客户端
                 end
             elseif
-                b:get_attrid() == IDConst.BuildingID.foodFactory or
-                    b:get_attrid() == IDConst.BuildingID.goldMine or
+                b:get_attrid() == IDConst.BuildingID.foodFactory or b:get_attrid() == IDConst.BuildingID.goldMine or
                     b:get_attrid() == IDConst.BuildingID.oilWell
              then
                 -- 是资源生产
@@ -118,19 +136,101 @@ logic4city.insCityAndRefresh = function(cidx)
     return city
 end
 
----@public 消耗资源。注意：负数时就是增加资源
+---public 取得战斗单元的等级
+---@param cidx number 城市的idx
+---@param id number 战斗单元的配置id
+logic4city.getUnitLev = function(cidx, id)
+    ---@type DBCFRoleData
+    local attr = cfgUtl.getCfgDataById(id, "DBCFRoleData")
+    if attr.GID ~= IDConst.RoleGID.pet then
+        local techId = attr.TechID
+        local techList = dbtech.getListBycidx(cidx)
+        for i, v in ipairs(techList) do
+            if techId == v[dbtech.keys.id] then
+                return v[dbtech.keys.lev]
+            end
+        end
+    else
+        -- 海怪的等级不是通过科技来的
+    end
+    return 0
+end
+
+---public 取得战斗单元的等级
+---@param cidx number 城市的idx
+---@param id number 魔法的配置id
+logic4city.getMagicLev = function(cidx, id)
+    ---@type DBCFMagicData
+    local attr = cfgUtl.getCfgDataById(id, "DBCFMagicData")
+    local techId = attr.TechID
+    local techList = dbtech.getListBycidx(cidx)
+    for i, v in ipairs(techList) do
+        if techId == v[dbtech.keys.id] then
+            return v[dbtech.keys.lev]
+        end
+    end
+    return 0
+end
+
+---public 消耗资源。注意：负数时就是增加资源
 ---@param cidx number 城市idx
 ---@param food number 粮
 ---@param gold number 金
 ---@param oil number 油
 ---@return boolean 是否扣除成功
-logic4city.consumeRes = function(cidx, food, gold, oil)
+logic4city.consumeRes = function(cidx, ...)
+    local params = {...}
+    local food, gold, oil
+    if #params > 1 then
+        food, gold, oil = params[1] or 0, params[2] or 0, params[3] or 0
+    else
+        local t = params[1]
+        food, gold, oil = t.food or 0, t.gold or 0, t.oil or 0
+    end
+
     local cityserver = skynet.newservice("cmd4city")
     skynet.call(cityserver, "lua", "init", cidx)
-    skynet.call(cityserver, "lua", "consumeRes", food, gold, oil)
+    local success = skynet.call(cityserver, "lua", "consumeRes", food, gold, oil)
 
     skynet.call(cityserver, "lua", "release")
     skynet.kill(cityserver)
+    return success
+end
+
+---public 取得城里资源信息
+---@return table
+--[[
+food = _ParamResInfor
+gold = _ParamResInfor
+oil = _ParamResInfor
+]]
+logic4city.getResInfor = function(cidx)
+    local ret = {}
+    local cityserver = skynet.newservice("cmd4city")
+    skynet.call(cityserver, "lua", "init", cidx)
+    local resInfor = skynet.call(cityserver, "lua", "getResInforByType", IDConst.ResType.food)
+    ret.food = resInfor
+    resInfor = skynet.call(cityserver, "lua", "getResInforByType", IDConst.ResType.gold)
+    ret.gold = resInfor
+    resInfor = skynet.call(cityserver, "lua", "getResInforByType", IDConst.ResType.oil)
+    ret.oil = resInfor
+
+    skynet.call(cityserver, "lua", "release")
+    skynet.kill(cityserver)
+    return ret
+end
+
+---public 取得魔法当前等级的最大数量
+---@return number 最大数量
+logic4city.getCurrMagicMaxNum = function(id, buildingLev)
+    ---@type DBCFMagicData
+    local attr = cfgUtl.getCfgDataById(id, "DBCFMagicData")
+    local key = joinStr("MagicAltarLev", buildingLev)
+    local num = 0
+    if attr[key] then
+        num = attr[key]
+    end
+    return num
 end
 
 return logic4city

@@ -71,12 +71,13 @@
     <!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script> -->
     <script src="../../../../3rd/jquery/jquery-3.4.1.min.js"></script>
-    <script src="../../../../3rd/popper/dist/umd/popper.min.js"></script>
-    <script src="../../../../3rd/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="../../js/jquery.url.js"></script>
-    <script src="../../../../3rd/Bootstrap-Confirmation/dist/bootstrap-confirmation.js"></script>
     <!-- Icons -->
     <script src="../../../../3rd/feather-icons/dist/feather.min.js"></script>
+
+    <script src="../../../../3rd/popper/dist/umd/popper.min.js"></script>
+    <script src="../../../../3rd/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../../../../3rd/Bootstrap-Confirmation/dist/bootstrap-confirmation.js"></script>
+    <script src="../../js/jquery.url.js"></script>
 
     <!-- tab 处理-->
     <script src="js/glcfg.js"></script>
@@ -117,7 +118,7 @@
             for (var i = 0; i < count; i++) {
                 var d = dataList[i];
                 var tr = "<tr>";
-                tr = tr + "<td ><a class='text-danger' id='delLanguageBtn" + i + "' data-feather=\"minus-circle\" onclick='delrow(" + i + ")'></a></td>";
+                tr = tr + "<td ><a class='text-danger' id='delLanguageBtn" + i + "' data-toggle='confirmation' data-title='确定删除？' data-feather=\"minus-circle\" onclick='delrow(" + i + ")'></a></td>";
                 tr = tr + "<td ><label class='form-control' >" + d.language + ":" + languageTypesMap[d.language] + "</label></td>";
                 tr = tr + "<td ><label class='form-control' >" + d.ckey + "</label></td>";
                 tr = tr + "<td ><textarea class='form-control' >" + d.content + "</textarea></td>";
@@ -138,7 +139,7 @@
             myutl.ajaxJSONP(baseUrl, params,
                 function (result, status, xhr) {  //成功的回调函数
                     dataList = result;
-                    if(dataList.length == 0) {
+                    if (dataList.length == 0) {
                         alert("查询数据为空！");
                     }
                     refreshContent();
@@ -207,7 +208,8 @@
                         // 说明已经有数据了，
                         $('#newLanguageBtn').confirmation({
                             rootSelector: '#newLanguageBtn',
-                            label: '内容已经存在，是否覆盖？',
+                            title: '内容已经存在，是否覆盖？',
+                            singleton: true,
                             container: 'body',
                             btnOkLabel: "确定",
                             btnCancelLabel: "取消",
@@ -229,8 +231,9 @@
 
         function delrow(i) {
             $('#delLanguageBtn' + i).confirmation({
-                rootSelector: '#newLanguageBtn',
-                label: '确认要删除？',
+                rootSelector: '#delLanguageBtn',
+                title: '确认要删除？',
+                singleton: true,
                 container: 'body',
                 btnOkLabel: "删除",
                 btnCancelLabel: "取消",

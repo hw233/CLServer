@@ -1,4 +1,3 @@
-do
     ---@class NetProtoUsermgr 网络协议
     local NetProtoUsermgr = {}
     local table = table
@@ -240,18 +239,18 @@ do
         local ret = {}
         ret[0] = 20
         ret[3] = mapOrig and mapOrig.callback or nil
-        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
-        ret[29] = serverid; -- 服务器id int
-        ret[30] = systime; -- 系统时间 long
-        ret[40] = session; -- 会话id
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor) -- 返回信息
+        ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor) -- 用户信息
+        ret[29] = serverid -- 服务器id int
+        ret[30] = systime -- 系统时间 long
+        ret[40] = session -- 会话id
         return ret
     end,
     getServers = function(mapOrig, retInfor, servers) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 31
         ret[3] = mapOrig and mapOrig.callback or nil
-        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor) -- 返回信息
         ret[32] = NetProtoUsermgr._toList(NetProtoUsermgr.ST_server, servers)  -- 服务器列表
         return ret
     end,
@@ -259,44 +258,44 @@ do
         local ret = {}
         ret[0] = 41
         ret[3] = mapOrig and mapOrig.callback or nil
-        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor) -- 返回信息
         return ret
     end,
     getServerInfor = function(mapOrig, retInfor, server) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 33
         ret[3] = mapOrig and mapOrig.callback or nil
-        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[34] = NetProtoUsermgr.ST_server.toMap(server); -- 服务器信息
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor) -- 返回信息
+        ret[34] = NetProtoUsermgr.ST_server.toMap(server) -- 服务器信息
         return ret
     end,
     setEnterServer = function(mapOrig, retInfor) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 35
         ret[3] = mapOrig and mapOrig.callback or nil
-        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor) -- 返回信息
         return ret
     end,
     loginAccount = function(mapOrig, retInfor, userInfor, serverid, systime, session) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 38
         ret[3] = mapOrig and mapOrig.callback or nil
-        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
-        ret[29] = serverid; -- 服务器id int
-        ret[30] = systime; -- 系统时间 long
-        ret[40] = session; -- 会话id
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor) -- 返回信息
+        ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor) -- 用户信息
+        ret[29] = serverid -- 服务器id int
+        ret[30] = systime -- 系统时间 long
+        ret[40] = session -- 会话id
         return ret
     end,
     loginAccountChannel = function(mapOrig, retInfor, userInfor, serverid, systime, session) -- mapOrig:客户端原始入参
         local ret = {}
         ret[0] = 39
         ret[3] = mapOrig and mapOrig.callback or nil
-        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor); -- 返回信息
-        ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor); -- 用户信息
-        ret[29] = serverid; -- 服务器id int
-        ret[30] = systime; -- 系统时间 long
-        ret[40] = session; -- 会话id
+        ret[2] = NetProtoUsermgr.ST_retInfor.toMap(retInfor) -- 返回信息
+        ret[28] = NetProtoUsermgr.ST_userInfor.toMap(userInfor) -- 用户信息
+        ret[29] = serverid -- 服务器id int
+        ret[30] = systime -- 系统时间 long
+        ret[40] = session -- 会话id
         return ret
     end,
     }
@@ -328,13 +327,13 @@ do
         local cmd = map[0] or map["0"]
         if cmd == nil then
             skynet.error("get cmd is nil")
-            return nil;
+            return nil
         end
         cmd = tonumber(cmd)
         local dis = NetProtoUsermgr.dispatch[cmd]
         if dis == nil then
             skynet.error("get protocol cfg is nil")
-            return nil;
+            return nil
         end
         local m = dis.onReceive(map)
         -- 执行逻辑处理
@@ -360,4 +359,4 @@ do
     
         skynet.register "NetProtoUsermgr"
     end)
-end
+

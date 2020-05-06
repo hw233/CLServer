@@ -7,7 +7,7 @@ local sfind = string.find
 local insert = table.insert
 local concat = table.concat
 
----@public 分割字符串
+---public 分割字符串
 function CLUtl.strSplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -26,7 +26,18 @@ function CLUtl.trim(s)
     return smatch(s, "^()%s*$") and "" or smatch(s, "^%s*(.*%S)") -- 性能略优
 end
 
----@public 判断一个table是不是array
+function CLUtl.startswith(str, substr)
+    if str == nil or substr == nil then
+        return nil, "the string or the sub-stirng parameter is nil"
+    end
+    if sfind(str, substr) ~= 1 then
+        return false
+    else
+        return true
+    end
+end
+
+---public 判断一个table是不是array
 function CLUtl.isArray(t)
     if t == nil then
         return false
@@ -46,7 +57,7 @@ function CLUtl.isArray(t)
     return ret
 end
 
----@public 拼接两个路径
+---public 拼接两个路径
 function CLUtl.combinePath(p1, p2)
     if p1 == nil then
         return p2
@@ -67,7 +78,7 @@ function CLUtl.combinePath(p1, p2)
     end
 end
 
----@public 给定参数是nil或空字符串时，返回true
+---public 给定参数是nil或空字符串时，返回true
 function CLUtl.isNilOrEmpty(s)
     if s == nil or s == "" then
         return true

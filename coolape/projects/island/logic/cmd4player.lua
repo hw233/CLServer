@@ -15,6 +15,7 @@ local DBUtl = require "DBUtl"
 local dateEx = require("dateEx")
 local NetProtoIsland = skynet.getenv("NetProtoName")
 require("dbplayer")
+require("dbtech")
 
 local table = table
 
@@ -26,12 +27,12 @@ local isEditMode
 -- 客户端接口
 local CMD = {}
 
----@public 编辑器模式
+---public 编辑器模式
 cmd4player.getEditMode = function()
     return isEditMode
 end
 
----@public 是否是可用的玩家名
+---public 是否是可用的玩家名
 cmd4player.isAvailableName = function(name)
     --//TODO:
 end
@@ -47,6 +48,7 @@ cmd4player.newPlayer = function(m, type)
     else
         player.name = m.name or "pl-" .. m.uidx
     end
+    player[dbplayer.keys.icon] = 1
     player.lev = 1
     player.money = 0
     player.diam = 90000
@@ -56,6 +58,7 @@ cmd4player.newPlayer = function(m, type)
     player.lastEnTime = dateEx.nowStr()
     player.channel = m.channel
     player.deviceid = m.deviceID
+    player[dbplayer.keys.pvptimesTody] = 0
     player[dbplayer.keys.language] = m.language or 1
     player[dbplayer.keys.beingattacked] = false
     player[dbplayer.keys.attacking] = false
@@ -77,12 +80,12 @@ cmd4player.release = function()
     end
 end
 
----@public 取得玩家信息
+---public 取得玩家信息
 cmd4player.getPlayer = function(m)
     return myself:value2copy()
 end
 
----@public 修改宝石数量
+---public 修改宝石数量
 cmd4player.chgDiam = function(m)
     if m.diam == nil then
         return false
@@ -97,6 +100,24 @@ cmd4player.onPlayerChg = function(data, cmd)
     ret.code = Errcode.ok
     local package = pkg4Client({cmd = cmd}, ret, myself:value2copy())
     skynet.call(agent, "lua", "sendPackage", package)
+end
+
+---public 处理一些登陆时需要重置数据的操作
+cmd4player.resetData = function()
+    if myself == nil or myself:isEmpty() then
+        return
+    end
+    ------------------------------------------
+    -- 如果上次登陆日期是一天前，重置pvp次数
+    local Y, M, D = dateEx.getYYMMDDHHmmss() -- 当前年月日
+    local lastEnTime = myself:get_lastEnTime()
+    local Y1, M2, D2 = dateEx.getYYMMDDHHmmss(lastEnTime) -- 上次登陆的年月日
+    if Y ~= Y1 or M ~= M2 or D ~= D2 then
+        -- 说明是跨天登陆
+        myself:set_pvptimesTody(0)
+    end
+    ------------------------------------------
+    --//TODO:其它的重置处理
 end
 ------------------------------------------
 ------------------------------------------
@@ -132,8 +153,8 @@ CMD.login = function(m, fd, _agent)
             return pkg4Client(m, ret, nil, nil, dateEx.nowMS(), fd)
         end
     else
+        cmd4player.resetData() -- 登陆前的数据重置
         -- 取得主城信息
-        --city = cmd4city.getSelf(myself:getcityidx())
         local cityServer = skynet.call(agent, "lua", "getLogic", "cmd4city")
         if myself:get_cityidx() <= 0 then
             -- 说明没有主城，重新创建主城
@@ -151,9 +172,12 @@ CMD.login = function(m, fd, _agent)
             end
         end
     end
+    -- 更新最新登陆时间
+    myself:set_lastEnTime(dateEx.nowMS())
     -- 增加触发器
     myself:setTrigger(skynet.self(), "onPlayerChg")
 
+    ---@type NetProtoIsland.ST_city
     local cityVal = city
     cityVal.buildings = {}
     cityVal.tiles = {}
@@ -179,6 +203,7 @@ CMD.login = function(m, fd, _agent)
         return pkg4Client(m, ret, nil, nil, dateEx.nowMS(), fd)
     end
     cityVal.buildings = buildings
+    cityVal.techs = dbtech.getListBycidx(cityVal.idx)
 
     -- 设置一次数据
     skynet.call(agent, "lua", "onLogin", myself:value2copy())
@@ -191,6 +216,16 @@ end
 
 CMD.logout = function(m, fd)
     skynet.call("watchdog", "lua", "close", fd, m)
+end
+
+---@param m NetProtoIsland.RC_getPlayerSimple
+CMD.getPlayerSimple = function(m, fd, agent)
+    local player = dbplayer.instanse(m.pidx)
+    if player:isEmpty() then
+        player:release()
+        return pkg4Client(m, {code = Errcode.playerIsNil})
+    end
+    return pkg4Client(m, {code = Errcode.ok}, player:release(true))
 end
 
 skynet.start(

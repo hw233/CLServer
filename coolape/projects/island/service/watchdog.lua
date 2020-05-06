@@ -28,7 +28,7 @@ local function close_agent(fd)
     fdLastMsgTime[fd] = nil
 end
 
----@public 处理客户端连接超时、断开的情况
+---public 处理客户端连接超时、断开的情况
 local checkTimeOut = function(fdLastMsgTime)
     local currTime
     while true do
@@ -96,24 +96,24 @@ function CMD.bindPlayer(pidx, fd)
     fdWithPlayers[fd] = pidx
 end
 
----@public 玩家是否在线
+---public 玩家是否在线
 function CMD.isPlayerOnline(pidx)
     local fd = playersWithFd[pidx]
     return fd and true or false
 end
 
----@public 取得数据
+---public 取得数据
 function CMD.getAgent(pidx)
     local fd = playersWithFd[pidx]
     return fd and agents[fd] or nil
 end
 
----@public 取得数据
+---public 取得数据
 function CMD.getPidx(fd)
     return fdWithPlayers[fd]
 end
 
----@public 通知所有用户
+---public 通知所有用户
 function CMD.notifyAll(map)
     for k, agentServer in pairs(agents) do
         skynet.call(agentServer, "lua", "sendPackage", map)
@@ -133,6 +133,9 @@ function CMD.stop()
     end
     -- 把网关停掉，以免有新的fd进来
     skynet.kill(gate)
+
+    skynet.call("USChat", "lua", "release", false)
+    skynet.call("USWorld", "lua", "release", false)
 
     skynet.call("CLDB", "lua", "stop", false)
     -- skynet.kill("CLDB")

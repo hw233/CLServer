@@ -9,11 +9,11 @@
 timerQueue = {
     build = {}, -- 建筑队列
     ship = {}, -- 兵队列
-    tech = {}, -- 科技队列
+    working = {}, -- 工作队列
     other = {}, -- others
 }
 
----@public 新建定时器
+---public 新建定时器
 ---@return Coroutine
 timerQueue.newTimer = function(sec, callback, param)
     local cor = timerEx.new(sec, callback, param)
@@ -21,7 +21,7 @@ timerQueue.newTimer = function(sec, callback, param)
     return cor
 end
 
----@public 加入建筑队列
+---public 加入建筑队列
 ---@param b dbbuilding
 timerQueue.addtimerQueue = function(b, callback)
     local endtime = b:get_endtime()
@@ -44,7 +44,7 @@ timerQueue.removetimerQueue = function(b)
     end
 end
 
----@public 加入造兵队列
+---public 加入造兵队列
 ---@param b dbbuilding
 timerQueue.addShipQueue = function(b, seconds, callback)
     if b:get_state() ~= IDConst.BuildingState.working then
@@ -71,21 +71,40 @@ timerQueue.removeShipQueue = function(b)
     timerQueue.ship[b:get_idx()] = nil
 end
 
+
+---public 加入工作队列
+---@param b dbbuilding
+timerQueue.addWorkingQueue = function(b, callback)
+    local endtime = b:get_endtime()
+    local diff = endtime - dateEx.nowMS()
+    local cor = timerEx.new(diff / 1000, callback, b)
+    timerQueue.working[b:get_idx()]= cor
+end
+
+---@param b dbbuilding
+timerQueue.removeWorkingQueue = function(b)
+    local cor = timerQueue.working[b:get_idx()]
+    if cor then
+        timerEx.cancel(cor) --取消timer
+    end
+    timerQueue.working[b:get_idx()] = nil
+end
+
 timerQueue.release = function()
     for i, v in ipairs(timerQueue.build) do
         timerEx.cancel(v)
     end
     timerQueue.build = {}
 
-    for i, v in ipairs(timerQueue.ship) do
+    for i, v in pairs(timerQueue.ship) do
         timerEx.cancel(v)
     end
-    timerQueue.ship = {}
-    
-    for i, v in ipairs(timerQueue.tech) do
+    timerQueue.working = {}
+
+    for i, v in pairs(timerQueue.working) do
         timerEx.cancel(v)
     end
-    timerQueue.tech = {}
+    timerQueue.working = {}
 
     for i, v in ipairs(timerQueue.other) do
         timerEx.cancel(v)

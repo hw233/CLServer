@@ -20,7 +20,7 @@ local moveSpeed
 local constDeadMs
 local _fleetCruPos = {}
 
----@public 从造舰厂里扣除舰船
+---public 从造舰厂里扣除舰船
 ---@param agent agent
 ---@return boolean 是否成功
 local deductShipsInDockyard = function(id, num, agent)
@@ -37,14 +37,18 @@ logic4fleet.init = function()
     constDeadMs = cfgUtl.getConstCfg().FleetTimePerOnce * 60 * 1000
 end
 
----@public 舰队是否自己的
+---public 舰队是否自己的
 logic4fleet.isMyFleet = function(session, fidx)
+    if fidx == nil or fidx <= 0 then
+        return false
+    end
     local pidx = getPlayerIdx(session)
     if not pidx then
         return false
     end
     local player = dbplayer.instanse(pidx)
     if player:isEmpty() then
+        player:release()
         return false
     end
     local cidx = player:get_cityidx()
@@ -60,7 +64,7 @@ logic4fleet.isMyFleet = function(session, fidx)
     return ret
 end
 
----@public 判断舰队是否为空
+---public 判断舰队是否为空
 logic4fleet.isEmpty = function(fidx)
     local fleet = dbfleet.instanse(fidx)
     local units = dbunit.getListByfidx(fidx)
@@ -76,7 +80,7 @@ logic4fleet.isEmpty = function(fidx)
     return true
 end
 
----@public 新建筑舰队
+---public 新建筑舰队
 ---@return dbfleet
 logic4fleet.new = function(name, cidx, pos)
     local fleet = dbfleet.new()
@@ -98,7 +102,7 @@ logic4fleet.setFleetCurPos = function(fidx, v3Pos)
     _fleetCruPos[fidx] = v3Pos
 end
 
----@public 更新舰队的舰船信息
+---public 更新舰队的舰船信息
 logic4fleet.refreshUnits = function(idx, units, agent)
     local fleet = dbfleet.instanse(idx)
 
@@ -143,7 +147,7 @@ logic4fleet.refreshUnits = function(idx, units, agent)
     fleet:release()
 end
 
----@public 消耗战斗单元
+---public 消耗战斗单元
 ---@param fidx number 舰队idx
 ---@param unitId number 战斗单元
 ---@return boolean 成功？
@@ -154,7 +158,11 @@ logic4fleet.consumeUnit = function(fidx, unitId, num)
             if unit[dbunit.keys.num] >= num then
                 local u = dbunit.instanse(unit[dbunit.keys.idx])
                 u:set_num(u:get_num() - num)
-                u:release()
+                if u:get_num() <= 0 then
+                    u:delete()
+                else
+                    u:release()
+                end
                 return true
             else
                 return false
@@ -164,7 +172,7 @@ logic4fleet.consumeUnit = function(fidx, unitId, num)
     return false
 end
 
----@public 取得舰队的信息
+---public 取得舰队的信息
 ---@return NetProtoIsland.ST_fleetinfor
 logic4fleet.getFleet = function(idx)
     local fleet = dbfleet.instanse(idx)
@@ -185,6 +193,7 @@ logic4fleet.getFleet = function(idx)
     local city = dbcity.instanse(fleet:get_cidx())
     local player = dbplayer.instanse(city:get_pidx())
     -- 设置玩家名
+    result.pidx = player:get_idx()
     result.pname = player:get_name()
     city:release()
     player:release()
@@ -192,10 +201,30 @@ logic4fleet.getFleet = function(idx)
     return result
 end
 
----@public 删除舰队
+---public 取得玩的pidx
+logic4fleet.getPlayerIdx = function(fidx)
+    local fleet = dbfleet.instanse(fidx)
+    if fleet:isEmpty() then
+        fleet:release()
+        return
+    end
+    local city = dbcity.instanse(fleet:get_cidx())
+    if city:isEmpty() then
+        fleet:release()
+        city:release()
+        return
+    end
+    local pidx = city:get_pidx()
+    fleet:release()
+    city:release()
+    return pidx
+end
+
+---public 删除舰队
 logic4fleet.delete = function(idx)
     local fleet = dbfleet.instanse(idx)
     if fleet:isEmpty() then
+        fleet:release()
         return
     end
 
@@ -218,4 +247,5 @@ logic4fleet.delete = function(idx)
     end
     fleet:delete()
 end
+
 return logic4fleet

@@ -63,7 +63,7 @@ local function removeGroup(tableName, groupKey, key)
 end
 
 -- ============================================================
----@public 取得一个组，注意这个组不是list而是个table
+---public 取得一个组，注意这个组不是list而是个table
 ---@return cacheGroup table 组数据
 ---@return isFullCached BOOL 是否已经缓存了全数据，当为false时，说明需要从mysql重新取得数据
 function command.GETGROUP(tableName, groupKey)
@@ -76,7 +76,7 @@ function command.GETGROUP(tableName, groupKey)
     return {cacheGroup, isFullCached}
 end
 
----@public 设置组数据是全的，不需要从mysql取得
+---public 设置组数据是全的，不需要从mysql取得
 function command.SETGROUPISFULL(tableName, groupKey)
     groupKey = tostring(groupKey)
     local tGroupState = db4GroupState[tableName] or {}
@@ -107,7 +107,7 @@ function command.GET(tableName, key, ...)
     return t
 end
 
----@public 设置当数据变化时的触发回调（单条记录）
+---public 设置当数据变化时的触发回调（单条记录）
 ---@param tableName string 表名
 ---@param key string 数据key
 ---@param server 触发回调服务地址,注意只能是地址
@@ -126,7 +126,7 @@ function command.ADDTRIGGER(tableName, key, server, funcName, fieldKey)
     triggerData[_key] = list
 end
 
----@public 去掉触发器（单条记录）
+---public 去掉触发器（单条记录）
 function command.REMOVETRIGGER(tableName, key, server, funcName, fieldKey)
     local _key = tableName .. "_" .. key
     local list = triggerData[_key]
@@ -142,7 +142,7 @@ function command.REMOVETRIGGER(tableName, key, server, funcName, fieldKey)
     end
 end
 
----@public 处理触发函数
+---public 处理触发函数
 local onTrigger = function(tableName, key, fieldKey)
     local _key = tableName .. "_" .. key
     local list = triggerData[_key]
@@ -174,7 +174,7 @@ local onTrigger = function(tableName, key, fieldKey)
     end
 end
 
----@public 设置数据.支持多个key，最后一个参数是要设置的value,例如：command.SET("user", "u001", "name", "小张"), 更新user表的key＝"u001"记录的，字段为name的值为"小张"
+---public 设置数据.支持多个key，最后一个参数是要设置的value,例如：command.SET("user", "u001", "name", "小张"), 更新user表的key＝"u001"记录的，字段为name的值为"小张"
 function command.SET(tableName, key, ...)
     local count = select("#", ...) -- #params
     if count < 1 then
@@ -228,9 +228,9 @@ function command.SET(tableName, key, ...)
                 local groupkey = ""
                 for j, gkey in ipairs(group) do
                     if j == 1 then
-                        groupkey = tostring(d[gkey])
+                        groupkey = gkey .. "_" .. tostring(d[gkey])
                     else
-                        groupkey = groupkey .. "_" .. tostring(d[gkey])
+                        groupkey = groupkey .. "_" .. gkey .. "_" .. tostring(d[gkey])
                     end
                 end
                 setGroup(tableName, groupkey, key)
@@ -282,9 +282,9 @@ function command.REMOVE(tableName, key)
                 local groupkey = ""
                 for j, gkey in ipairs(group) do
                     if j == 1 then
-                        groupkey = tostring(last[gkey])
+                        groupkey = gkey .. "_" .. tostring(last[gkey])
                     else
-                        groupkey = groupkey .. "_" .. tostring(last[gkey])
+                        groupkey = groupkey .. "_" .. gkey .. "_" .. tostring(last[gkey])
                     end
                 end
                 removeGroup(tableName, groupkey, key)
@@ -365,20 +365,7 @@ end
 
 -- 全部数据写入mysql，immd＝true,表时立即生效
 function command.FLUSHALL(immd)
-    -- for tName, timoutList in pairs(dbTimeout) do
-    --     for key, time in pairs(timoutList) do
-    --         -- 超时数据
-    --         local val = command.GET(tName, key)
-    --         if val then
-    --             skynet.call("CLMySQL", "lua", "save", command.GETUPDATESQL(tName, val))
-    --             timoutList[key] = nil;
-    --             command.REMOVE(tName, key)
-    --         end
-    --     end
-    -- end
-
     local now = skynet.time()
-    local hasTimeout = false
     local d, data
     local sql
     local hadUpdated = {}
@@ -401,8 +388,9 @@ function command.FLUSHALL(immd)
     hadUpdated = {}
 
     -- 把超时的数据去掉
-    for tName, timoutList in pairs(dbTimeout) do
-        for key, time in pairs(timoutList) do
+    local timeoutKeys = {}
+    for tName, timeoutList in pairs(dbTimeout) do
+        for key, time in pairs(timeoutList or {}) do
             if now > time then
                 -- 超时数据
                 local val = command.GET(tName, key)
@@ -410,13 +398,18 @@ function command.FLUSHALL(immd)
                     -- 数据更新到mysql（目前来看不需要更新，因为每次更新时都已经更新了）
                     --local sql = command.GETUPDATESQL(tName, val)
                     --skynet.call("CLMySQL", "lua", "save", sql)
-                    timoutList[key] = nil
-                    command.REMOVE(tName, key)
-                    hasTimeout = true
+                    table.insert(timeoutKeys, {tName, key})
                 end
             end
         end
     end
+
+    for i, v in ipairs(timeoutKeys) do
+        local tName, key = v[1], v[2]
+        command.REMOVE(tName, key)
+    end
+    timeoutKeys = nil
+    
     if immd then
         skynet.call("CLMySQL", "lua", "FLUSHAll")
     end
@@ -440,6 +433,10 @@ end
 
 -- 生成insert的sql
 function command.GETINSERTSQL(tableName, data)
+    if data == nil then
+        printe("The data is nil!!!")
+        return nil
+    end
     local tableCfg = skynet.call("CLCfg", "lua", "GETTABLESCFG", tableName)
     if tableCfg == nil then
         printe("[getUpdateSql],get tabel config is nil==" .. tableName)

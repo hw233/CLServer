@@ -86,6 +86,13 @@ function dbservers:init(data, isNew)
     return true
 end
 
+function dbservers:getInsertSql()
+    if self:isEmpty() then
+        return nil
+    end
+    local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, self:value2copy())
+    return sql
+end
 function dbservers:tablename() -- 取得表名
     return self.__name__
 end

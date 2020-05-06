@@ -52,11 +52,18 @@ skynet.start(
 
             -- 多语言支持
             skynet.uniqueservice("USLanguage")
+            -- 聊天
+            skynet.uniqueservice("USChat")
 
             -- http server
             skynet.newservice("myweb")
+
             -- 启动后的初始化
             skynet.newservice("initAfterServerStarted")
+
+            -- 清理数据服
+            skynet.uniqueservice("USClearData")
+
             skynet.exit()
         end
 )

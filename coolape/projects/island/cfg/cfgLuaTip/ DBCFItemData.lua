@@ -1,0 +1,10 @@
+---@class DBCFItemData
+---@field public ID
+---@field public GID
+---@field public NameKey
+---@field public Icon
+---@field public Desc
+---@field public Function
+---@field public Val
+---@field public Val2
+---@field public Val3

@@ -36,7 +36,6 @@
 ---@field public Building28
 ---@field public Building29
 ---@field public Building30
----@field public Building31
 ---@field public AirRaidMagic
 ---@field public CureMagic
 ---@field public WildMagic

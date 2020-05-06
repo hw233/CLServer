@@ -6,9 +6,9 @@ CLLPool = class("CLLPool")
 --local queue;
 --local cloneClass;
 
-function CLLPool:ctor(classObj)
+function CLLPool:ctor(class)
     self.queue = CLLQueue.new(100)
-    self.cloneClass = classObj -- 类型，当为ni时，返回空table
+    self.cloneClass = class -- 类型，当为nil时，返回空table
 end
 
 function CLLPool:createObj()

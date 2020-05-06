@@ -64,21 +64,31 @@ defProtocol.structs.vector3 = {
         z = {0, "int"}
     }
 }
+defProtocol.structs.techInfor = {
+    "科技信息",
+    {
+        idx = {0, "唯一标识"},
+        id = {0, "配置id"},
+        lev = {0, "等级"}
+    }
+}
 defProtocol.structs.player = {
     "用户信息",
     {
         idx = {0, "唯一标识 int"},
         name = {"", "名字"},
+        icon = {0, "头像"},
         status = {0, "状态 1：正常 int"},
         attacking = {true, "正在攻击玩家的岛屿"},
         beingattacked = {true, "正在被玩家攻击"},
-        point = {0, "功勋 long"},
+        honor = {0, "功勋 long"},
         exp = {0, "经验值 long"},
         lev = {0, "等级 long"},
         diam = {0, "钻石 long"},
         diam4reward = {0, "钻石 long"},
         cityidx = {0, "城池id int"},
-        unionidx = {0, "联盟id int"}
+        unionidx = {0, "联盟id int"},
+        pvptimesTody = {0, "今天进攻玩家的次数 int"}
     }
 }
 defProtocol.structs.playerSimple = {
@@ -86,10 +96,12 @@ defProtocol.structs.playerSimple = {
     {
         idx = {0, "唯一标识 int"},
         name = {"", "名字"},
+        icon = {0, "头像"},
         status = {0, "状态 1：正常 int"},
         point = {0, "功勋 long"},
         exp = {0, "经验值 long"},
         lev = {0, "等级 long"},
+        honor = {0, "功勋 int"},
         cityidx = {0, "城池id int"},
         unionidx = {0, "联盟id int"}
     }
@@ -132,7 +144,8 @@ defProtocol.structs.city = {
         protectEndTime = {0, "免战结束时间"},
         lev = {0, "等级 int"},
         buildings = {{buildingIdx = defProtocol.structs.building}, "建筑信息 key=idx, map"},
-        tiles = {{tileIdx = defProtocol.structs.tile}, "地块信息 key=idx, map"}
+        tiles = {{tileIdx = defProtocol.structs.tile}, "地块信息 key=idx, map"},
+        techs = {{defProtocol.structs.techInfor, defProtocol.structs.techInfor}, "科技列表"}
     }
 }
 defProtocol.structs.unitInfor = {
@@ -152,7 +165,8 @@ defProtocol.structs.battleUnitInfor = {
     {
         id = {0, "配置的id int"},
         type = {0, "类型id(UnitType：role = 2, -- (ship, pet)；tech = 3,；skill = 4) int"},
-        deployNum = {0, "投放数量"},
+        lev = {0, "等级"},
+        deployNum = {0, "投放数量/原始数量"},
         deadNum = {0, "死亡数量"}
     }
 }
@@ -191,11 +205,11 @@ defProtocol.structs.mapPage = {
         cells = {{defProtocol.structs.mapCell, defProtocol.structs.mapCell}, "地图数据 key=网络index, map"}
     }
 }
-defProtocol.structs.dockyardShips = {
-    "造船厂的舰船信息",
+defProtocol.structs.unitsInBuilding = {
+    "建筑里的战斗单元",
     {
-        buildingIdx = {0, "造船厂的idx"},
-        ships = {{defProtocol.structs.unitInfor, defProtocol.structs.unitInfor}, "舰船数据"}
+        buildingIdx = {0, "建筑的idx"},
+        units = {{defProtocol.structs.unitInfor, defProtocol.structs.unitInfor}, "舰船数据"}
     }
 }
 defProtocol.structs.netCfg = {
@@ -211,7 +225,8 @@ defProtocol.structs.fleetinfor = {
     {
         idx = {0, "唯一标识舰队idx"},
         cidx = {0, "城市idx"},
-        name = {"", "名称"},
+        name = {"", "舰队名称"},
+        pidx = {0, "玩家idx"},
         pname = {"", "玩家名"},
         curpos = {0, "当前所在世界grid的index"},
         fromposv3 = {defProtocol.structs.vector3, "坐标"},
@@ -227,14 +242,38 @@ defProtocol.structs.fleetinfor = {
         units = {{defProtocol.structs.unitInfor, defProtocol.structs.unitInfor}, "战斗单元列表"}
     }
 }
+
+defProtocol.structs.unitFormation = {
+    "战斗单元阵形",
+    {
+        idx = {0, "单元的idx"},
+        id = {0, "战斗单元id(配置表的id)"},
+        type = {0, "战斗单元类型"},
+        lev = {0, "战斗单元等级"},
+        pos = {0, "位置：网格的index"}
+    }
+}
+
+defProtocol.structs.fleetFormation = {
+    "舰队阵形数据",
+    {
+        idx = {0, "唯一标识舰队idx"},
+        name = {"", "名称"},
+        pidx = {0, "玩家idx"},
+        pname = {"", "玩家名"},
+        formations = {{defProtocol.structs.unitFormation, defProtocol.structs.unitFormation}, "战斗单元阵形"}
+    }
+}
+
 defProtocol.structs.battleresult = {
     "战斗结果",
     {
+        fidx = {0, "舰队idx"},
+        type = {0, "战斗类型"},
         attacker = {defProtocol.structs.playerSimple, "进攻方"},
         defender = {defProtocol.structs.playerSimple, "防守方"},
-        fidx = {0, "舰队idx"},
         star = {0, "星级, 0表示失败，1-3星才算胜利"},
-        exp = {0, "获得的经验"},
+        honor = {0, "获得的功勋"},
         lootRes = {defProtocol.structs.resInfor, "掠夺的资源"},
         attackerUsedUnits = {{defProtocol.structs.battleUnitInfor, defProtocol.structs.battleUnitInfor}, "进攻方投入的战斗单元"},
         targetUsedUnits = {{defProtocol.structs.battleUnitInfor, defProtocol.structs.battleUnitInfor}, "防守方损失的战斗单元"}
@@ -252,6 +291,38 @@ defProtocol.structs.deployUnitInfor = {
     }
 }
 
+defProtocol.structs.unitAction = {
+    "战斗单元的行为",
+    {
+        idx = {0, "单元的idx"},
+        action = {0, "行为类型1：攻击，2：移动，3：扣血，4：死亡"},
+        targetVal = {0, "当是攻击时是目标对象的idx；当时扣血时，是血量"},
+        timeMs = {0, "行为发生时的时间毫秒(从战斗开始后)"}
+    }
+}
+defProtocol.structs.battleFleetDetail = {
+    "舰队战的详细战报信息",
+    {
+        attackPlayer = {defProtocol.structs.playerSimple, "进攻方玩家"},
+        defensePlayer = {defProtocol.structs.playerSimple, "防守方玩家"},
+        attackFleet = {defProtocol.structs.fleetFormation, "进攻方舰队阵型"},
+        defenseFleet = {defProtocol.structs.fleetFormation, "防守方舰队阵型"},
+        actionQueue = {{defProtocol.structs.unitAction, defProtocol.structs.unitAction}, "行为列表"}
+    }
+}
+
+defProtocol.structs.battleDetail = {
+    "攻击岛战的详细战报信息",
+    {
+        target = {defProtocol.structs.player, "被攻击方玩家信息"},
+        targetCity = {defProtocol.structs.city, "被攻击方主城信息"},
+        targetUnits = {{defProtocol.structs.unitsInBuilding, defProtocol.structs.unitsInBuilding}, "被攻击方舰船数据"},
+        attacker = {defProtocol.structs.player, "攻击方玩家信息"},
+        fleet = {defProtocol.structs.fleetinfor, "进攻方舰队数据"},
+        deployQueue = {{defProtocol.structs.deployUnitInfor, defProtocol.structs.deployUnitInfor}, "投放战斗单元队列"},
+        endFrames = {0, "结束战斗的帧数（相较于第一次投入时的帧数增量）"}
+    }
+}
 defProtocol.structs.mail = {
     "邮件",
     {
@@ -277,6 +348,37 @@ defProtocol.structs.mail = {
     }
 }
 
+defProtocol.structs.rewardInfor = {
+    "奖励包",
+    {
+        idx = {0, "唯一标识"},
+        rwidx = {0, "奖励包idx"},
+        type = {0, "类型,IDConst.ItemType"},
+        id = {0, "对应的id"},
+        num = {0, "数量"}
+    }
+}
+
+defProtocol.structs.item = {
+    "奖励包",
+    {
+        idx = {0, "唯一标识"},
+        type = {0, "类型,IDConst.ItemType"},
+        id = {0, "对应的id"},
+        num = {0, "数量"}
+    }
+}
+defProtocol.structs.chatInfor = {
+    "聊天消息",
+    {
+        idx = {0, "唯一标识"},
+        type = {0, "类型, IDConst.ChatType"},
+        content = {"", "内容"},
+        fromPidx = {0, "发送人(其它信息通过接口取得)"},
+        toPidx = {0, "收信人(其它信息通过接口取得)"},
+        time = {0, "发送时间"}
+    }
+}
 --===================================================
 --===================================================
 --===================================================
@@ -483,11 +585,11 @@ defProtocol.cmds = {
         outputDesc = {"返回信息", "造船厂信息"}, -- 出参说明
         logic = "cmd4city"
     },
-    getShipsByBuildingIdx = {
-        desc = "取得造船厂所有舰艇列表", -- 接口说明
+    getUnitsInBuilding = {
+        desc = "取得保存到建筑上的战斗单元", -- 接口说明
         input = {"buildingIdx"}, -- 入参
         inputDesc = {"造船厂的idx int"}, -- 入参说明
-        output = {structs.retInfor, defProtocol.structs.dockyardShips}, -- 出参
+        output = {structs.retInfor, defProtocol.structs.unitsInBuilding}, -- 出参
         outputDesc = {"返回信息", "造船厂的idx int", "造船厂里存放的舰船信息"}, -- 出参说明
         logic = "cmd4city"
     },
@@ -566,16 +668,10 @@ defProtocol.cmds = {
         input = {"fidx", "targetPos"}, -- 入参
         inputDesc = {"攻击方舰队idx", "攻击目标的世界地图坐标idx int"}, -- 入参说明
         output = {
-            structs.retInfor,
-            structs.mapCell,
-            structs.fleetinfor,
-            structs.fleetinfor
+            structs.retInfor
         }, -- 出参
         outputDesc = {
-            "返回信息",
-            "被攻击方地块",
-            "被攻击方舰队数据",
-            "进攻方舰队数据"
+            "返回信息"
         }, -- 出参说明
         logic = "USWorld"
     },
@@ -609,7 +705,7 @@ defProtocol.cmds = {
             structs.retInfor,
             structs.player,
             structs.city,
-            {structs.dockyardShips, structs.dockyardShips},
+            {structs.unitsInBuilding, structs.unitsInBuilding},
             structs.player,
             structs.fleetinfor,
             "endTimeLimit"
@@ -842,32 +938,159 @@ defProtocol.cmds = {
         logic = "cmd4mail"
     },
     getReportDetail = {
-        desc = "取得战报详细信息", -- 接口说明
+        desc = "取得战报详细信息(攻击岛屿)", -- 接口说明
         input = {"idx"}, -- 入参
         inputDesc = {"战报idx"}, -- 入参说明
         output = {
             structs.retInfor,
-            structs.player,
-            structs.city,
-            {structs.dockyardShips, structs.dockyardShips},
-            structs.player,
-            structs.fleetinfor,
-            {structs.deployUnitInfor, structs.deployUnitInfor},
-            "endFrames",
+            "idx",
+            "battleType",
+            structs.battleDetail,
+            structs.battleFleetDetail,
             structs.battleresult
         }, -- 出参
         outputDesc = {
             "返回信息",
-            "被攻击方玩家信息",
-            "被攻击方主城信息",
-            "被攻击方舰船数据",
-            "攻击方玩家信息",
-            "进攻方舰队数据",
-            "投放战斗单元队列",
-            "结束战斗的帧数（相较于第一次投入时的帧数增量）",
+            "战报idx",
+            "战斗类型",
+            "攻岛战斗详细数据（根据类型不同，可能为空）",
+            "舰队战详细数据（根据类型不同，可能为空）",
             "战斗结果"
         }, -- 出参说明
         logic = "cmd4mail"
+    },
+    getRewardInfor = {
+        desc = "取得奖励包信息", -- 接口说明
+        input = {"rwidx"}, -- 入参
+        inputDesc = {"奖励包idx"}, -- 入参说明
+        output = {structs.retInfor, {structs.rewardInfor, structs.rewardInfor}}, -- 出参
+        outputDesc = {"返回信息", "奖励包信息"}, -- 出参说明
+        logic = "cmd4rewardpkg"
+    },
+    receiveReward = {
+        desc = "领取奖励包的物品", -- 接口说明
+        input = {"rwidx"}, -- 入参
+        inputDesc = {"奖励包idx"}, -- 入参说明
+        output = {structs.retInfor, {structs.rewardInfor, structs.rewardInfor}}, -- 出参
+        outputDesc = {"返回信息", "奖励包信息"}, -- 出参说明
+        logic = "cmd4rewardpkg"
+    },
+    getItem = {
+        desc = "取得道具信息", -- 接口说明
+        input = {"idx"}, -- 入参
+        inputDesc = {"道具唯一标志"}, -- 入参说明
+        output = {structs.retInfor, structs.item}, -- 出参
+        outputDesc = {"返回信息", "道具信息"}, -- 出参说明
+        logic = "cmd4items"
+    },
+    getItemList = {
+        desc = "取得道具列表", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {structs.retInfor, {structs.item, structs.item}}, -- 出参
+        outputDesc = {"返回信息", "道具列表"}, -- 出参说明
+        logic = "cmd4items"
+    },
+    onItemChg = {
+        desc = "道具变化通知", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {structs.retInfor, structs.item}, -- 出参
+        outputDesc = {"返回信息", "道具信息"}, -- 出参说明
+        logic = "cmd4items"
+    },
+    useItem = {
+        desc = "道具变化通知", -- 接口说明
+        input = {"idx", "num"}, -- 入参
+        inputDesc = {"道具idx", "数量"}, -- 入参说明
+        output = {structs.retInfor, structs.item}, -- 出参
+        outputDesc = {"返回信息", "道具信息"}, -- 出参说明
+        logic = "cmd4items"
+    },
+    getChats = {
+        desc = "取是玩家的聊天信息", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {
+            structs.retInfor,
+            {structs.chatInfor, structs.chatInfor},
+            {structs.chatInfor, structs.chatInfor},
+            {structs.chatInfor, structs.chatInfor}
+        }, -- 出参
+        outputDesc = {"返回信息", "公聊信息列表", "私聊信息列表", "联盟聊天信息列表"}, -- 出参说明
+        logic = "USChat"
+    },
+    sendChat = {
+        desc = "发送聊天", -- 接口说明
+        input = {"content", "type", "toPidx"}, -- 入参
+        inputDesc = {"内容", "类型", "目标玩家"}, -- 入参说明
+        output = {structs.retInfor}, -- 出参
+        outputDesc = {"返回信息"}, -- 出参说明
+        logic = "USChat"
+    },
+    onChatChg = {
+        desc = "当聊天有变化时的推送", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {structs.retInfor, {structs.chatInfor, structs.chatInfor}}, -- 出参
+        outputDesc = {"返回信息", "聊天信息列表"}, -- 出参说明
+        logic = "USChat"
+    },
+    getPlayerSimple = {
+        desc = "取得玩家简要信息", -- 接口说明
+        input = {"pidx"}, -- 入参
+        inputDesc = {"玩家的idx"}, -- 入参说明
+        output = {structs.retInfor, structs.playerSimple}, -- 出参
+        outputDesc = {"返回信息", "玩家简要信息"}, -- 出参说明
+        logic = "cmd4player"
+    },
+    getTechs = {
+        desc = "取得科技列表", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {structs.retInfor, {structs.techInfor, structs.techInfor}}, -- 出参
+        outputDesc = {"返回信息", "科技列表"}, -- 出参说明
+        logic = "cmd4city"
+    },
+    onTechChg = {
+        desc = "科技变化", -- 接口说明
+        input = {}, -- 入参
+        inputDesc = {}, -- 入参说明
+        output = {structs.retInfor, structs.techInfor}, -- 出参
+        outputDesc = {"返回信息", "科技信息"}, -- 出参说明
+        logic = "cmd4city"
+    },
+    upLevTech = {
+        desc = "升级科技", -- 接口说明
+        input = {"id"}, -- 入参
+        inputDesc = {"科技的配置id"}, -- 入参说明
+        output = {structs.retInfor, structs.techInfor}, -- 出参
+        outputDesc = {"返回信息", "科技信息"}, -- 出参说明
+        logic = "cmd4city"
+    },
+    upLevTechImm = {
+        desc = "立即升级科技", -- 接口说明
+        input = {"id"}, -- 入参
+        inputDesc = {"科技的配置id"}, -- 入参说明
+        output = {structs.retInfor, structs.techInfor}, -- 出参
+        outputDesc = {"返回信息", "科技信息"}, -- 出参说明
+        logic = "cmd4city"
+    },
+    summonMagic = {
+        desc = "召唤魔法技能", -- 接口说明
+        input = {"id"}, -- 入参
+        inputDesc = {"魔法的配置id"}, -- 入参说明
+        output = {structs.retInfor}, -- 出参
+        outputDesc = {"返回信息"}, -- 出参说明
+        logic = "cmd4city"
+    },
+    summonMagicSpeedUp = {
+        desc = "召唤魔法技能加速", -- 接口说明
+        input = {"id"}, -- 入参
+        inputDesc = {"魔法的配置id"}, -- 入参说明
+        output = {structs.retInfor}, -- 出参
+        outputDesc = {"返回信息"}, -- 出参说明
+        logic = "cmd4city"
     }
 }
 

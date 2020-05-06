@@ -8,8 +8,11 @@ require("dbtile")
 require("dbbuilding")
 require("dbplayer")
 require("dbunit")
+require("dbtech")
 require("Errcode")
 require("timerQueue")
+---@type logic4city
+local logic4city = require("logic4city")
 local timerEx = require("timerEx")
 local IDConst = require("IDConst")
 local CMD = {}
@@ -34,8 +37,13 @@ local agent
 local myself
 local tiles = {} -- 地块信息 key=idx, val=dbtile
 local buildings = {} -- 建筑信息 key=idx, val=dbbuilding
+local techMap = {} -- 科技信息
 ---@type dbbuilding
 local headquarters  -- 主基地
+---@type dbbuilding
+local techCenter  -- 科技研究中心
+---@type dbbuilding
+local magicAltar  -- 魔法坛
 local buildingCountMap = {} -- key=buildingAttrid;value=count
 local hadTileCount = 0 -- 地块总量
 
@@ -50,7 +58,7 @@ cmd4city.new = function(uidx)
 
     local attrid = 7
     -- 分配一个世界坐标
-    local mapcell = skynet.call("USWorld", "lua", "occupyMapCell", 0, idx, IDConst.WorldmapCellType.user, attrid)
+    local mapcell = skynet.call("USWorld", "lua", "getFreeCell4NewPlayer", 0, idx, IDConst.WorldmapCellType.user, attrid)
     myself = dbcity.new()
     local d = {}
     d.idx = idx
@@ -89,6 +97,14 @@ cmd4city.new = function(uidx)
     -- 最后初始化树
     cmd4city.initTree(v4)
     return myself
+end
+
+---public 初始化科技数据
+cmd4city.initTechs = function(cidx)
+    local list = dbtech.getListBycidx(cidx)
+    for i, v in ipairs(list) do
+        techMap[v[dbtech.keys.id]] = dbtech.instanse(v[dbtech.keys.idx])
+    end
 end
 
 ---@param building dbbuilding
@@ -375,6 +391,7 @@ cmd4city.getSelf = function(idx)
     if myself == nil then
         myself = dbcity.instanse(idx)
         if myself:isEmpty() then
+            myself:release()
             printe("[cmd4city.get].get city data is nil. idx==" .. idx)
             return nil
         end
@@ -392,6 +409,8 @@ cmd4city.getSelf = function(idx)
         -- 设置一次
         cmd4city.setSelfTiles()
         cmd4city.setSelfBuildings()
+        -- 初始化科技
+        cmd4city.initTechs(idx)
     end
     return myself
 end
@@ -527,7 +546,7 @@ cmd4city.getSelfTiles = function()
     return tiles
 end
 
----@public 取得当前等级建筑的最大数量
+---public 取得当前等级建筑的最大数量
 cmd4city.getBuildingCountAtCurrLev = function(buildingAttrId)
     if headquarters == nil then
         return 1
@@ -541,7 +560,7 @@ cmd4city.getBuildingCountAtCurrLev = function(buildingAttrId)
     return headquartersOpen["Building" .. buildingAttrId] or 1
 end
 
----@public 新建筑
+---public 新建筑
 ---@param attrid 建筑的配置id
 ---@param pos grid地块idx
 ---@param cidx 城idx
@@ -590,6 +609,7 @@ cmd4city.query = function(idx)
     -- 取得城数据
     local city = dbcity.instanse(idx)
     if city:isEmpty() then
+        city:release()
         return nil
     end
     local ret = city:value2copy()
@@ -631,6 +651,20 @@ cmd4city.setSelfBuildings = function()
             if b:get_attrid() == IDConst.BuildingID.dockyard then
                 -- 造船厂
                 cmd4city.procDockyardBuildShip(b)
+            elseif b:get_attrid() == IDConst.BuildingID.techCenter then
+                -- 科技中心
+                if b:get_endtime() <= dateEx.nowMS() then
+                    cmd4city.onFinishTechUpgrade(b)
+                else
+                    timerQueue.addWorkingQueue(b, cmd4city.onFinishTechUpgrade)
+                end
+            elseif b:get_attrid() == IDConst.BuildingID.magicAltar then
+                -- 魔法坛
+                if b:get_endtime() <= dateEx.nowMS() then
+                    cmd4city.onFinishMagicUpgrade(b)
+                else
+                    timerQueue.addWorkingQueue(b, cmd4city.onFinishMagicUpgrade)
+                end
             end
         elseif b:get_state() == IDConst.BuildingState.renew then
             -- 正在恢复
@@ -641,9 +675,15 @@ cmd4city.setSelfBuildings = function()
             end
         end
 
-        if v.attrid == 1 then
+        if v.attrid == IDConst.BuildingID.headquarters then
             -- 说明是主基地
             headquarters = b
+        elseif v.attrid == IDConst.BuildingID.techCenter then
+            -- 科技研究中心
+            techCenter = b
+        elseif v.attrid == IDConst.BuildingID.magicAltar then
+            -- 魔法坛
+            magicAltar = b
         end
         cmd4city.placeBuilding(b)
     end
@@ -693,7 +733,7 @@ end
 ---@field stored number 当前存储的量
 ---@field maxstore number 最大存储量
 
----@public 取得某种资源的信息
+---public 取得某种资源的信息
 ---@param resType IDConst.ResType
 ---@return _ParamResInfor
 cmd4city.getResInforByType = function(resType)
@@ -718,7 +758,7 @@ cmd4city.getResInforByType = function(resType)
     return {type = resType, stored = hadRes, maxstore = maxstore}
 end
 
----@public 取得仓库建筑列表
+---public 取得仓库建筑列表
 ---@param attrid 建筑配置id
 ---@return list 建筑列表
 ---@return totalStore 总存储量
@@ -748,7 +788,7 @@ cmd4city.getStoreBuildings = function(attrid)
     return list, totalStore, maxStore
 end
 
----@public 处理其中一种资源变化
+---public 处理其中一种资源变化
 local consumeOneRes = function(val, list)
     ---@type dbbuilding
     local b
@@ -786,7 +826,7 @@ local consumeOneRes = function(val, list)
     end
 end
 
----@public 处理主基地的资源
+---public 处理主基地的资源
 cmd4city.consumeRes4Base = function(food, gold, oil)
     local val = food
     if val ~= 0 then
@@ -864,7 +904,7 @@ cmd4city.consumeRes2 = function(data)
     return cmd4city.consumeRes(food, gold, oil)
 end
 
----@public 消耗资源。注意：负数时就是增加资源
+---public 消耗资源。注意：负数时就是增加资源
 ---@param food number 粮
 ---@param gold number 金
 ---@param oil number 油
@@ -891,7 +931,7 @@ cmd4city.consumeRes = function(food, gold, oil)
     return true
 end
 
----@public 最大的工人数
+---public 最大的工人数
 cmd4city.maxtimerQueue = function()
     if headquarters == nil then
         return 1
@@ -900,7 +940,7 @@ cmd4city.maxtimerQueue = function()
     return headquartersOpen.Workers
 end
 
----@public 当建筑升级完成时
+---public 当建筑升级完成时
 ---@param b dbbuilding
 cmd4city.onFinishBuildingUpgrade = function(b)
     --移除升级队列
@@ -915,7 +955,76 @@ cmd4city.onFinishBuildingUpgrade = function(b)
     CMD.onBuildingChg(b:value2copy(), "onFinishBuildingUpgrade")
 end
 
----@public 当完成造船时
+---public 科技升级
+---@param b dbbuilding
+cmd4city.onFinishTechUpgrade = function(b)
+    --移除升级队列
+    timerQueue.removeWorkingQueue(b)
+    -- 更新科技等级
+    local idx = b:get_val()
+    local tech = dbtech.instanse(idx)
+    if tech:isEmpty() then
+        printe("取得科技为空")
+    else
+        tech:set_lev(tech:get_lev() + 1)
+    end
+    -- 推送
+    sendPkg2Player(myself:get_pidx(), pkg4Client({cmd = "onTechChg"}, {code = Errcode.ok}, tech:release(true)))
+    -- 更新建筑状态
+    local v = {}
+    v[dbbuilding.keys.val] = 0
+    v[dbbuilding.keys.state] = IDConst.BuildingState.normal
+    v[dbbuilding.keys.starttime] = b:get_endtime()
+    b:refreshData(v) -- 这样处理的目的是保证不会多次触发通知客户端
+
+    -- 通知客户端 已经加触发器
+    -- CMD.onBuildingChg(b:value2copy())
+end
+
+---public 魔法召唤完成
+cmd4city.onFinishMagicUpgrade = function(b)
+    --移除队列
+    timerQueue.removeWorkingQueue(b)
+    -- 刷新魔法数据
+    local attrid = b:get_val()
+    local magics = dbunit.getListBybidx(b:get_idx())
+    local isRemoved = false
+    ---@type dbunit
+    local unit = nil
+    for i, v in ipairs(magics) do
+        if v[dbunit.keys.id] == attrid then
+            unit = dbunit.instanse(v[dbunit.keys.idx])
+            unit:set_num(unit:get_num() + 1)
+            break
+        end
+    end
+    if unit == nil then
+        unit = {}
+        unit[dbunit.keys.idx] = DBUtl.nextVal(DBUtl.Keys.unit)
+        unit[dbunit.keys.id] = attrid
+        unit[dbunit.keys.bidx] = b:get_idx()
+        unit[dbunit.keys.num] = 1
+        unit[dbunit.keys.type] = IDConst.UnitType.skill
+        unit = dbunit.new(unit)
+    end
+
+    -- 通知客户端
+    ---@type NetProtoIsland.ST_unitsInBuilding
+    local dockyardShips = {}
+    dockyardShips.buildingIdx = b:get_idx()
+    dockyardShips.units = dbunit.getListBybidx(b:get_idx())
+    -- 推送给客户端
+    local package = pkg4Client({cmd = "getUnitsInBuilding"}, {code = Errcode.ok}, dockyardShips)
+    sendPkg2Player(myself:get_pidx(), package)
+    -- 更新建筑状态
+    local v = {}
+    v[dbbuilding.keys.val] = 0
+    v[dbbuilding.keys.state] = IDConst.BuildingState.normal
+    v[dbbuilding.keys.starttime] = b:get_endtime()
+    b:refreshData(v) -- 这样处理的目的是保证不会多次触发通知客户端
+end
+
+---public 当完成造船时
 ---@param b dbbuilding
 ---@param shipAttrid number 舰船的配置id
 ---@param num number 已经造好的船的数量
@@ -942,6 +1051,7 @@ cmd4city.onChgShipInDockyard = function(b, shipAttrid, num)
         ship[dbunit.keys.id] = shipAttrid
         ship[dbunit.keys.bidx] = b:get_idx()
         ship[dbunit.keys.num] = num
+        ship[dbunit.keys.type] = IDConst.UnitType.role
         unit = dbunit.new(ship)
     end
 
@@ -952,7 +1062,7 @@ cmd4city.onChgShipInDockyard = function(b, shipAttrid, num)
     end
 end
 
----@public 处理造船厂建造舰船的逻辑
+---public 处理造船厂建造舰船的逻辑
 ---@param b dbbuilding
 cmd4city.procDockyardBuildShip = function(b)
     if b:get_state() == IDConst.BuildingState.working then
@@ -1003,7 +1113,7 @@ cmd4city.procDockyardBuildShip = function(b)
     end
 end
 
----@public 当建筑恢复完成时
+---public 当建筑恢复完成时
 ---@param b dbbuilding
 cmd4city.onFinishBuildingRenew = function(b)
     --移除升级队列
@@ -1031,6 +1141,12 @@ cmd4city.release = function()
     end
     buildings = {}
 
+    ---@param t dbtech
+    for k, t in pairs(techMap) do
+        t:release()
+    end
+    techMap = {}
+
     ---@type dbtile
     local t
     for k, v in pairs(tiles) do
@@ -1056,13 +1172,13 @@ cmd4city.isEditMode = function()
     return false
 end
 
----@public 取得所有的舰船数据
+---public 取得所有的舰船数据
 cmd4city.getAllShips = function()
     local shipList = {}
     ---@param building dbbuilding
     for idx, building in pairs(buildings) do
         if building:get_attrid() == IDConst.BuildingID.dockyard then
-            local shipMap = cmd4city.getShipsInDockyard(idx)
+            local shipMap = cmd4city.getUnitsInBuilding(idx)
             if shipMap then
                 table.insert(shipList, shipMap)
             end
@@ -1071,26 +1187,26 @@ cmd4city.getAllShips = function()
     return shipList
 end
 
----@public 取得等级
+---public 取得等级
 cmd4city.getLev = function()
     return cmd4city.getCityLev()
 end
----@public 取得造船厂的舰船数据
----@return NetProtoIsland.ST_dockyardShips
-cmd4city.getShipsInDockyard = function(buildingIdx)
+---public 取得造船厂的舰船数据
+---@return NetProtoIsland.ST_unitsInBuilding
+cmd4city.getUnitsInBuilding = function(buildingIdx)
     ---@type dbbuilding
     local b = buildings[buildingIdx] -- 不要使用new(), 或者instance()，也不能直接传data
     if b == nil then
         return nil
     end
-    ---@type NetProtoIsland.ST_dockyardShips
+    ---@type NetProtoIsland.ST_unitsInBuilding
     local dockyardShips = {}
     dockyardShips.buildingIdx = buildingIdx
-    dockyardShips.ships = dbunit.getListBybidx(b:get_idx())
+    dockyardShips.units = dbunit.getListBybidx(b:get_idx())
     return dockyardShips
 end
 
----@从造舰厂里扣除舰船
+---public 从造舰厂里扣除舰船
 cmd4city.deductShipsInDockyard = function(attrid, num)
     local shipList = cmd4city.getAllShips()
     local cutList = {}
@@ -1100,10 +1216,10 @@ cmd4city.deductShipsInDockyard = function(attrid, num)
         end
     end
 
-    ---@param v NetProtoIsland.ST_dockyardShips
+    ---@param v NetProtoIsland.ST_unitsInBuilding
     for i, v in ipairs(shipList) do
         ---@param unit NetProtoIsland.ST_unitInfor
-        for j, unit in ipairs(v.ships) do
+        for j, unit in ipairs(v.units) do
             if unit.id == attrid then
                 if unit.num >= num then
                     table.insert(cutList, {bid = v.buildingIdx, shipid = attrid, num = num})
@@ -1363,6 +1479,7 @@ CMD.upLevBuilding = function(m, fd, agent)
 
     return pkg4Client(m, ret, b:value2copy())
 end
+
 CMD.upLevBuildingImm = function(m, fd, agent)
     -- 立即完成升级
     local cmd = m.cmd
@@ -1447,6 +1564,157 @@ CMD.upLevBuildingImm = function(m, fd, agent)
     return pkg4Client(m, ret)
 end
 
+---@param m NetProtoIsland.RC_upLevTech
+CMD.upLevTech = function(m, fd, agent)
+    -- 建筑升级
+    local ret = {}
+    if techCenter == nil then
+        ret.code = Errcode.buildingIsNil
+        ret.msg = "取得建筑为空"
+        return pkg4Client(m, ret, nil)
+    end
+
+    if techCenter:get_state() ~= IDConst.BuildingState.normal then
+        ret.code = Errcode.buildingNotIdel
+        ret.msg = "取得建筑不是空闲"
+        return pkg4Client(m, ret, nil)
+    end
+
+    local tech = techMap[m.id]
+    if tech == nil then
+        -- 加入科技表
+        tech = dbtech.new()
+        tech:init(
+            {
+                [dbtech.keys.idx] = DBUtl.nextVal(DBUtl.Keys.tech),
+                [dbtech.keys.id] = m.id,
+                [dbtech.keys.cidx] = myself:get_idx(),
+                [dbtech.keys.lev] = 0
+            },
+            true
+        )
+        techMap[m.id] = tech
+        sendPkg2Player(myself:get_pidx(), pkg4Client({cmd = "onTechChg"}, {code = Errcode.ok}, tech:value2copy()))
+    end
+
+    --check max lev
+    local attrid = tech:get_id()
+    ---@type DBCFTechData
+    local attr = cfgUtl.getCfgDataById(attrid, "DBCFTechData")
+    local maxLev = attr.MaxLev
+    if tech:get_lev() >= maxLev then
+        tech:release()
+        ret.code = Errcode.outOfMaxLev
+        ret.msg = "已经是最高等级"
+        return pkg4Client(m, ret, nil)
+    end
+
+    if attr.NeedTechCenterLev > techCenter:get_lev() then
+        tech:release()
+        ret.code = Errcode.techIsLocked
+        ret.msg = "科技还未解锁"
+        return pkg4Client(m, ret, nil)
+    end
+
+    -- 不能高于科技中心
+    if tech:get_lev() >= techCenter:get_lev() then
+        tech:release()
+        ret.code = Errcode.exceedTech
+        ret.msg = "不能超过科技中心等级"
+        return pkg4Client(m, ret, nil)
+    end
+
+    local persent = (tech:get_lev() + 1) / attr.MaxLev
+
+    -- 如果是编辑模式，则不扣处资源
+    local isEditMode = cmd4city.isEditMode()
+    if not isEditMode then
+        -- 扣除资源
+        local gold =
+            cfgUtl.getGrowingVal(attr.UpgradeCostGoldMin, attr.UpgradeCostGoldMax, attr.UpgradeCostGoldCurve, persent)
+        local succ, code = cmd4city.consumeRes(0, gold, 0)
+        if not succ then
+            tech:release()
+            ret.code = code
+            ret.msg = "资源不足"
+            return pkg4Client(m, ret, nil)
+        end
+    end
+
+    -- 设置冷却时间
+    local sec = cfgUtl.getGrowingVal(attr.UpgradeTimeMin * 60, attr.UpgradeTimeMax * 60, attr.UpgradeTimeCurve, persent)
+    if sec > 0 then
+        local endTime = numEx.getIntPart(dateEx.nowMS() + sec * 1000)
+        local v = {
+            [dbbuilding.keys.val] = tech:get_idx(),
+            [dbbuilding.keys.starttime] = dateEx.nowMS(),
+            [dbbuilding.keys.endtime] = endTime,
+            [dbbuilding.keys.state] = IDConst.BuildingState.working
+        }
+        techCenter:refreshData(v)
+        timerQueue.addWorkingQueue(techCenter, cmd4city.onFinishTechUpgrade)
+    else
+        tech:set_lev(tech:get_lev() + 1)
+    end
+
+    -- 通知服务器建筑有变化,已经加了触发器不需要主动再通知
+    --cmd4city.CMD.onBuildingChg(b:value2copy())
+    ret.code = Errcode.ok
+
+    return pkg4Client(m, ret, tech:release(true))
+end
+
+---@param m NetProtoIsland.RC_upLevTechImm
+CMD.upLevTechImm = function(m, fd, agent)
+    ---@type NetProtoIsland.ST_retInfor
+    local ret = {}
+    if techCenter == nil then
+        ret.code = Errcode.buildingIsNil
+        ret.msg = "取得建筑为空"
+        return pkg4Client(m, ret, nil)
+    end
+
+    if
+        techCenter:get_state() ~= IDConst.BuildingState.working or techCenter:get_val() <= 0 or
+            techCenter:get_endtime() <= dateEx.nowMS()
+     then
+        ret.code = Errcode.noUpgradingTech
+        ret.msg = "没有正在升级的科技"
+        return pkg4Client(m, ret, nil)
+    end
+
+    local leftMinutes = (techCenter:get_endtime() - dateEx.nowMS()) / 60000
+    leftMinutes = math.ceil(leftMinutes)
+    local needDiam = cfgUtl.minutes2Diam(leftMinutes)
+    local isEditMode = cmd4city.isEditMode()
+    if needDiam > 0 and (not isEditMode) then
+        local pidx = myself:get_pidx()
+        ---@type dbplayer
+        local player = dbplayer.instanse(pidx)
+        if player == nil then
+            ret.code = Errcode.playerIsNil
+            ret.msg = "玩家数据取得为空"
+            return pkg4Client(m, ret)
+        end
+        if player:get_diam() < needDiam then
+            ret.code = Errcode.diamNotEnough
+            ret.msg = "钻石不足"
+            return pkg4Client(m, ret)
+        end
+        -- 扣除钻石
+        player:set_diam(player:get_diam() - needDiam)
+        player:release()
+        player = nil
+    end
+
+    local idx = techCenter:get_val()
+    local tech = dbtech.instanse(idx)
+
+    cmd4city.onFinishTechUpgrade(techCenter)
+    ret.code = Errcode.ok
+    return pkg4Client(m, ret, tech:release(true))
+end
+
 CMD.newTile = function(m, fd, agent)
     -- 扩建地块
     local cmd = "newTile"
@@ -1505,7 +1773,7 @@ CMD.rmBuilding = function(m, fd, agent)
     ret.code = cmd4city.delSelfBuilding(m.idx)
     return pkg4Client(m, ret, m.idx)
 end
----@public 收集资源
+---public 收集资源
 CMD.collectRes = function(m, fd, agent)
     local cmd = m.cmd
     local idx = m.idx
@@ -1573,7 +1841,7 @@ CMD.collectRes = function(m, fd, agent)
     return pkg4Client(m, ret, resType, val, b:value2copy())
 end
 
----@public 建造舰船
+---public 建造舰船
 ---@param map NetProtoIsland.RC_buildShip
 CMD.buildShip = function(map, fd, agent)
     local ret = {}
@@ -1674,8 +1942,9 @@ CMD.buildShip = function(map, fd, agent)
     ret.code = Errcode.ok
     return pkg4Client(map, ret, b:value2copy())
 end
----@public 取得造船厂所有舰艇列表
-CMD.getShipsByBuildingIdx = function(map, fd, agent)
+
+---@param map NetProtoIsland.RC_getUnitsInBuilding
+CMD.getUnitsInBuilding = function(map, fd, agent)
     local ret = {}
     local cmd = map.cmd
     local buildingIdx = map.buildingIdx
@@ -1688,8 +1957,8 @@ CMD.getShipsByBuildingIdx = function(map, fd, agent)
         return pkg4Client(map, ret, nil)
     end
 
-    ---@type NetProtoIsland.ST_dockyardShips
-    local dockyardShips = cmd4city.getShipsInDockyard(buildingIdx)
+    ---@type NetProtoIsland.ST_unitsInBuilding
+    local dockyardShips = cmd4city.getUnitsInBuilding(buildingIdx)
     ret.code = Errcode.ok
     return pkg4Client(map, ret, dockyardShips)
 end
@@ -1713,7 +1982,7 @@ CMD.onBuildingChg = function(data, cmd)
     end
 end
 
----@public 当造船厂的舰艇数量发化变化时
+---public 当造船厂的舰艇数量发化变化时
 CMD.onDockyardShipsChg = function(bidx, shipAttrid, num)
     local cmd = ""
     local ret = {}
@@ -1721,13 +1990,13 @@ CMD.onDockyardShipsChg = function(bidx, shipAttrid, num)
 
     ---@type dbbuilding
     local b = buildings[bidx] -- 不要使用new(), 或者instance()，也不能直接传data
-    ---@type NetProtoIsland.ST_dockyardShips
+    ---@type NetProtoIsland.ST_unitsInBuilding
     local dockyardShips = {}
     dockyardShips.buildingIdx = bidx
-    dockyardShips.ships = dbunit.getListBybidx(b:get_idx())
+    dockyardShips.units = dbunit.getListBybidx(b:get_idx())
 
     -- 推送给客户端
-    cmd = "getShipsByBuildingIdx"
+    cmd = "getUnitsInBuilding"
     local package = pkg4Client({cmd = cmd}, ret, dockyardShips)
     if skynet.address(agent) ~= nil then
         skynet.call(agent, "lua", "sendPackage", package)
@@ -1751,6 +2020,155 @@ CMD.onMyselfCityChg = function(data)
     if skynet.address(agent) ~= nil then
         skynet.call(agent, "lua", "sendPackage", package)
     end
+end
+---@param map NetProtoIsland.RC_getTechs
+CMD.getTechs = function(map, fd, agent)
+    local techs = dbtech.getListBycidx(myself:get_idx())
+    return pkg4Client(map, {code = Errcode.ok}, techs)
+end
+
+---@param map NetProtoIsland.RC_summonMagic
+CMD.summonMagic = function(map, fd, agent)
+    ---@type NetProtoIsland.ST_retInfor
+    local ret = {}
+    ---@type dbbuilding
+    local b = magicAltar -- 不要使用new(), 或者instance()，也不能直接传data
+    if b == nil then
+        ret.code = Errcode.buildingIsNil
+        ret.msg = "取得建筑为空"
+        return pkg4Client(map, ret)
+    end
+    if b:get_state() ~= IDConst.BuildingState.normal then
+        ret.code = Errcode.buildingIsBusy
+        ret.msg = "建筑状态不是空闲"
+        return pkg4Client(map, ret)
+    end
+    ---@type DBCFMagicData
+    local attr = cfgUtl.getCfgDataById(map.id, "DBCFMagicData")
+    if attr == nil then
+        ret.code = Errcode.cfgIsNil
+        ret.msg = "魔法配置取得为空"
+        return pkg4Client(map, ret)
+    end
+    -----------------------------------------------
+    -- 是否解锁
+    local key = "MagicAltarLev" .. b:get_lev()
+    local maxNum = 0
+    if attr[key] then
+        maxNum = attr[key]
+    end
+    if maxNum <= 0 then
+        ret.code = Errcode.magicIsLocked
+        ret.msg = "魔法未解锁"
+        return pkg4Client(map, ret)
+    end
+
+    -----------------------------------------------
+    -- 数量是已超上限
+    -- 取得已经有的数量
+    local hadNum = 0
+    local unitsList = dbunit.getListBybidx(b:get_idx())
+    ---@param v dbunit
+    for i, v in ipairs(unitsList) do
+        if map.id == v[dbunit.keys.id] then
+            hadNum = v[dbunit.keys.num]
+            break
+        end
+    end
+    if hadNum >= maxNum then
+        ret.code = Errcode.maximumLimitReached
+        ret.msg = "数量达上限"
+        return pkg4Client(map, ret, nil)
+    end
+
+    -----------------------------------------------
+    -- 取得魔法的等级
+    local magicLev = logic4city.getMagicLev(myself:get_idx(), map.id)
+    -- 如果是编辑模式，则不扣处资源
+    local isEditMode = cmd4city.isEditMode()
+    if not isEditMode then
+        -- 扣除资源
+        local costOil =
+            cfgUtl.getGrowingVal(
+            attr.BuildCostOilMin,
+            attr.BuildCostOilMax,
+            attr.BuildCostOilCurve,
+            magicLev / attr.MaxLev
+        )
+        local succ, code = cmd4city.consumeRes(0, 0, costOil)
+        if not succ then
+            ret.code = code
+            ret.msg = "资源不足"
+            return pkg4Client(map, ret)
+        end
+    end
+
+    -- 建造时间
+    local BuildTimeM =
+        cfgUtl.getGrowingVal(attr.BuildTimeMin, attr.BuildTimeMax, attr.BuildTimeCurve, magicLev / attr.MaxLev)
+    local totalSec = BuildTimeM * 60
+
+    -- 更新建筑数据
+    local data = {}
+    data[dbbuilding.keys.val] = map.id
+    data[dbbuilding.keys.starttime] = dateEx.nowMS()
+    data[dbbuilding.keys.endtime] = numEx.getIntPart(dateEx.nowMS() + totalSec * 1000)
+    data[dbbuilding.keys.state] = IDConst.BuildingState.working
+    b:refreshData(data)
+
+    -- 添加魔法队列
+    timerQueue.addWorkingQueue(b, cmd4city.onFinishMagicUpgrade)
+
+    ret.code = Errcode.ok
+    return pkg4Client(map, ret)
+end
+
+---@param map NetProtoIsland.RC_summonMagicSpeedUp
+CMD.summonMagicSpeedUp = function(map, fd, agent)
+    ---@type NetProtoIsland.ST_retInfor
+    local ret = {}
+    ---@type dbbuilding
+    local b = magicAltar -- 不要使用new(), 或者instance()，也不能直接传data
+    if b == nil then
+        ret.code = Errcode.buildingIsNil
+        ret.msg = "取得建筑为空"
+        return pkg4Client(map, ret)
+    end
+    if b:get_state() ~= IDConst.BuildingState.working then
+        ret.code = Errcode.nothingTodo
+        ret.msg = "无可操作的对象"
+        return pkg4Client(map, ret)
+    end
+
+    local leftMinutes = (b:get_endtime() - dateEx.nowMS()) / 60000
+    leftMinutes = math.ceil(leftMinutes)
+    local needDiam = cfgUtl.minutes2Diam(leftMinutes) -- 时间转宝石
+
+    local isEditMode = cmd4city.isEditMode()
+    if needDiam > 0 and (not isEditMode) then
+        local pidx = myself:get_pidx()
+        ---@type dbplayer
+        local player = dbplayer.instanse(pidx)
+        if player == nil then
+            ret.code = Errcode.playerIsNil
+            ret.msg = "玩家数据取得为空"
+            return pkg4Client(map, ret)
+        end
+        if player:get_diam() < needDiam then
+            ret.code = Errcode.diamNotEnough
+            ret.msg = "钻石不足"
+            return pkg4Client(map, ret)
+        end
+        -- 扣除钻石
+        player:set_diam(player:get_diam() - needDiam)
+        player:release()
+        player = nil
+    end
+    b:set_endtime(dateEx.nowMS())
+    cmd4city.onFinishMagicUpgrade(b)
+
+    ret.code = Errcode.ok
+    return pkg4Client(map, ret)
 end
 -----------------------------------------------------
 skynet.start(

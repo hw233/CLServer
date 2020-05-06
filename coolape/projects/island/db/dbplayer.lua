@@ -34,8 +34,7 @@ dbplayer.keys = {
     language = "language", -- 语言id
     lev = "lev", -- 等级
     exp = "exp", -- 经验值
-    exp = "exp", -- 经验值
-    point = "point", -- 功勋
+    honor = "honor", -- 功勋
     money = "money", -- 充值总数
     diam = "diam", -- 钻石
     diam4reward = "diam4reward", -- 系统奖励钻石
@@ -43,6 +42,7 @@ dbplayer.keys = {
     unionidx = "unionidx", -- 联盟idx
     attacking = "attacking", -- 正在攻击玩家的岛屿
     beingattacked = "beingattacked", -- 正在被玩家攻击
+    pvptimesTody = "pvptimesTody", -- 今天进攻玩家的次数
     crtTime = "crtTime", -- 创建时间
     lastEnTime = "lastEnTime", -- 最后登陆时间
     channel = "channel", -- 渠道
@@ -64,7 +64,7 @@ function dbplayer:init(data, isNew)
     if self.__isNew__ == nil and isNew == nil then
         local d = skynet.call("CLDB", "lua", "get", dbplayer.name, self.__key__)
         if d == nil then
-            d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(data.idx, nil))
+            d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(data.idx))
             if d and d.errno == nil and #d > 0 then
                 self.__isNew__ = false
             else
@@ -94,6 +94,14 @@ function dbplayer:init(data, isNew)
     return true
 end
 
+function dbplayer:getInsertSql()
+    if self:isEmpty() then
+        return nil
+    end
+    local data = dbplayer.validData(self:value2copy())
+    local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
+    return sql
+end
 function dbplayer:tablename() -- 取得表名
     return self.__name__
 end
@@ -244,33 +252,18 @@ function dbplayer:get_exp()
     return (tonumber(val) or 0)
 end
 
-function dbplayer:set_exp(v)
-    -- 经验值
+function dbplayer:set_honor(v)
+    -- 功勋
     if self:isEmpty() then
-        skynet.error("[dbplayer:set_exp],please init first!!")
+        skynet.error("[dbplayer:set_honor],please init first!!")
         return nil
     end
     v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "exp", v)
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "honor", v)
 end
-function dbplayer:get_exp()
-    -- 经验值
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "exp")
-    return (tonumber(val) or 0)
-end
-
-function dbplayer:set_point(v)
+function dbplayer:get_honor()
     -- 功勋
-    if self:isEmpty() then
-        skynet.error("[dbplayer:set_point],please init first!!")
-        return nil
-    end
-    v = tonumber(v) or 0
-    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "point", v)
-end
-function dbplayer:get_point()
-    -- 功勋
-    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "point")
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "honor")
     return (tonumber(val) or 0)
 end
 
@@ -427,6 +420,21 @@ function dbplayer:get_beingattacked()
     end
 end
 
+function dbplayer:set_pvptimesTody(v)
+    -- 今天进攻玩家的次数
+    if self:isEmpty() then
+        skynet.error("[dbplayer:set_pvptimesTody],please init first!!")
+        return nil
+    end
+    v = tonumber(v) or 0
+    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "pvptimesTody", v)
+end
+function dbplayer:get_pvptimesTody()
+    -- 今天进攻玩家的次数
+    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "pvptimesTody")
+    return (tonumber(val) or 0)
+end
+
 function dbplayer:set_crtTime(v)
     -- 创建时间
     if self:isEmpty() then
@@ -444,7 +452,7 @@ function dbplayer:get_crtTime()
     if type(val) == "string" then
         return dateEx.str2Seconds(val)*1000 -- 转成毫秒
     else
-        return val
+        return val or 0
     end
 end
 
@@ -465,7 +473,7 @@ function dbplayer:get_lastEnTime()
     if type(val) == "string" then
         return dateEx.str2Seconds(val)*1000 -- 转成毫秒
     else
-        return val
+        return val or 0
     end
 end
 
@@ -500,11 +508,12 @@ end
 -- 把数据flush到mysql里， immd=true 立即生效
 function dbplayer:flush(immd)
     local sql
+    local data = dbplayer.validData(self:value2copy())
     if self.__isNew__ then
-        sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, self:value2copy())
+        sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)
         return skynet.call("CLMySQL", "lua", "exesql", sql, immd)
     else
-        sql = skynet.call("CLDB", "lua", "GETUPDATESQL", self.__name__, self:value2copy())
+        sql = skynet.call("CLDB", "lua", "GETUPDATESQL", self.__name__, data)
         return skynet.call("CLMySQL", "lua", "save", sql, immd)
     end
 end
@@ -515,10 +524,12 @@ end
 
 function dbplayer:release(returnVal)
     local val = nil
-    if returnVal then
-        val = self:value2copy()
+    if not self:isEmpty() then
+        if returnVal then
+            val = self:value2copy()
+        end
+        skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     end
-    skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)
     self.__isNew__ = nil
     self.__key__ = nil
     self = nil
@@ -534,7 +545,7 @@ function dbplayer:delete()
     return skynet.call("CLMySQL", "lua", "exesql", sql)
 end
 
----@public 设置触发器（当有数据改变时回调）
+---public 设置触发器（当有数据改变时回调）
 ---@param server 触发回调服务地址
 ---@param cmd 触发回调服务方法
 ---@param fieldKey 字段key(可为nil)
@@ -549,14 +560,11 @@ function dbplayer:unsetTrigger(server, cmd, fieldKey)
     skynet.call("CLDB", "lua", "REMOVETRIGGER", self.__name__, self.__key__, server, cmd, fieldKey)
 end
 
-function dbplayer.querySql(idx, name)
+function dbplayer.querySql(idx)
     -- 如果某个参数为nil,则where条件中不包括该条件
     local where = {}
     if idx then
         table.insert(where, "`idx`=" .. idx)
-    end
-    if name then
-        table.insert(where, "`name`=" .. "'" .. name  .. "'")
     end
     if #where > 0 then
         return "SELECT * FROM player WHERE " .. table.concat(where, " and ") .. ";"
@@ -589,11 +597,8 @@ function dbplayer.validData(data)
     if type(data.exp) ~= "number" then
         data.exp = tonumber(data.exp) or 0
     end
-    if type(data.exp) ~= "number" then
-        data.exp = tonumber(data.exp) or 0
-    end
-    if type(data.point) ~= "number" then
-        data.point = tonumber(data.point) or 0
+    if type(data.honor) ~= "number" then
+        data.honor = tonumber(data.honor) or 0
     end
     if type(data.money) ~= "number" then
         data.money = tonumber(data.money) or 0
@@ -640,6 +645,9 @@ function dbplayer.validData(data)
     else
         data.beingattacked = 0
     end
+    if type(data.pvptimesTody) ~= "number" then
+        data.pvptimesTody = tonumber(data.pvptimesTody) or 0
+    end
     if type(data.crtTime) == "number" then
         data.crtTime = dateEx.seconds2Str(data.crtTime/1000)
     end
@@ -666,7 +674,7 @@ function dbplayer.instanse(idx)
     local obj = dbplayer.new()
     local d = skynet.call("CLDB", "lua", "get", dbplayer.name, key)
     if d == nil then
-        d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(idx, nil))
+        d = skynet.call("CLMySQL", "lua", "exesql", dbplayer.querySql(idx))
         if d and d.errno == nil and #d > 0 then
             if #d == 1 then
                 d = d[1]

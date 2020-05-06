@@ -31,7 +31,7 @@ local wrapMsg = function (...)
     local v
     for i = 1, select("#", ...) do
         v = select(i, ...)
-        if v then
+        if v or type(v) == "bool" then
             table.insert(tb, tostring(v))
         else
             table.insert(tb, "nil")
@@ -69,8 +69,8 @@ function printe(...)
     msg = msg or ""
     logTraceLev = 0 -- 表示所有层级
     
-    -- skynet.error("[err]:" .. msg .. parseBackTrace(trace, logTraceLev))
-    error("[err]:" .. msg .. parseBackTrace(trace, logTraceLev))
+    skynet.error("[err]:" .. msg .. parseBackTrace(trace, logTraceLev))
+    -- error("[err]:" .. msg .. parseBackTrace(trace, logTraceLev))
 end
 
 

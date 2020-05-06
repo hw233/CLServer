@@ -22,12 +22,12 @@ function numEx.nextBool()
     return (math.random(0, 100) > 50)
 end
 
----@public 随机数(全包)
+---public 随机数(全包)
 function numEx.nextInt(min, max)
     return math.random(min, max)
 end
 
----@public 保留小数位位数
+---public 保留小数位位数
 function numEx.getPreciseDecimal(nNum, n)
     if type(nNum) ~= "number" then
         return nNum;

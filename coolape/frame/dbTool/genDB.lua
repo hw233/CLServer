@@ -10,8 +10,8 @@ require("CLUtl")
 require("fileEx")
 
 genDB = {}
-local sqlDumpFile = "tables.sql";
-local incsqlDumpFile = "tablesInc.sql";
+local sqlDumpFile = "tables"
+local incsqlDumpFile = "tablesInc"
 
 local databaseName
 local rootPath
@@ -22,14 +22,14 @@ function genDB.getFiles()
 end
 
 function getFile(file_name)
-    local f = assert(io.open(file_name, 'r'))
+    local f = assert(io.open(file_name, "r"))
     local string = f:read("*all")
     f:close()
     return string
 end
 
 function writeFile(file_name, string)
-    local f = assert(io.open(file_name, 'w'))
+    local f = assert(io.open(file_name, "w"))
     f:write(string)
     f:close()
 end
@@ -45,7 +45,8 @@ end
 
 -- 序列
 function genDB.createSequence()
-    local str = [[
+    local str =
+        [[
 #--DROP TABLE IF EXISTS sequence;
 CREATE TABLE IF NOT EXISTS sequence (
      name VARCHAR(50) NOT NULL,
@@ -121,17 +122,21 @@ $
 DELIMITER ;
 #----------------------------------------------
         ]]
-    return str;
+    return str
 end
 
-function genDB.genTables()
+---@param isBak boolean 是否创建备份库
+function genDB.genTables(dateStr, isBak)
     local files = genDB.getFiles()
     if #files == 0 then
-        return "";
+        return ""
     end
-    local sqlStr = {};
-    local incsqlStr = {};
+    local sqlStr = {}
+    local incsqlStr = {}
     databaseName = arg[1]
+    if isBak then
+        databaseName = databaseName .. "_bak"
+    end
     rootPath = arg[2]
     outPath = arg[3]
     if rootPath == nil then
@@ -147,30 +152,49 @@ function genDB.genTables()
     table.insert(incsqlStr, "create database if not exists `" .. databaseName .. "`;")
     table.insert(incsqlStr, "use `" .. databaseName .. "`;")
     --建序列
-    table.insert(sqlStr, genDB.createSequence());
+    if not isBak then
+        table.insert(sqlStr, genDB.createSequence())
+    end
 
     --建表
-    local t;
+    local t
     for i, v in ipairs(files) do
-        t = dofile(rootPath .. "/" .. v);
-        table.insert(sqlStr, genDB.genSql(t));
-        genDB.genLuaFile(outPath, t);
-        -- 生成增量sql
-        local alertSql = genDB.genIncrementSql(rootPath .. "/preVer/" .. v, t)
-        if alertSql then
-            table.insert(incsqlStr, alertSql)
+        t = dofile(rootPath .. "/" .. v)
+        -- 建表sql
+        if (not isBak) or (isBak and t.needBak) then
+            table.insert(sqlStr, genDB.genSql(t))
         end
-        -- 保存上一版本
-        fileEx.createDir(CLUtl.combinePath(rootPath, "/preVer/"))
-        local content = fileEx.readAll(CLUtl.combinePath(rootPath, v))
-        fileEx.writeAll(CLUtl.combinePath(rootPath, "/preVer/" .. v), content)
+
+        -- 生成lua代码
+        if not isBak then
+            genDB.genLuaFile(outPath, t)
+        end
+
+        -- 生成增量sql
+        if (isBak and t.needBak) or (not isBak) then
+            local alertSql = genDB.genIncrementSql(rootPath .. "/preVer/" .. v, t)
+            if alertSql then
+                table.insert(incsqlStr, alertSql)
+            end
+        end
+
+        if isBak then
+            -- 保存上一版本
+            fileEx.createDir(CLUtl.combinePath(rootPath, "/preVer/"))
+            local content = fileEx.readAll(CLUtl.combinePath(rootPath, v))
+            fileEx.writeAll(CLUtl.combinePath(rootPath, "/preVer/" .. v), content)
+        end
     end
-    local outSqlFile = CLUtl.combinePath(outPath, sqlDumpFile)
-    writeFile(outSqlFile, table.concat(sqlStr, "\n"));
-    local incSqlPath = CLUtl.combinePath(rootPath, os.date("%Y_%m_%d_%H_%M_%S") .. "/")
+    if isBak then
+        sqlDumpFile = sqlDumpFile .. "_bak"
+        incsqlDumpFile = incsqlDumpFile .. "_bak"
+    end
+    local outSqlFile = CLUtl.combinePath(outPath, sqlDumpFile .. ".sql")
+    writeFile(outSqlFile, table.concat(sqlStr, "\n"))
+    local incSqlPath = CLUtl.combinePath(rootPath, dateStr .. "/")
     fileEx.createDir(incSqlPath)
-    local outIncSqlFile = CLUtl.combinePath(incSqlPath, incsqlDumpFile)
-    writeFile(outIncSqlFile, table.concat(incsqlStr, "\n"));
+    local outIncSqlFile = CLUtl.combinePath(incSqlPath, incsqlDumpFile .. ".sql")
+    writeFile(outIncSqlFile, table.concat(incsqlStr, "\n"))
     print("success：increment SQL outfiles==" .. outIncSqlFile)
     print("success：SQL outfiles==" .. outSqlFile)
 end
@@ -210,38 +234,38 @@ function genDB.genIncrementSql(oldPath, t)
 end
 
 function genDB.genSql(tableCfg)
-    local str = {};
+    local str = {}
     local columns = {}
     local primaryKey = {}
-    local tName = tableCfg.name;
+    local tName = tableCfg.name
     -- 建表
-    table.insert(str, "#----------------------------------------------------");
-    table.insert(str, "#---- " .. tableCfg.desc);
-    table.insert(str, "DROP TABLE IF EXISTS `" .. tName .. "`;");
-    table.insert(str, "CREATE TABLE `" .. tName .. "` (");
+    table.insert(str, "#----------------------------------------------------")
+    table.insert(str, "#---- " .. tableCfg.desc)
+    table.insert(str, "DROP TABLE IF EXISTS `" .. tName .. "`;")
+    table.insert(str, "CREATE TABLE `" .. tName .. "` (")
     for i, v in ipairs(tableCfg.columns) do
-        table.insert(columns, "  `" .. v[1] .. "` " .. v[2] .. " COMMENT '".. v[3] .. "'")
+        table.insert(columns, "  `" .. v[1] .. "` " .. v[2] .. " COMMENT '" .. v[3] .. "'")
     end
     if tableCfg.primaryKey then
         for _, pk in ipairs(tableCfg.primaryKey) do
-            table.insert(primaryKey, "`" .. pk .. "`");
+            table.insert(primaryKey, "`" .. pk .. "`")
         end
     end
     table.insert(columns, "  PRIMARY KEY (" .. table.concat(primaryKey, ", ") .. ")")
-    table.insert(str, table.concat(columns, ",\n"));
+    table.insert(str, table.concat(columns, ",\n"))
     table.insert(str, ") ENGINE=InnoDB DEFAULT CHARSET=utf8;")
 
     -- 初始数据
     if tableCfg.defaultData and #tableCfg.defaultData > 0 then
-        local datas = {};
-        local line = {};
+        local datas = {}
+        local line = {}
         for i, v in ipairs(tableCfg.defaultData) do
-            line = {};
+            line = {}
             for _, d in ipairs(v[i]) do
                 if type(d) == "number" then
-                    table.insert(line, "d");
+                    table.insert(line, "d")
                 else
-                    table.insert(line, "`" .. d .. "`");
+                    table.insert(line, "`" .. d .. "`")
                 end
             end
             table.insert(datas, "(" .. table.concat(line, ",") .. ")")
@@ -279,7 +303,7 @@ function genDB.genLuaFile(outPath, tableCfg)
         table.insert(getsetFunc, "function " .. name .. ":set_" .. v[1] .. "(v)")
         table.insert(getsetFunc, "    " .. (v[3] and "-- " .. v[3] or ""))
         table.insert(getsetFunc, "    if self:isEmpty() then")
-        table.insert(getsetFunc, "        skynet.error(\"[" .. name .. ":set_" .. v[1] .. "],please init first!!\")")
+        table.insert(getsetFunc, '        skynet.error("[' .. name .. ":set_" .. v[1] .. '],please init first!!")')
         table.insert(getsetFunc, "        return nil")
         table.insert(getsetFunc, "    end")
 
@@ -288,19 +312,19 @@ function genDB.genLuaFile(outPath, tableCfg)
             table.insert(getsetFunc, "    v = tonumber(v) or 0")
         elseif types:find("BOOL") then
             -- table.insert(getsetFunc, "    local val = 0")
-            table.insert(getsetFunc, "    if type(v) == \"string\" then")
-            table.insert(getsetFunc, "        if v == \"false\" or v ==\"0\" then")
+            table.insert(getsetFunc, '    if type(v) == "string" then')
+            table.insert(getsetFunc, '        if v == "false" or v =="0" then')
             table.insert(getsetFunc, "            v = 0")
             table.insert(getsetFunc, "        else")
             table.insert(getsetFunc, "            v = 1")
             table.insert(getsetFunc, "        end")
-            table.insert(getsetFunc, "    elseif type(v) == \"number\" then")
+            table.insert(getsetFunc, '    elseif type(v) == "number" then')
             table.insert(getsetFunc, "        if v == 0 then")
             table.insert(getsetFunc, "            v = 0")
             table.insert(getsetFunc, "        else")
             table.insert(getsetFunc, "            v = 1")
             table.insert(getsetFunc, "        end")
-            table.insert(getsetFunc, "    elseif type(v) == \"boolean\" then")
+            table.insert(getsetFunc, '    elseif type(v) == "boolean" then')
             table.insert(getsetFunc, "        if v then")
             table.insert(getsetFunc, "            v = 1")
             table.insert(getsetFunc, "        else")
@@ -310,35 +334,50 @@ function genDB.genLuaFile(outPath, tableCfg)
             table.insert(getsetFunc, "        v = 0")
             table.insert(getsetFunc, "    end")
         elseif types:find("DATETIME") then
-            table.insert(getsetFunc, "    if type(v) == \"number\" then")
+            table.insert(getsetFunc, '    if type(v) == "number" then')
             table.insert(getsetFunc, "        v = dateEx.seconds2Str(v/1000)")
             table.insert(getsetFunc, "    end")
         else
-            table.insert(getsetFunc, "    v = v or \"\"")
+            table.insert(getsetFunc, '    v = v or ""')
         end
-        table.insert(getsetFunc, "    skynet.call(\"CLDB\", \"lua\", \"set\", self.__name__, self.__key__, \"" .. v[1] .. "\", v)")
+        table.insert(
+            getsetFunc,
+            '    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, "' .. v[1] .. '", v)'
+        )
         table.insert(getsetFunc, "end")
         table.insert(getsetFunc, "function " .. name .. ":get_" .. v[1] .. "()")
         table.insert(getsetFunc, "    " .. (v[3] and "-- " .. v[3] or ""))
         if v[2]:upper():find("BOOL") then
-            table.insert(getsetFunc, "    local val = skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__, \"" .. v[1] .. "\")")
+            table.insert(
+                getsetFunc,
+                '    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "' .. v[1] .. '")'
+            )
             table.insert(getsetFunc, "    if val == nil or val == 0 or val == false then")
             table.insert(getsetFunc, "        return false")
             table.insert(getsetFunc, "    else")
             table.insert(getsetFunc, "        return true")
             table.insert(getsetFunc, "    end")
         elseif v[2]:upper():find("DATETIME") then
-            table.insert(getsetFunc, "    local val = skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__, \"" .. v[1] .. "\")")
-            table.insert(getsetFunc, "    if type(val) == \"string\" then")
+            table.insert(
+                getsetFunc,
+                '    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "' .. v[1] .. '")'
+            )
+            table.insert(getsetFunc, '    if type(val) == "string" then')
             table.insert(getsetFunc, "        return dateEx.str2Seconds(val)*1000 -- 转成毫秒")
             table.insert(getsetFunc, "    else")
-            table.insert(getsetFunc, "        return val")
+            table.insert(getsetFunc, "        return val or 0")
             table.insert(getsetFunc, "    end")
         elseif types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
-            table.insert(getsetFunc, "    local val = skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__, \"" .. v[1] .. "\")")
+            table.insert(
+                getsetFunc,
+                '    local val = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "' .. v[1] .. '")'
+            )
             table.insert(getsetFunc, "    return (tonumber(val) or 0)")
         else
-            table.insert(getsetFunc, "    return skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__, \"" .. v[1] .. "\")")
+            table.insert(
+                getsetFunc,
+                '    return skynet.call("CLDB", "lua", "get", self.__name__, self.__key__, "' .. v[1] .. '")'
+            )
         end
         table.insert(getsetFunc, "end")
         table.insert(getsetFunc, "")
@@ -348,19 +387,25 @@ function genDB.genLuaFile(outPath, tableCfg)
         if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
             table.insert(dataInit, "    self." .. v[1] .. " = 0" .. (v[3] and "    -- " .. v[3] or ""))
             table.insert(dataSet, "    self." .. v[1] .. " = data." .. v[1] .. (v[3] and "    -- " .. v[3] or ""))
-            table.insert(dataInsert, "(self." .. v[1] .. " and self." .. v[1] .. " or 0)");
-            table.insert(dataUpdate, "\"`" .. v[1] .. "`=\" .. (self." .. v[1] .. " and self." .. v[1] .. " or 0)");
+            table.insert(dataInsert, "(self." .. v[1] .. " and self." .. v[1] .. " or 0)")
+            table.insert(dataUpdate, '"`' .. v[1] .. '`=" .. (self.' .. v[1] .. " and self." .. v[1] .. " or 0)")
         else
-            table.insert(dataInit, "    self." .. v[1] .. " = \"\"" .. (v[3] and "    -- " .. v[3] or ""))
+            table.insert(dataInit, "    self." .. v[1] .. ' = ""' .. (v[3] and "    -- " .. v[3] or ""))
             table.insert(dataSet, "    self." .. v[1] .. " = data." .. v[1] .. (v[3] and "    -- " .. v[3] or ""))
-            table.insert(dataInsert, "(self." .. v[1] .. " and \"'\" .. self." .. v[1] .. " .. \"'\" or \"NULL\")");
-            table.insert(dataUpdate, "\"'" .. v[1] .. "`=\" .. " .. "(self." .. v[1] .. " and \"'\" .. self." .. v[1] .. " .. \"'\" or \"NULL\")" .. " .. \"'\"");
+            table.insert(dataInsert, "(self." .. v[1] .. ' and "\'" .. self.' .. v[1] .. ' .. "\'" or "NULL")')
+            table.insert(
+                dataUpdate,
+                '"\'' ..
+                    v[1] ..
+                        '`=" .. ' ..
+                            "(self." .. v[1] .. ' and "\'" .. self.' .. v[1] .. ' .. "\'" or "NULL")' .. ' .. "\'"'
+            )
         end
     end
 
     for i, pkey in ipairs(tableCfg.cacheKey) do
-        table.insert(shardataKey, "data." .. pkey);
-        table.insert(shardataKey2, "v." .. pkey);
+        table.insert(shardataKey, "data." .. pkey)
+        table.insert(shardataKey2, "v." .. pkey)
     end
 
     if tableCfg.primaryKey then
@@ -375,22 +420,32 @@ function genDB.genLuaFile(outPath, tableCfg)
 
             for j, ck in ipairs(tableCfg.cacheKey) do
                 if ck == pkey then
-                    table.insert(callParams, pkey);
+                    table.insert(callParams, pkey)
                     table.insert(callParamswithData, "data." .. pkey)
                     break
                 else
                     if j == #(tableCfg.cacheKey) then
-                        table.insert(callParams, "nil");
+                        table.insert(callParams, "nil")
                         table.insert(callParamswithData, "nil")
                     end
                 end
             end
-            if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
-                table.insert(where, "\"`" .. pkey .. "`=\" .. (self." .. pkey .. " and self." .. pkey .. " or 0)");
-                table.insert(where2, "\"`" .. pkey .. "`=\" .. (" .. pkey .. " and " .. pkey .. " or 0)");
+            if
+                types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or
+                    types:find("BOOL")
+             then
+                table.insert(where, '"`' .. pkey .. '`=" .. (self.' .. pkey .. " and self." .. pkey .. " or 0)")
+                table.insert(where2, '"`' .. pkey .. '`=" .. (' .. pkey .. " and " .. pkey .. " or 0)")
             else
-                table.insert(where, "\"`" .. pkey .. "`=\" .. " .. "(self." .. pkey .. " and \"'\" .. self." .. pkey .. " .. \"'\" or \"NULL\")");
-                table.insert(where2, "\"`" .. pkey .. "`=\" .. " .. "(" .. pkey .. " and \"'\" .. " .. pkey .. " ..\"'\" or \"\")");
+                table.insert(
+                    where,
+                    '"`' ..
+                        pkey .. '`=" .. ' .. "(self." .. pkey .. ' and "\'" .. self.' .. pkey .. ' .. "\'" or "NULL")'
+                )
+                table.insert(
+                    where2,
+                    '"`' .. pkey .. '`=" .. ' .. "(" .. pkey .. ' and "\'" .. ' .. pkey .. ' .."\'" or "")'
+                )
             end
         end
     end
@@ -411,25 +466,25 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "    obj:init(data);")
     table.insert(str, "]]")
     table.insert(str, "")
-    table.insert(str, "require(\"class\")")
-    table.insert(str, "local skynet = require \"skynet\"")
+    table.insert(str, 'require("class")')
+    table.insert(str, 'local skynet = require "skynet"')
     table.insert(str, "local tonumber = tonumber")
-    table.insert(str, "require(\"dateEx\")")
+    table.insert(str, 'require("dateEx")')
     table.insert(str, "")
     table.insert(str, "-- " .. tableCfg.desc)
     table.insert(str, "---@class " .. name .. " : ClassBase")
-    table.insert(str, name .. " = class(\"" .. name .. "\")")
+    table.insert(str, name .. ' = class("' .. name .. '")')
     table.insert(str, "")
-    table.insert(str, name .. ".name = \"" .. tableCfg.name .. "\"")
+    table.insert(str, name .. '.name = "' .. tableCfg.name .. '"')
     table.insert(str, "")
     table.insert(str, name .. ".keys = {")
     for i, v in ipairs(tableCfg.columns) do
-        table.insert(str, "    " .. v[1] .. " = \"" .. v[1] .. "\", -- " .. v[3])
+        table.insert(str, "    " .. v[1] .. ' = "' .. v[1] .. '", -- ' .. v[3])
     end
     table.insert(str, "}")
     table.insert(str, "")
     table.insert(str, "function " .. name .. ":ctor(v)")
-    table.insert(str, "    self.__name__ = \"" .. tableCfg.name .. "\"    -- 表名")
+    table.insert(str, '    self.__name__ = "' .. tableCfg.name .. '"    -- 表名')
     table.insert(str, "    self.__isNew__ = nil -- false:说明mysql里已经有数据了")
     table.insert(str, "    if v then")
     table.insert(str, "        self:init(v)")
@@ -441,12 +496,16 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "function " .. name .. ":init(data, isNew)")
     --table.insert(str, table.concat(dataSet, "\n"))
     table.insert(str, "    data = " .. name .. ".validData(data)")
-    table.insert(str, "    self.__key__ = " .. table.concat(shardataKey, " .. \"_\" .. "))
+    table.insert(str, "    self.__key__ = " .. table.concat(shardataKey, ' .. "_" .. '))
     table.insert(str, "    local hadCacheData = false")
     table.insert(str, "    if self.__isNew__ == nil and isNew == nil then")
-    table.insert(str, "        local d = skynet.call(\"CLDB\", \"lua\", \"get\", " .. name .. ".name, self.__key__)")
+    table.insert(str, '        local d = skynet.call("CLDB", "lua", "get", ' .. name .. ".name, self.__key__)")
     table.insert(str, "        if d == nil then")
-    table.insert(str, "            d = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", " .. name .. ".querySql(" .. table.concat(callParamswithData, ", ") .. "))")
+    table.insert(
+        str,
+        '            d = skynet.call("CLMySQL", "lua", "exesql", ' ..
+            name .. ".querySql(" .. table.concat(callParamswithData, ", ") .. "))"
+    )
     table.insert(str, "            if d and d.errno == nil and #d > 0 then")
     table.insert(str, "                self.__isNew__ = false")
     table.insert(str, "            else")
@@ -461,8 +520,8 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "    end")
     table.insert(str, "    if self.__isNew__ then")
     table.insert(str, "        -- 说明之前表里没有数据，先入库")
-    table.insert(str, "        local sql = skynet.call(\"CLDB\", \"lua\", \"GETINSERTSQL\", self.__name__, data)")
-    table.insert(str, "        local r = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", sql)")
+    table.insert(str, '        local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)')
+    table.insert(str, '        local r = skynet.call("CLMySQL", "lua", "exesql", sql)')
     table.insert(str, "        if r == nil or r.errno == nil then")
     table.insert(str, "            self.__isNew__ = false")
     table.insert(str, "        else")
@@ -470,19 +529,29 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "        end")
     table.insert(str, "    end")
     table.insert(str, "    if not hadCacheData then")
-    table.insert(str, "        skynet.call(\"CLDB\", \"lua\", \"set\", self.__name__, self.__key__, data)")
+    table.insert(str, '        skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, data)')
     table.insert(str, "    end")
-    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"SETUSE\", self.__name__, self.__key__)")
+    table.insert(str, '    skynet.call("CLDB", "lua", "SETUSE", self.__name__, self.__key__)')
     table.insert(str, "    return true")
     table.insert(str, "end")
     table.insert(str, "")
+
+    table.insert(str, "function " .. name .. ":getInsertSql()")
+    table.insert(str, "    if self:isEmpty() then")
+    table.insert(str, "        return nil")
+    table.insert(str, "    end")
+    table.insert(str, "    local data = " .. name .. ".validData(self:value2copy())")
+    table.insert(str, '    local sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)')
+    table.insert(str, "    return sql")
+    table.insert(str, "end")
+
     table.insert(str, "function " .. name .. ":tablename() -- 取得表名")
     table.insert(str, "    return self.__name__")
     table.insert(str, "end")
     table.insert(str, "")
     table.insert(str, "function " .. name .. ":value2copy()  -- 取得数据复样，注意是只读的数据且只有当前时刻是最新的，如果要取得最新数据及修改数据，请用get、set")
-    table.insert(str, "    local ret = skynet.call(\"CLDB\", \"lua\", \"get\", self.__name__, self.__key__)")
-    if #tableCfg.columns >0 then
+    table.insert(str, '    local ret = skynet.call("CLDB", "lua", "get", self.__name__, self.__key__)')
+    if #tableCfg.columns > 0 then
         table.insert(str, "    if ret then")
     end
     for i, v in ipairs(tableCfg.columns) do
@@ -491,7 +560,7 @@ function genDB.genLuaFile(outPath, tableCfg)
             table.insert(str, "        ret." .. v[1] .. " = self:get_" .. v[1] .. "()")
         end
     end
-    if #tableCfg.columns >0 then
+    if #tableCfg.columns > 0 then
         table.insert(str, "    end")
     end
     table.insert(str, "    return ret")
@@ -500,18 +569,18 @@ function genDB.genLuaFile(outPath, tableCfg)
 
     table.insert(str, "function " .. name .. ":refreshData(data)")
     table.insert(str, "    if data == nil or self.__key__ == nil then")
-    table.insert(str, "        skynet.error(\"" .. name .. ":refreshData error!\")")
+    table.insert(str, '        skynet.error("' .. name .. ':refreshData error!")')
     table.insert(str, "        return")
     table.insert(str, "    end")
     table.insert(str, "    local orgData = self:value2copy()")
     table.insert(str, "    if orgData == nil then")
-    table.insert(str, "        skynet.error(\"get old data error!!\")")
+    table.insert(str, '        skynet.error("get old data error!!")')
     table.insert(str, "    end")
     table.insert(str, "    for k, v in pairs(data) do")
     table.insert(str, "        orgData[k] = v")
     table.insert(str, "    end")
     table.insert(str, "    orgData = " .. name .. ".validData(orgData)")
-    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"set\", self.__name__, self.__key__, orgData)")
+    table.insert(str, '    skynet.call("CLDB", "lua", "set", self.__name__, self.__key__, orgData)')
     table.insert(str, "end")
     table.insert(str, "")
 
@@ -520,12 +589,13 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "-- 把数据flush到mysql里， immd=true 立即生效")
     table.insert(str, "function " .. name .. ":flush(immd)")
     table.insert(str, "    local sql")
+    table.insert(str, "    local data = " .. name .. ".validData(self:value2copy())")
     table.insert(str, "    if self.__isNew__ then")
-    table.insert(str, "        sql = skynet.call(\"CLDB\", \"lua\", \"GETINSERTSQL\", self.__name__, self:value2copy())")
-    table.insert(str, "        return skynet.call(\"CLMySQL\", \"lua\", \"exesql\", sql, immd)")
+    table.insert(str, '        sql = skynet.call("CLDB", "lua", "GETINSERTSQL", self.__name__, data)')
+    table.insert(str, '        return skynet.call("CLMySQL", "lua", "exesql", sql, immd)')
     table.insert(str, "    else")
-    table.insert(str, "        sql = skynet.call(\"CLDB\", \"lua\", \"GETUPDATESQL\", self.__name__, self:value2copy())")
-    table.insert(str, "        return skynet.call(\"CLMySQL\", \"lua\", \"save\", sql, immd)")
+    table.insert(str, '        sql = skynet.call("CLDB", "lua", "GETUPDATESQL", self.__name__, data)')
+    table.insert(str, '        return skynet.call("CLMySQL", "lua", "save", sql, immd)')
     table.insert(str, "    end")
     table.insert(str, "end")
     table.insert(str, "")
@@ -541,10 +611,12 @@ function genDB.genLuaFile(outPath, tableCfg)
 
     table.insert(str, "function " .. name .. ":release(returnVal)")
     table.insert(str, "    local val = nil")
-    table.insert(str, "    if returnVal then")
-    table.insert(str, "        val = self:value2copy()")
+    table.insert(str, "    if not self:isEmpty() then")
+    table.insert(str, "        if returnVal then")
+    table.insert(str, "            val = self:value2copy()")
+    table.insert(str, "        end")
+    table.insert(str, '        skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)')
     table.insert(str, "    end")
-    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"SETUNUSE\", self.__name__, self.__key__)")
     table.insert(str, "    self.__isNew__ = nil")
     table.insert(str, "    self.__key__ = nil")
     table.insert(str, "    self = nil")
@@ -554,27 +626,33 @@ function genDB.genLuaFile(outPath, tableCfg)
 
     table.insert(str, "function " .. name .. ":delete()")
     table.insert(str, "    local d = self:value2copy()")
-    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"SETUNUSE\", self.__name__, self.__key__)")
-    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"REMOVE\", self.__name__, self.__key__)")
-    table.insert(str, "    local sql = skynet.call(\"CLDB\", \"lua\", \"GETDELETESQL\", self.__name__, d)")
+    table.insert(str, '    skynet.call("CLDB", "lua", "SETUNUSE", self.__name__, self.__key__)')
+    table.insert(str, '    skynet.call("CLDB", "lua", "REMOVE", self.__name__, self.__key__)')
+    table.insert(str, '    local sql = skynet.call("CLDB", "lua", "GETDELETESQL", self.__name__, d)')
     table.insert(str, "    self.__key__ = nil")
-    table.insert(str, "    return skynet.call(\"CLMySQL\", \"lua\", \"exesql\", sql)")
+    table.insert(str, '    return skynet.call("CLMySQL", "lua", "exesql", sql)')
     table.insert(str, "end")
     table.insert(str, "")
 
-    table.insert(str, "---@public 设置触发器（当有数据改变时回调）")
+    table.insert(str, "---public 设置触发器（当有数据改变时回调）")
     table.insert(str, "---@param server 触发回调服务地址")
     table.insert(str, "---@param cmd 触发回调服务方法")
     table.insert(str, "---@param fieldKey 字段key(可为nil)")
     table.insert(str, "function " .. name .. ":setTrigger(server, cmd, fieldKey)")
-    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"ADDTRIGGER\", self.__name__, self.__key__, server, cmd, fieldKey)")
+    table.insert(
+        str,
+        '    skynet.call("CLDB", "lua", "ADDTRIGGER", self.__name__, self.__key__, server, cmd, fieldKey)'
+    )
     table.insert(str, "end")
     table.insert(str, "")
     table.insert(str, "---@param server 触发回调服务地址")
     table.insert(str, "---@param cmd 触发回调服务方法")
     table.insert(str, "---@param fieldKey 字段key(可为nil)")
     table.insert(str, "function " .. name .. ":unsetTrigger(server, cmd, fieldKey)")
-    table.insert(str, "    skynet.call(\"CLDB\", \"lua\", \"REMOVETRIGGER\", self.__name__, self.__key__, server, cmd, fieldKey)")
+    table.insert(
+        str,
+        '    skynet.call("CLDB", "lua", "REMOVETRIGGER", self.__name__, self.__key__, server, cmd, fieldKey)'
+    )
     table.insert(str, "end")
     table.insert(str, "")
 
@@ -623,22 +701,28 @@ function genDB.genLuaFile(outPath, tableCfg)
                 end
             end
             table.insert(str, "    if " .. k .. " then")
-            if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
-                table.insert(str, "        table.insert(where, \"`" .. k .. "`=\" .. " .. k .. ")")
+            if
+                types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or
+                    types:find("BOOL")
+             then
+                table.insert(str, '        table.insert(where, "`' .. k .. '`=" .. ' .. k .. ")")
             else
-                table.insert(str, "        table.insert(where, \"`" .. k .. "`=\" .. \"'\" .. " .. k .. "  .. \"'\")")
+                table.insert(str, '        table.insert(where, "`' .. k .. '`=" .. "\'" .. ' .. k .. '  .. "\'")')
             end
             table.insert(str, "    end")
         end
 
         table.insert(str, "    if #where > 0 then")
-        table.insert(str, "        return \"SELECT * FROM " .. tableCfg.name .. " WHERE \" .. table.concat(where, \" and \") .. \";\"")
+        table.insert(
+            str,
+            '        return "SELECT * FROM ' .. tableCfg.name .. ' WHERE " .. table.concat(where, " and ") .. ";"'
+        )
         table.insert(str, "    else")
-        table.insert(str, "       return \"SELECT * FROM " .. tableCfg.name .. ";\"")
+        table.insert(str, '       return "SELECT * FROM ' .. tableCfg.name .. ';"')
         table.insert(str, "    end")
     else
         table.insert(str, "function " .. name .. ".querySql()")
-        table.insert(str, "    return \"SELECT * FROM" .. tableCfg.name .. ";")
+        table.insert(str, '    return "SELECT * FROM' .. tableCfg.name .. ";")
     end
     table.insert(str, "end")
     table.insert(str, "")
@@ -648,8 +732,15 @@ function genDB.genLuaFile(outPath, tableCfg)
             local where = ""
             local funcName = table.concat(group, "_")
             local funcParm = table.concat(group, ", ")
-            local funcParm2 = table.concat(group, " .. \"_\" .. ")
+            -- local funcParm2 = table.concat(group, ' .. "_" .. ')
+            local groupKey = ""
             for j, gkey in ipairs(group) do
+                if j == 1 then
+                    groupKey = '"' .. gkey .. '_" .. ' .. gkey
+                else
+                    groupKey = groupKey .. " .. \"_" .. gkey .. '_" .. ' .. gkey
+                end
+
                 local types = ""
                 for j, col in ipairs(tableCfg.columns) do
                     if gkey == col[1] then
@@ -657,25 +748,38 @@ function genDB.genLuaFile(outPath, tableCfg)
                         break
                     end
                 end
-                if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or types:find("BOOL") then
-                    local _where = gkey .. "=\"" .. " .. " .. gkey .. " .. "
-                    where = where:len() > 0 and where .. "\" AND " .. _where or _where
+                if
+                    types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") or
+                        types:find("BOOL")
+                 then
+                    local _where = gkey .. '="' .. " .. " .. gkey .. " .. "
+                    where = where:len() > 0 and where .. '" AND ' .. _where or _where
                 else
-                    local _where = gkey .. "=\"" .. " .. \"'\" .. " .. gkey .. " .. \"'\" .. "
-                    where = where:len() > 0 and where .. "\" AND " .. _where or _where
+                    local _where = gkey .. '="' .. ' .. "\'" .. ' .. gkey .. ' .. "\'" .. '
+                    where = where:len() > 0 and where .. '" AND ' .. _where or _where
                 end
             end
-            table.insert(str, "---@public 取得一个组")
+            table.insert(str, "---public 取得一个组")
             table.insert(str, "---@param forceSelect boolean 强制从mysql取数据")
             table.insert(str, "---@param orderby string 排序")
-            table.insert(str, "function " .. name .. ".getListBy" .. funcName .. "(" .. funcParm .. ", forceSelect, orderby, limitOffset, limitNum)")
-            table.insert(str, "    if orderby and orderby ~= \"\" then")
+            table.insert(
+                str,
+                "function " ..
+                    name ..
+                        ".getListBy" .. funcName .. "(" .. funcParm .. ", forceSelect, orderby, limitOffset, limitNum)"
+            )
+            table.insert(str, '    if orderby and orderby ~= "" then')
             table.insert(str, "        forceSelect = true")
             table.insert(str, "    end")
             table.insert(str, "    local data")
             table.insert(str, "    local ret = {}")
             table.insert(str, "    local cachlist, isFullCached, list")
-            table.insert(str, "    local groupInfor = skynet.call(\"CLDB\", \"lua\", \"GETGROUP\", " .. name .. ".name, " .. funcParm2 .. ") or {}")
+            table.insert(str, "    local groupKey = " .. groupKey)
+            table.insert(
+                str,
+                '    local groupInfor = skynet.call("CLDB", "lua", "GETGROUP", ' ..
+                    name .. ".name,  groupKey) or {}"
+            )
             table.insert(str, "    cachlist = groupInfor[1] or {}")
             table.insert(str, "    isFullCached = groupInfor[2]")
             table.insert(str, "    if isFullCached == true and (not forceSelect) then")
@@ -686,14 +790,21 @@ function genDB.genLuaFile(outPath, tableCfg)
             table.insert(str, "            data:release()")
             table.insert(str, "        end")
             table.insert(str, "    else")
-            table.insert(str, "        local sql = \"SELECT * FROM " .. tableCfg.name .. " WHERE " .. where .. " (orderby and \" ORDER BY\" ..  orderby or \"\") .. ((limitOffset and limitNum) and (\" LIMIT \" ..  limitOffset .. \",\" .. limitNum) or \"\") .. \";\"")
-            table.insert(str, "        list = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", sql)")
+            table.insert(
+                str,
+                '        local sql = "SELECT * FROM ' ..
+                    tableCfg.name ..
+                        " WHERE " ..
+                            where ..
+                                ' (orderby and " ORDER BY" ..  orderby or "") .. ((limitOffset and limitNum) and (" LIMIT " ..  limitOffset .. "," .. limitNum) or "") .. ";"'
+            )
+            table.insert(str, '        list = skynet.call("CLMySQL", "lua", "exesql", sql)')
             table.insert(str, "        if list and list.errno then")
-            table.insert(str, "            skynet.error(\"[" .. name .. ".getGroup] sql error==\" .. sql)")
+            table.insert(str, '            skynet.error("[' .. name .. '.getGroup] sql error==" .. sql)')
             table.insert(str, "            return nil")
             table.insert(str, "         end")
             table.insert(str, "         for i, v in ipairs(list) do")
-            table.insert(str, "             local key = tostring(" .. table.concat(shardataKey2, " .. \"_\" .. ") .. ")")
+            table.insert(str, "             local key = tostring(" .. table.concat(shardataKey2, ' .. "_" .. ') .. ")")
             table.insert(str, "             local d = cachlist[key]")
             table.insert(str, "             if d ~= nil then")
             table.insert(str, "                 -- 用缓存的数据才是最新的")
@@ -705,7 +816,7 @@ function genDB.genLuaFile(outPath, tableCfg)
             table.insert(str, "             table.insert(list, v)")
             table.insert(str, "         end")
             table.insert(str, "         cachlist = nil")
-            
+
             table.insert(str, "         for k, v in ipairs(list) do")
             table.insert(str, "             data = " .. name .. ".new(v, false)")
             table.insert(str, "             ret[k] = data:value2copy()")
@@ -715,7 +826,10 @@ function genDB.genLuaFile(outPath, tableCfg)
 
             table.insert(str, "     list = nil")
             table.insert(str, "     -- 设置当前缓存数据是全的数据")
-            table.insert(str, "     skynet.call(\"CLDB\", \"lua\", \"SETGROUPISFULL\", ".. name .. ".name, ".. funcParm2 .. ")")
+            table.insert(
+                str,
+                '     skynet.call("CLDB", "lua", "SETGROUPISFULL", ' .. name .. ".name, groupKey)"
+            )
             table.insert(str, "     return ret")
             table.insert(str, "end")
             table.insert(str, "")
@@ -724,23 +838,23 @@ function genDB.genLuaFile(outPath, tableCfg)
 
     table.insert(str, "function " .. name .. ".validData(data)")
     table.insert(str, "    if data == nil then return nil end")
-    table.insert(str, "");
+    table.insert(str, "")
 
     for i, v in ipairs(tableCfg.columns) do
         local types = v[2]:upper()
         local filed = "data." .. v[1]
         if types:find("DEC") or types:find("INT") or types:find("FLOAT") or types:find("DOUBLE") then
-            table.insert(str, "    if type(" .. filed .. ") ~= \"number\" then")
+            table.insert(str, "    if type(" .. filed .. ') ~= "number" then')
             table.insert(str, "        " .. filed .. " = tonumber(" .. filed .. ") or 0")
             table.insert(str, "    end")
         elseif types:find("BOOL") then
-            table.insert(str, "    if type(" .. filed .. ") == \"string\" then")
-            table.insert(str, "        if " .. filed .. " == \"false\" or " .. filed .. " ==\"0\" then")
+            table.insert(str, "    if type(" .. filed .. ') == "string" then')
+            table.insert(str, "        if " .. filed .. ' == "false" or ' .. filed .. ' =="0" then')
             table.insert(str, "            " .. filed .. " = 0")
             table.insert(str, "        else")
             table.insert(str, "            " .. filed .. " = 1")
             table.insert(str, "        end")
-            table.insert(str, "    elseif type(" .. filed .. ") == \"number\" then")
+            table.insert(str, "    elseif type(" .. filed .. ') == "number" then')
             table.insert(str, "        if " .. filed .. " == 0 then")
             table.insert(str, "            " .. filed .. " = 0")
             table.insert(str, "        else")
@@ -750,7 +864,7 @@ function genDB.genLuaFile(outPath, tableCfg)
             table.insert(str, "        " .. filed .. " = 0")
             table.insert(str, "    end")
         elseif types:find("DATETIME") then
-            table.insert(str, "    if type(" .. filed .. ") == \"number\" then")
+            table.insert(str, "    if type(" .. filed .. ') == "number" then')
             table.insert(str, "        " .. filed .. " = dateEx.seconds2Str(" .. filed .. "/1000)")
             table.insert(str, "    end")
         else
@@ -768,7 +882,7 @@ function genDB.genLuaFile(outPath, tableCfg)
         table.insert(str, "function " .. name .. ".instanse()")
     end
 
-    table.insert(str, "    if type(" .. tableCfg.cacheKey[1] .. ") == \"table\" then")
+    table.insert(str, "    if type(" .. tableCfg.cacheKey[1] .. ') == "table" then')
     table.insert(str, "        local d = " .. tableCfg.cacheKey[1])
     for i, v in ipairs(tableCfg.cacheKey) do
         table.insert(str, "        " .. v .. " = d." .. v)
@@ -779,25 +893,29 @@ function genDB.genLuaFile(outPath, tableCfg)
     local keyTmp = {}
     for i, v in ipairs(tableCfg.cacheKey) do
         table.insert(checkNil, v .. " == nil")
-        table.insert(keyTmp, "(" .. v .. " or \"\")")
+        table.insert(keyTmp, "(" .. v .. ' or "")')
     end
 
     table.insert(str, "    if " .. table.concat(checkNil, " and ") .. " then")
-    table.insert(str, "        skynet.error(\"[" .. name .. ".instanse] all input params == nil\")")
+    table.insert(str, '        skynet.error("[' .. name .. '.instanse] all input params == nil")')
     table.insert(str, "        return nil")
     table.insert(str, "    end")
 
-    table.insert(str, "    local key = " .. table.concat(keyTmp, " .. \"_\" .. "))
-    table.insert(str, "    if key == \"\" then")
-    table.insert(str, "        error(\"the key is null\", 0)")
+    table.insert(str, "    local key = " .. table.concat(keyTmp, ' .. "_" .. '))
+    table.insert(str, '    if key == "" then')
+    table.insert(str, '        error("the key is null", 0)')
     --table.insert(str, "        return ")
     table.insert(str, "    end")
 
     table.insert(str, "    ---@type " .. name)
-    table.insert(str, "    local obj = " .. name .. ".new()");
-    table.insert(str, "    local d = skynet.call(\"CLDB\", \"lua\", \"get\", " .. name .. ".name, key)");
+    table.insert(str, "    local obj = " .. name .. ".new()")
+    table.insert(str, '    local d = skynet.call("CLDB", "lua", "get", ' .. name .. ".name, key)")
     table.insert(str, "    if d == nil then")
-    table.insert(str, "        d = skynet.call(\"CLMySQL\", \"lua\", \"exesql\", " .. name .. ".querySql(" .. table.concat(callParams, ", ") .. "))")
+    table.insert(
+        str,
+        '        d = skynet.call("CLMySQL", "lua", "exesql", ' ..
+            name .. ".querySql(" .. table.concat(callParams, ", ") .. "))"
+    )
     table.insert(str, "        if d and d.errno == nil and #d > 0 then")
     table.insert(str, "            if #d == 1 then")
     table.insert(str, "                d = d[1]")
@@ -806,7 +924,7 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "                obj.__key__ = key")
     table.insert(str, "                obj:init(d)")
     table.insert(str, "            else")
-    table.insert(str, "                error(\"get data is more than one! count==\" .. #d .. \", lua==" .. name .. "\")")
+    table.insert(str, '                error("get data is more than one! count==" .. #d .. ", lua==' .. name .. '")')
     table.insert(str, "            end")
     table.insert(str, "        else")
     table.insert(str, "            -- 没有数据")
@@ -815,9 +933,9 @@ function genDB.genLuaFile(outPath, tableCfg)
     table.insert(str, "    else")
     table.insert(str, "        obj.__isNew__ = false")
     table.insert(str, "        obj.__key__ = key")
-    table.insert(str, "        skynet.call(\"CLDB\", \"lua\", \"SETUSE\", " .. name .. ".name, key)");
+    table.insert(str, '        skynet.call("CLDB", "lua", "SETUSE", ' .. name .. ".name, key)")
     table.insert(str, "    end")
-    table.insert(str, "    return obj");
+    table.insert(str, "    return obj")
     table.insert(str, "end")
     table.insert(str, "")
 
@@ -834,6 +952,8 @@ if #arg < 3 then
     print("err:参数错误！！第一个参数是database名， 第二个参数是表配置目录，第三个参数是相关lua文件输出目录。")
     return
 end
-genDB.genTables();
+local dateStr = os.date("%Y_%m_%d_%H_%M_%S")
+genDB.genTables(dateStr, false)
+genDB.genTables(dateStr, true) -- 备份库
 --------------------------------------------
-return genDB;
+return genDB

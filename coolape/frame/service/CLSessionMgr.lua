@@ -72,7 +72,7 @@ function CMD.DELETE(session)
     data[session] = nil
 end
 
----@public 会话是否有效
+---public 会话是否有效
 ---@param timeOutSec number 超时时间（单位秒），为nil时者使用默认超时时间
 function CMD.VALID(session, timeOutSec)
     if (not session) or (not data[session]) then

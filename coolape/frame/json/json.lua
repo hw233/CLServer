@@ -414,7 +414,7 @@ function isArray2(t)
   return true, maxIndex
 end
 
----@public 是否为list add by chenbin
+---public 是否为list add by chenbin
 --[[如果采用上面的isArray2这个方法，当是number为键时，可能也认为是list,
 比如：map={}
 map[100]="abc"

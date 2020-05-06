@@ -110,7 +110,7 @@ function CMD.getLeftMenu (map)
     return projectsInfor
 end
 
----@public 启动服务器
+---public 启动服务器
 function CMD.startServer(map)
     if map.projectName == nil then
         return "服务器名为nil"
@@ -124,7 +124,7 @@ function CMD.startServer(map)
     return { ret = true }
 end
 
----@public 停止服务器
+---public 停止服务器
 function CMD.stopServer(map)
     if map.projectName == nil then
         return "服务器名为nil"
@@ -138,7 +138,7 @@ function CMD.stopServer(map)
     return { ret = true }
 end
 
----@public 取得服务器信息
+---public 取得服务器信息
 function CMD.getProjectInfor(map)
     local projName = map.projectName
     if CLUtl.isNilOrEmpty(projName) then
@@ -244,7 +244,7 @@ function CMD.getProjectInfor(map)
     return infor
 end
 
----@public 停止服务
+---public 停止服务
 function CMD.stop()
     -- kill进程
     local projectname = skynet.getenv("projectName")

@@ -77,6 +77,18 @@ DELIMITER ;
 #----------------------------------------------
         
 #----------------------------------------------------
+#---- 宝箱(礼包)
+DROP TABLE IF EXISTS `box`;
+CREATE TABLE `box` (
+  `idx` int(11) NOT NULL COMMENT '唯一标识',
+  `rwidx` int(11) NOT NULL COMMENT '奖励包idx、掉落idx',
+  `icon` varchar(128) COMMENT '图标',
+  `nameKey` varchar(128) COMMENT '名称key',
+  `descKey` varchar(128) COMMENT '描述key',
+  `maxOutput` int(4) NOT NULL COMMENT '最大掉落数，如果小于等于0则没有限制',
+  PRIMARY KEY (`idx`, `rwidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
 #---- 建筑表
 DROP TABLE IF EXISTS `building`;
 CREATE TABLE `building` (
@@ -96,6 +108,18 @@ CREATE TABLE `building` (
   `valstr` VARCHAR(2000) COMMENT 'string类型的值',
   `valstr2` VARCHAR(2000) COMMENT 'string类型的值',
   PRIMARY KEY (`idx`, `cidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 聊天表
+DROP TABLE IF EXISTS `chat`;
+CREATE TABLE `chat` (
+  `idx` int(11) NOT NULL COMMENT '唯一标识',
+  `type` TINYINT NOT NULL COMMENT '类型, IDConst.ChatType',
+  `content` varchar(1024) COMMENT '内容',
+  `fromPidx` int(11) NOT NULL COMMENT '发送人',
+  `toPidx` int(11) NOT NULL COMMENT '收信人',
+  `time` datetime COMMENT '发送时间',
+  PRIMARY KEY (`idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 主城表
@@ -124,6 +148,31 @@ CREATE TABLE `fleet` (
   `arrivetime` datetime COMMENT '到达时间',
   `deadtime` datetime COMMENT '沉没的时间',
   PRIMARY KEY (`idx`, `cidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 道具物品
+DROP TABLE IF EXISTS `items`;
+CREATE TABLE `items` (
+  `idx` int(11) NOT NULL COMMENT '唯一标识',
+  `pidx` int(11) NOT NULL COMMENT '玩家唯一标识',
+  `id` int(11) NOT NULL COMMENT '对应的id',
+  `type` TINYINT NOT NULL COMMENT '类型，1：资源、经验值等（领奖就直接把数值加上），2：加速(建筑、造船、科技)，3：护盾4：碎片(海怪碎片)，5：图纸，6：舰船，7：复活药水(建筑、海怪)99：宝箱(嵌套礼包)',
+  `num` int(11) COMMENT '数量',
+  PRIMARY KEY (`idx`, `pidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 道具物品使用记录
+DROP TABLE IF EXISTS `itemsused`;
+CREATE TABLE `itemsused` (
+  `idx` int(11) NOT NULL COMMENT '唯一标识',
+  `itemidx` int(11) NOT NULL COMMENT '道具唯一标识',
+  `pidx` int(11) NOT NULL COMMENT '玩家唯一标识',
+  `id` int(11) NOT NULL COMMENT '对应的id',
+  `type` TINYINT NOT NULL COMMENT '类型,IDConst.ItemType',
+  `num` int(11) COMMENT '数量',
+  `dateuse` datetime COMMENT '使用时间',
+  `dec` varchar(128) COMMENT '使用备注',
+  PRIMARY KEY (`idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 语言表(国际化)
@@ -170,12 +219,11 @@ CREATE TABLE `player` (
   `status` TINYINT COMMENT '状态 1:正常;2:封号',
   `type` TINYINT COMMENT '类型 -1:GM,0:普通',
   `name` varchar(45) COMMENT '名称',
-  `icon` int(11) COMMENT '头像id',
+  `icon` int(4) COMMENT '头像id',
   `language` TINYINT COMMENT '语言id',
   `lev` int(4) COMMENT '等级',
   `exp` int(11) COMMENT '经验值',
-  `exp` int(11) COMMENT '经验值',
-  `point` int(11) COMMENT '功勋',
+  `honor` int(11) COMMENT '功勋',
   `money` int(11) COMMENT '充值总数',
   `diam` int(11) COMMENT '钻石',
   `diam4reward` int(11) COMMENT '系统奖励钻石',
@@ -183,11 +231,12 @@ CREATE TABLE `player` (
   `unionidx` int(11) COMMENT '联盟idx',
   `attacking` Boolean COMMENT '正在攻击玩家的岛屿',
   `beingattacked` Boolean COMMENT '正在被玩家攻击',
+  `pvptimesTody` int(4) COMMENT '今天进攻玩家的次数',
   `crtTime` datetime COMMENT '创建时间',
   `lastEnTime` datetime COMMENT '最后登陆时间',
   `channel` varchar(45) COMMENT '渠道',
   `deviceid` varchar(45) COMMENT '机器id',
-  PRIMARY KEY (`idx`, `name`)
+  PRIMARY KEY (`idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
 #---- 战报
@@ -198,6 +247,36 @@ CREATE TABLE `report` (
   `result` text COMMENT '战斗结果(json)，方便可以快速查看战报',
   `content` text COMMENT '战报过程等更详细的内容(json)',
   `crttime` datetime COMMENT '创建时间',
+  PRIMARY KEY (`idx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 奖励包(礼包)
+DROP TABLE IF EXISTS `rewardpkg`;
+CREATE TABLE `rewardpkg` (
+  `idx` int(11) NOT NULL COMMENT '唯一标识',
+  `rwidx` int(11) NOT NULL COMMENT '奖励包idx',
+  `type` TINYINT NOT NULL COMMENT '类型,IDConst.ItemType',
+  `id` int(11)  NOT NULL COMMENT '对应的id',
+  `num` int(11) COMMENT '数量',
+  `permillage` int(5) COMMENT '掉落千分率',
+  PRIMARY KEY (`idx`, `rwidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 用户的奖励包
+DROP TABLE IF EXISTS `rewardpkgplayer`;
+CREATE TABLE `rewardpkgplayer` (
+  `pidx` int(11) NOT NULL COMMENT '玩家唯一标识',
+  `rwidx` int(11) NOT NULL COMMENT '邮件唯一标识',
+  PRIMARY KEY (`pidx`, `rwidx`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+#----------------------------------------------------
+#---- 科技表
+DROP TABLE IF EXISTS `tech`;
+CREATE TABLE `tech` (
+  `idx` int(11) NOT NULL COMMENT '唯一标识',
+  `id` TINYINT NOT NULL COMMENT '配置id',
+  `cidx` int(11) COMMENT '城idx',
+  `lev` TINYINT COMMENT '等级',
   PRIMARY KEY (`idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 #----------------------------------------------------
@@ -230,7 +309,7 @@ CREATE TABLE `worldmap` (
   `type` TINYINT NOT NULL COMMENT '地块类型 3：玩家，2：npc',
   `attrid` INT COMMENT '配置id',
   `cidx` INT(11) COMMENT '主城idx',
-  `fidx` INT(11) COMMENT '驻扎在改地块的舰队idx',
+  `fidx` INT(11) COMMENT '驻扎在该地块的舰队idx',
   `pageIdx` INT(11) NOT NULL COMMENT '所在屏的index',
   `val1` INT(11) COMMENT '值1',
   `val2` INT(11) COMMENT '值2',

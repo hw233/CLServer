@@ -31,5 +31,6 @@ local tab = {
     },
     },
     defaultData = {}, -- 初始数据
+    needBak = true -- 需要备份
 }
 return tab

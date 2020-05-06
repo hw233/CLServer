@@ -16,7 +16,7 @@ local subPackSize = 64 * 1024 - 1 - 50
 
 local index = 0
 local netCfg = {}
-local ValidSecondsOffet = 3 * 1000 -- 允许的客户端时间与服务器时间之差
+local ValidSecondsOffet = 5 * 1000 -- 允许的客户端时间与服务器时间之差
 --============================================================
 local EncryptType = {
     clientEncrypt = 1,
@@ -25,7 +25,7 @@ local EncryptType = {
     none = 0
 }
 
----@public 设置通信相关的配置
+---public 设置通信相关的配置
 --[[
 cfg.encryptType:加密类别，1：只加密客户端，2：只加密服务器，3：前后端都加密，0及其它情况：不加密
 cfg.secretKey:密钥
@@ -52,7 +52,7 @@ function CLNetSerialize.getCfg()
     return netCfg
 end
 
----@public 添加时间戳
+---public 添加时间戳
 function CLNetSerialize.addTimestamp(bytes)
     if bytes == nil then
         return nil
@@ -65,7 +65,7 @@ function CLNetSerialize.addTimestamp(bytes)
     return BioUtl.number2bio(ts) .. bytes
 end
 
----@public 安全加固
+---public 安全加固
 local securityReinforce = function(bytes)
     -- 服务器不需要加时间戳
     if
@@ -77,7 +77,7 @@ local securityReinforce = function(bytes)
     return bytes
 end
 
----@public 检测数据安全性
+---public 检测数据安全性
 local checkSecurity = function(bytes)
     local bytes2
     if
@@ -94,9 +94,14 @@ local checkSecurity = function(bytes)
             printe("read timestamp err!")
             return nil
         end
-        if type(timestamp) ~= "number" or math.abs(dateEx.nowMS() - timestamp) > ValidSecondsOffet then
+        if type(timestamp) ~= "number" then
             -- 客户端上来的数据时间上有比较大的出入，直接丢弃
-            printe("客户端上来的时间未取得，或有比较大的出入，直接丢弃")
+            printe("客户端上来的时间未取得，直接丢弃")
+            --//TODO:可以通知客户端重新修订一次时间
+            return nil
+        elseif math.abs(dateEx.nowMS() - timestamp) > ValidSecondsOffet then
+            -- 客户端上来的数据时间上有比较大的出入，直接丢弃
+            printe("客户端上来的时间有比较大的出入，直接丢弃,diff=" .. (dateEx.nowMS() - timestamp))
             --//TODO:可以通知客户端重新修订一次时间
             return nil
         end
@@ -105,7 +110,7 @@ local checkSecurity = function(bytes)
     return bytes2
 end
 --============================================================
----@public 组包，返回的是list
+---public 组包，返回的是list
 function CLNetSerialize.package(pack)
     if pack == nil then
         return
@@ -158,7 +163,7 @@ local isSubPackage = function(m)
 end
 
 --============================================================
----@public 处理分包的情况
+---public 处理分包的情况
 --[[ 
 -- 完整的接口都是table，当有分包的时候会收到list。list[1]=共有几个分包，list[2]＝第几个分包，list[3]＝ 内容
 --]]
@@ -196,12 +201,12 @@ function CLNetSerialize.unPackage(bytes)
 end
 --============================================================
 local secretKey = ""
----@public 加密
+---public 加密
 function CLNetSerialize.encrypt(bytes, key)
     return CLNetSerialize.xor(bytes, key)
 end
 
----@public 解密
+---public 解密
 function CLNetSerialize.decrypt(bytes, key)
     return CLNetSerialize.xor(bytes, key)
 end

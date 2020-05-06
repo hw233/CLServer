@@ -1,0 +1,3 @@
+---@class DBCFLanguageTypeData
+---@field public ID
+---@field public Language

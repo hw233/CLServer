@@ -1,0 +1,24 @@
+---@class DBCFMagicData
+---@field public ID
+---@field public NameKey
+---@field public Icon
+---@field public TechID
+---@field public MaxLev
+---@field public BuildTimeMin
+---@field public BuildTimeMax
+---@field public BuildTimeCurve
+---@field public BuildCostOilMin
+---@field public BuildCostOilMax
+---@field public BuildCostOilCurve
+---@field public DamageMin
+---@field public DamageMax
+---@field public DamageCurve
+---@field public DamageTimes
+---@field public AttackSpeedMs
+---@field public StateMsMin
+---@field public StateMsMax
+---@field public StateMsCurve
+---@field public RangeMin
+---@field public RangeMax
+---@field public RangeCurve
+---@field public Desc

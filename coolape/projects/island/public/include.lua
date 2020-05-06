@@ -28,7 +28,7 @@ require("logic.IDConst")
 require("public.cfgUtl")
 require("public.myutl")
 
----@public logic有错误的日志，会把用户信息一并记录
+---public logic有错误的日志，会把用户信息一并记录
 loge =  function(agent, msg)
     skynet.call(agent, "lua", "log", msg)
 end

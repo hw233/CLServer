@@ -1,4 +1,3 @@
-do
     ---@class NetProtoUsermgr 网络协议
     NetProtoUsermgr = {}
     local table = table
@@ -8,16 +7,7 @@ do
     NetProtoUsermgr.dispatch = {}
     local __callbackInfor = {} -- 回调信息
     local __callTimes = 1
-    ---@public 设计回调信息
-    local setCallback = function (callback, orgs, ret)
-       if callback then
-           local callbackKey = os.time() + __callTimes
-           __callTimes = __callTimes + 1
-           __callbackInfor[callbackKey] = {callback, orgs}
-           ret[3] = callbackKey
-        end
-    end
-    ---@public 处理回调
+    ---public 处理回调
     local doCallback = function(map, result)
         local callbackKey = map[3]
         if callbackKey then
@@ -26,6 +16,22 @@ do
                 pcall(cbinfor[1], cbinfor[2], result)
             end
             __callbackInfor[callbackKey] = nil
+        end
+    end
+    ---public 超时处理
+    local timeOutCallback = function(param)
+        doCallback(param, {retInfor={}})
+    end
+    ---public 设计回调信息
+    local setCallback = function (callback, orgs, ret, timeOutSec)
+       if callback then
+           local callbackKey = os.time() + __callTimes
+           __callTimes = __callTimes + 1
+           __callbackInfor[callbackKey] = {callback, orgs}
+           ret[3] = callbackKey
+        end
+        if timeOutSec and timeOutSec > 0 then
+            InvokeEx.invokeByUpdate(timeOutCallback, ret, timeOutSec)
         end
     end
     --==============================
@@ -142,81 +148,81 @@ do
     --==============================
     NetProtoUsermgr.send = {
     -- 注册
-    registAccount = function(userId, password, email, appid, channel, deviceID, deviceInfor, __callback, __orgs) -- __callback:接口回调, __orgs:回调参数
+    registAccount = function(userId, password, email, appid, channel, deviceID, deviceInfor, __callback, __orgs, __timeoutSec) -- __callback:接口回调, __orgs:回调参数, __timeoutSec:超时的秒数
         local ret = {}
         ret[0] = 20
         ret[1] = NetProtoUsermgr.__sessionID
-        ret[21] = userId; -- 用户名
-        ret[22] = password; -- 密码
-        ret[23] = email; -- 邮箱
-        ret[24] = appid; -- 应用id
-        ret[25] = channel; -- 渠道号
-        ret[26] = deviceID; -- 机器码
-        ret[27] = deviceInfor; -- 机器信息
-        setCallback(__callback, __orgs, ret)
+        ret[21] = userId -- 用户名
+        ret[22] = password -- 密码
+        ret[23] = email -- 邮箱
+        ret[24] = appid -- 应用id
+        ret[25] = channel -- 渠道号
+        ret[26] = deviceID -- 机器码
+        ret[27] = deviceInfor -- 机器信息
+        setCallback(__callback, __orgs, ret, __timeoutSec)
         return ret
     end,
     -- 取得服务器列表
-    getServers = function(appid, channel, __callback, __orgs) -- __callback:接口回调, __orgs:回调参数
+    getServers = function(appid, channel, __callback, __orgs, __timeoutSec) -- __callback:接口回调, __orgs:回调参数, __timeoutSec:超时的秒数
         local ret = {}
         ret[0] = 31
         ret[1] = NetProtoUsermgr.__sessionID
-        ret[24] = appid; -- 应用id
-        ret[25] = channel; -- 渠道号
-        setCallback(__callback, __orgs, ret)
+        ret[24] = appid -- 应用id
+        ret[25] = channel -- 渠道号
+        setCallback(__callback, __orgs, ret, __timeoutSec)
         return ret
     end,
     -- session是否有效
-    isSessionAlived = function(__callback, __orgs) -- __callback:接口回调, __orgs:回调参数
+    isSessionAlived = function(__callback, __orgs, __timeoutSec) -- __callback:接口回调, __orgs:回调参数, __timeoutSec:超时的秒数
         local ret = {}
         ret[0] = 41
         ret[1] = NetProtoUsermgr.__sessionID
-        setCallback(__callback, __orgs, ret)
+        setCallback(__callback, __orgs, ret, __timeoutSec)
         return ret
     end,
     -- 取得服务器信息
-    getServerInfor = function(idx, __callback, __orgs) -- __callback:接口回调, __orgs:回调参数
+    getServerInfor = function(idx, __callback, __orgs, __timeoutSec) -- __callback:接口回调, __orgs:回调参数, __timeoutSec:超时的秒数
         local ret = {}
         ret[0] = 33
         ret[1] = NetProtoUsermgr.__sessionID
-        ret[12] = idx; -- 服务器id
-        setCallback(__callback, __orgs, ret)
+        ret[12] = idx -- 服务器id
+        setCallback(__callback, __orgs, ret, __timeoutSec)
         return ret
     end,
     -- 保存所选服务器
-    setEnterServer = function(sidx, uidx, appid, __callback, __orgs) -- __callback:接口回调, __orgs:回调参数
+    setEnterServer = function(sidx, uidx, appid, __callback, __orgs, __timeoutSec) -- __callback:接口回调, __orgs:回调参数, __timeoutSec:超时的秒数
         local ret = {}
         ret[0] = 35
         ret[1] = NetProtoUsermgr.__sessionID
-        ret[36] = sidx; -- 服务器id
-        ret[37] = uidx; -- 用户id
-        ret[24] = appid; -- 应用id
-        setCallback(__callback, __orgs, ret)
+        ret[36] = sidx -- 服务器id
+        ret[37] = uidx -- 用户id
+        ret[24] = appid -- 应用id
+        setCallback(__callback, __orgs, ret, __timeoutSec)
         return ret
     end,
     -- 登陆
-    loginAccount = function(userId, password, appid, channel, __callback, __orgs) -- __callback:接口回调, __orgs:回调参数
+    loginAccount = function(userId, password, appid, channel, __callback, __orgs, __timeoutSec) -- __callback:接口回调, __orgs:回调参数, __timeoutSec:超时的秒数
         local ret = {}
         ret[0] = 38
         ret[1] = NetProtoUsermgr.__sessionID
-        ret[21] = userId; -- 用户名
-        ret[22] = password; -- 密码
-        ret[24] = appid; -- 应用id int
-        ret[25] = channel; -- 渠道号 string
-        setCallback(__callback, __orgs, ret)
+        ret[21] = userId -- 用户名
+        ret[22] = password -- 密码
+        ret[24] = appid -- 应用id int
+        ret[25] = channel -- 渠道号 string
+        setCallback(__callback, __orgs, ret, __timeoutSec)
         return ret
     end,
     -- 渠道登陆
-    loginAccountChannel = function(userId, appid, channel, deviceID, deviceInfor, __callback, __orgs) -- __callback:接口回调, __orgs:回调参数
+    loginAccountChannel = function(userId, appid, channel, deviceID, deviceInfor, __callback, __orgs, __timeoutSec) -- __callback:接口回调, __orgs:回调参数, __timeoutSec:超时的秒数
         local ret = {}
         ret[0] = 39
         ret[1] = NetProtoUsermgr.__sessionID
-        ret[21] = userId; -- 用户名
-        ret[24] = appid; -- 应用id int
-        ret[25] = channel; -- 渠道号 string
-        ret[26] = deviceID; -- 
-        ret[27] = deviceInfor; -- 
-        setCallback(__callback, __orgs, ret)
+        ret[21] = userId -- 用户名
+        ret[24] = appid -- 应用id int
+        ret[25] = channel -- 渠道号 string
+        ret[26] = deviceID -- 
+        ret[27] = deviceInfor -- 
+        setCallback(__callback, __orgs, ret, __timeoutSec)
         return ret
     end,
     }
@@ -334,4 +340,4 @@ do
     }
     --==============================
     return NetProtoUsermgr
-end
+

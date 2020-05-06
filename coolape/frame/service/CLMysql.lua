@@ -4,18 +4,27 @@
 ---
 
 local skynet = require "skynet"
-require "skynet.manager"    -- import skynet.register
+require "skynet.manager" -- import skynet.register
 local mysql = require "skynet.db.mysql"
 require("CLLQueue")
 require("CLUtl")
 require("CLGlobal")
 
+local isUniqueservice = true -- 是否是启动唯一服务
+local parmas = {...}
+if #parmas > 0 then
+    isUniqueservice = parmas[1]
+    if isUniqueservice and isUniqueservice == "false" then
+        isUniqueservice = false
+    end
+end
+
 local CMD = {}
-local db;
-local sqlQueue = CLLQueue.new();
-local synchrotime -- 数据同步时间
+local db
+local sqlQueue = CLLQueue.new()
+local synchrotime  -- 数据同步时间
 local isDebugSql = false
-local maxExesqlOnece = 200      -- 一次最多执行多少条sql
+local maxExesqlOnece = 200 -- 一次最多执行多少条sql
 
 ---------------------------------------------
 -- 数据入库
@@ -56,9 +65,9 @@ cfg={
 function CMD.CONNECT(cfg)
     local function on_connect(db)
         -- 数据库连接成功后，通过这句可以解决数据库中文乱码问题
-        db:query("SET NAMES UTF8");
-        db:query("set charset utf8");
-        db:query("set character_set_server=utf8");
+        db:query("SET NAMES UTF8")
+        db:query("set charset utf8")
+        db:query("set character_set_server=utf8")
     end
     isDebugSql = cfg.isDebug
     cfg.on_connect = on_connect
@@ -71,7 +80,7 @@ function CMD.CONNECT(cfg)
     end
 
     -- 启动一个线路保存数据
-    skynet.fork( storeData, db);
+    skynet.fork(storeData, db)
     return true
 end
 
@@ -79,7 +88,7 @@ end
 function CMD.DISCONNECT()
     if db then
         db:disconnect()
-        db = nil;
+        db = nil
     end
 end
 
@@ -93,7 +102,7 @@ function CMD.EXESQL(sql)
         if ret and ret.errno then
             printe(CLUtl.dump(ret) .. ", sql=【" .. sql .. "】")
         end
-        return ret;
+        return ret
     end
 end
 
@@ -113,7 +122,7 @@ end
 -- 保存所有数据
 function CMD.FLUSHALL()
     if db then
-        local sql = {};
+        local sql = {}
         while (not sqlQueue:isEmpty()) do
             table.insert(sql, sqlQueue:deQueue())
         end
@@ -145,13 +154,18 @@ function CMD.STOP(exit)
     end
 end
 ---------------------------------------------
-skynet.start(function()
-    skynet.dispatch("lua",
+skynet.start(
+    function()
+        skynet.dispatch(
+            "lua",
             function(session, source, cmd, ...)
                 cmd = cmd:upper()
                 local f = assert(CMD[cmd])
                 skynet.ret(skynet.pack(f(...)))
-            end)
-
-    skynet.register "CLMySQL"
-end)
+            end
+        )
+        if isUniqueservice then
+            skynet.register "CLMySQL"
+        end
+    end
+)

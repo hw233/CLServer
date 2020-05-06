@@ -1,6 +1,7 @@
 -- 错误代码
 Errcode = {}
 
+Errcode.timeout = 0
 Errcode.ok = 1
 Errcode.error = -1
 Errcode.needregist = 2 -- 未注册
@@ -48,4 +49,21 @@ Errcode.unitNotEnough = 43 -- 战斗单元数量不足
 Errcode.reportIsNil = 44 -- 战报数据为空
 Errcode.mailIsNil = 45 -- 邮件为空
 Errcode.mailHadReaded = 46 -- 邮件已经读过
+Errcode.rewardNot4Player = 47 -- 该奖励包不属于此玩家
+Errcode.rewardIsNil = 48 -- 奖励包为空
+Errcode.itemNotEnough = 49 -- 道具数量不足
+Errcode.itemIsNil = 50 -- 道具为空
+Errcode.boxIsNil = 51 -- 宝箱为空
+Errcode.levTooLowCannotChatInWorld = 52 -- 玩家等级太低，不能在世界频道发言
+Errcode.contentIsNil = 53 -- 内容为空
+Errcode.contentOverLen = 54 -- 内容超长
+Errcode.fleetIsFighting = 55 -- 舰队正在战斗中，不可操作
+Errcode.overofPvPTimes = 56 -- 今日的攻击的次数已经用完
+Errcode.techIsNil = 57 -- 科技为空
+Errcode.exceedTech = 58 -- 不能超过科技中心等级
+Errcode.techIsLocked = 59 -- 科技还未解锁
+Errcode.noUpgradingTech = 60 -- 没有正在升级的科技
+Errcode.magicIsLocked = 61 -- 魔法未解锁
+Errcode.maximumLimitReached = 62 -- 数量达上限
+Errcode.nothingTodo = 63 -- 无可操作的对象
 return Errcode

@@ -12,15 +12,16 @@ local contentFuncMap = {}
 logic.init = function()
 end
 
----@public 取得语种类型
+---public 取得语种类型
 logic.getLanguageTypes = function()
     return skynet.call("CLCfg", "lua", "getDataCfg", "DBCFLanguageTypeData")
 end
 
----@public 语言key是新key
+---public 语言key是新key
 logic.isNewKey = function(language, key)
     local lan = dblanguage.instanse(language, key)
     if lan:isEmpty() then
+        lan:release()
         return true
     end
     lan:release()
@@ -30,6 +31,7 @@ end
 logic.get = function(language, key)
     local lan = dblanguage.instanse(language, key)
     if lan:isEmpty() then
+        lan:release()
         return key
     end
     local content = lan:get_content()
@@ -61,13 +63,13 @@ logic.del = function(language, key)
 end
 
 logic.delByKey = function(key)
-    local list = dblanguage.getListBykey(key)
+    local list = dblanguage.getListByckey(key)
     for i, v in ipairs(list) do
         logic.del(v[dblanguage.keys.language], v[dblanguage.keys.ckey])
     end
 end
 
----@public 查询
+---public 查询
 logic.seek = function(seekStr, isAll)
     local sql =
         "select * from " ..
@@ -87,8 +89,8 @@ logic.seek = function(seekStr, isAll)
         if not lan:isEmpty() then
             -- 取得缓存中的数据
             list[i] = lan:value2copy()
-            lan:release()
         end
+        lan:release()
     end
     return list or {}
 end

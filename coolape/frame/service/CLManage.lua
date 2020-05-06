@@ -56,7 +56,7 @@ function CMD.synMySQL()
     return skynet.call("CLMySQL", "lua", "FLUSHALL")
 end
 
----@public 取得表数据
+---public 取得表数据
 function CMD.getTableData(map)
     local tableName = map.tableName
     local condions = json.decode(map.conditions)
@@ -64,6 +64,7 @@ function CMD.getTableData(map)
     if db then
         local data = db.instanse(condions)
         if data:isEmpty() then
+            data:release()
             return nil
         end
         local ret = data:value2copy()
@@ -75,7 +76,7 @@ function CMD.getTableData(map)
     end
 end
 
----@public 设置表数据
+---public 设置表数据
 function CMD.setTableData(map)
     local tableName = map.tableName
     local condions = json.decode(map.conditions)
@@ -85,6 +86,7 @@ function CMD.setTableData(map)
     if db then
         local data = db.instanse(condions)
         if data:isEmpty() then
+            data:release()
             return "get db error"
         end
         local func = db["set_" .. key]

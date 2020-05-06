@@ -5,6 +5,9 @@
 
 ---
 ---@class Coroutine 携程
+---@field param any 回调参数
+---@field func any 定时器执行的函数
+---@field sec number 秒为单位，可以是小数
 local Coroutine = {}
 function Coroutine.cancel() 
 end
@@ -15,10 +18,11 @@ local numEx = require("numEx")
 ---@class timerEx
 timerEx = {}
 
----@public 新建定时器
+---public 新建定时器
 ---@param sec 秒为单位，可以是小数
 ---@param func 定时器执行的函数
 ---@param param 回调参数
+---@return Coroutine
 timerEx.new = function(sec, func, param)
     if sec < 0 then
         sec = 0
@@ -26,23 +30,22 @@ timerEx.new = function(sec, func, param)
     local coroutine = {}
     coroutine.param = param
     coroutine.func = func
-    coroutine.cancel = function()
-        func = nil
-    end
-
-    local function cb()
-        if func then
-            func(param, coroutine)
+    coroutine.cb = function()
+        if coroutine.func then
+            coroutine.func(coroutine.param, coroutine)
         end
+    end
+    coroutine.cancel = function()
+        coroutine.func = nil
     end
 
     --将当前 coroutine 挂起 ti 个单位时间。一个单位是 1/100 秒
     local ti = sec * 100
-    skynet.timeout(numEx.getIntPart(ti), cb)
+    skynet.timeout(numEx.getIntPart(ti), coroutine.cb)
     return coroutine
 end
 
----@public 取消定时器
+---public 取消定时器
 ---@param coroutine
 timerEx.cancel = function(coroutine)
     if coroutine == nil then

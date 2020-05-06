@@ -11,11 +11,11 @@ local webList = {} -- 代码缓存
 
 local agentserver  -- 代理
 local socketId = 0
-local parmas = {...}
 local port = skynet.getenv("httpPort") -- http port
 local agentSize = 3 -- 代理个数
 local mode
 
+local parmas = {...}
 if #parmas > 1 then
     port = parmas[1]
     agentSize = parmas[2]
@@ -26,7 +26,7 @@ end
 
 -- ================================================
 -- ================================================
----@public 重载服务
+---public 重载服务
 local reloadConsole = function(serverName)
     for i, g in ipairs(webList) do
         skynet.send(g, "lua", 0, "reloadConsole", serverName)

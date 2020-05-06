@@ -8,8 +8,9 @@ local tab = {
     },
     primaryKey = {"pidx", "midx"},
     cacheKey = {"pidx", "midx"}, -- 缓存key
-    groupKey = {{"pidx"}}, -- 组key
-    defaultData = {} -- 初始数据
+    groupKey = {{"pidx"}, {"midx"}}, -- 组key
+    defaultData = {}, -- 初始数据
+    needBak = true -- 需要备份
 }
 
 return tab

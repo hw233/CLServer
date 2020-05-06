@@ -20,7 +20,8 @@ local tab = {
     primaryKey = {"idx", "cidx"},
     cacheKey = {"idx"}, -- 缓存key
     groupKey = {{"cidx"}}, -- 组key
-    defaultData = {} -- 初始数据
+    defaultData = {}, -- 初始数据
+    needBak = true -- 需要备份
 }
 
 return tab

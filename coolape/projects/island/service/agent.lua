@@ -19,7 +19,7 @@ local mysql
 local player
 local NetProtoName = skynet.getenv("NetProtoName")
 
----@public 处理接口指令
+---public 处理接口指令
 local function procCmd(map)
     if map == nil then
         return false
@@ -37,7 +37,7 @@ local function procCmd(map)
     end
 end
 
----@public 注册协议
+---public 注册协议
 skynet.register_protocol {
     name = "client",
     id = skynet.PTYPE_CLIENT,
@@ -72,7 +72,7 @@ function CMD.start(conf)
     CMD.notifyNetCfg()
 end
 
----@public 客户端连接断开
+---public 客户端连接断开
 function CMD.disconnect()
     print("agent disconnect. fd==" .. client_fd)
     for k, v in pairs(LogicMap) do
@@ -101,12 +101,13 @@ function CMD.log(msg)
     end
 end
 
----@public 取得逻辑处理类
+---public 取得逻辑处理类
 function CMD.getLogic(logicName)
-    if logicName == "USWorld" then
-        -- 全局服务器（已经启动了），直接返回
+    if CLUtl.startswith(logicName, "US") then
+        -- 说明是全局服务器
         return logicName
     end
+
     local logic = LogicMap[logicName]
     if logic == nil or skynet.address(logic) == nil then
         logic = skynet.newservice(logicName)
@@ -115,7 +116,7 @@ function CMD.getLogic(logicName)
     return logic
 end
 
----@public 关闭某个逻辑服务
+---public 关闭某个逻辑服务
 function CMD.stopLogic(logicName)
     local logic = LogicMap[logicName]
     if logic then
@@ -127,7 +128,7 @@ function CMD.stopLogic(logicName)
     LogicMap[logicName] = nil
 end
 
----@public 发送一个数据包给客户端
+---public 发送一个数据包给客户端
 function CMD.sendPackage(map)
     local list = CLNetSerialize.package(map)
     if list then
@@ -139,7 +140,7 @@ function CMD.sendPackage(map)
     end
 end
 
----@public 通知客户端网络配置
+---public 通知客户端网络配置
 function CMD.notifyNetCfg()
     local cfg = CLNetSerialize.getCfg()
     local ret = {}

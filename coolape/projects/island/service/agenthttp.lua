@@ -51,7 +51,7 @@ end
 
 -- ======================================================
 -- ======================================================
----@public 有http请求
+---public 有http请求
 CMD.onrequset = function(url, method, header, body)
     --printhttp(url, method, header, body) -- debug log
     local path, query = urllib.parse(url)
@@ -80,6 +80,7 @@ CMD.onrequset = function(url, method, header, body)
         elseif path == httpCMD.httpManage then
             -- 后台管理的请求
             local requst = urllib.parse_query(query)
+            -- //TODO:把后台的处理请求都记录，以备查询操作日志
             local cmd = requst.cmd
             local service = CMD.getLogic("proManager")
             if service == nil then
@@ -97,8 +98,13 @@ CMD.onrequset = function(url, method, header, body)
     end
 end
 
----@public  取得逻辑处理类
+---public  取得逻辑处理类
 CMD.getLogic = function(logicName)
+    if CLUtl.startswith(logicName, "US") then
+        -- 说明是全局服务器
+        return logicName
+    end
+
     local logic = LogicMap[logicName]
     if logic == nil then
         logic = skynet.newservice(logicName)
@@ -107,7 +113,7 @@ CMD.getLogic = function(logicName)
     return logic
 end
 
----@public 停止
+---public 停止
 CMD.stop = function()
     for k, v in pairs(LogicMap) do
         if skynet.address(v) then

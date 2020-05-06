@@ -13,6 +13,8 @@ require("db.dbplayer")
 require("db.dbunit")
 require("db.dbfleet")
 require("logic.IDConst")
+---@type utl4mail
+local utl4mail = require("utl4mail")
 ---@type logic4fleet
 local logic4fleet = require("logic.logic4fleet")
 ---@type logic4city
@@ -21,6 +23,8 @@ local logic4city = require("logic.logic4city")
 local logic4battle = require("logic.logic4battle")
 require("timerQueue")
 
+local rootPath = "./coolape/projectsData/" .. skynet.getenv("projectName") .. "/worldMapData/"
+
 local constCfg  -- 常量配置
 ---@type Grid
 local grid
@@ -28,8 +32,7 @@ local gridSize  -- 网格size
 local screenSize = 10 -- 大地图一屏size
 local cellSize = 10
 local screenCells = {} -- 每屏的网格信息
-local screenCneterIndexs = {}
-local currScreenOrder = 1
+local screenCenterIndexs = {}
 ---@type NetProtoIsland
 local NetProtoIsland = skynet.getenv("NetProtoName")
 
@@ -49,14 +52,7 @@ local constDeadMs
 local fleetPassScreens = {}
 -- 屏对应该有哪些舰队 key:屏的idx，val:舰队idx table
 local screen4Fleets = {}
-
---取得下屏的order
---local getNextScreenOrder = function()
---    currScreenOrder = currScreenOrder + 1
---    if currScreenOrder > #screenCneterIndexs then
---        currScreenOrder = 1
---    end
---end
+local currIdelScreen = {} -- 当前空闲屏信息
 
 --============================================
 --============================================
@@ -88,7 +84,7 @@ local function loadCfgData()
     end
 end
 
----@public 通过网格idx取得所以屏的index
+---public 通过网格idx取得所以屏的index
 local function getPageIdx(index)
     local pos = grid:GetCellCenter(index)
     pos = pos - grid.Origin
@@ -104,7 +100,7 @@ local function getPageIdx(index)
     return grid:GetCellIndex(cellPosition)
 end
 
----@public 取得大图的index映射到分区网格的index
+---public 取得大图的index映射到分区网格的index
 ---@param index
 local function mapIndex2AreaIndex(index)
     local areaIndex = -1
@@ -117,7 +113,7 @@ local function mapIndex2AreaIndex(index)
     return areaIndex
 end
 
----@public 取得网格id对应的分区id
+---public 取得网格id对应的分区id
 local function getAreaId(index)
     local areaIdx = mapIndex2AreaIndex(index)
     return mapAreaInfor[areaIdx]
@@ -127,7 +123,7 @@ local function haveBaseData(index)
     return (mapBaseData[index] ~= nil)
 end
 
----@public 取得中心屏四周8屏的index
+---public 取得中心屏四周8屏的index
 local function getAroundPages(centerPageIdx)
     local ret = {}
     if centerPageIdx < 0 then
@@ -175,7 +171,7 @@ end
 
 ---@type CLLQueue 需要推送的数据包的队列
 local needPushPkgQueue = CLLQueue.new()
----@public 推送有变化的数据
+---public 推送有变化的数据
 local loopPushPkg = function()
     while true do
         while needPushPkgQueue:size() > 0 do
@@ -197,7 +193,7 @@ local loopPushPkg = function()
     end
 end
 
----@public 清除舰队屏的数据
+---public 清除舰队屏的数据
 local cleanFleetPassScreen = function(fidx)
     local screens = fleetPassScreens[fidx]
     if screens then
@@ -212,13 +208,14 @@ local cleanFleetPassScreen = function(fidx)
     fleetPassScreens[fidx] = nil
 end
 
----@public 处理舰队会通过哪些屏
+---public 处理舰队会通过哪些屏
 local setFleetPassScreen = function(fidx)
     -- 先清除再处理
     cleanFleetPassScreen(fidx)
 
     local fleet = dbfleet.instanse(fidx)
     if fleet:isEmpty() then
+        fleet:release()
         return
     end
     local from = fleet:get_frompos()
@@ -257,11 +254,12 @@ local setFleetPassScreen = function(fidx)
     fleet:release()
 end
 
----@public 舰队是否到达
+---public 舰队是否到达
 ---@param fleet dbfleet
 local procFleetArrived = function(fidx)
     local fleet = dbfleet.instanse(fidx)
     if fleet:isEmpty() or fleet:get_status() ~= IDConst.FleetState.moving then
+        fleet:release()
         return true
     end
     local diff = fleet:get_arrivetime() - dateEx.nowMS()
@@ -272,8 +270,7 @@ local procFleetArrived = function(fidx)
     local index = fleet:get_topos()
     fleet:set_curpos(index)
     local targetTileType = logic.getTileType(index) -- 目标地块类型
-    if fleet:get_task() == IDConst.FleetTask.voyage then
-        -- //TODO:如果目标地块是npc，进攻
+    if fleet:get_task() == IDConst.FleetTask.voyage then -- 只是出征
         if targetTileType == IDConst.WorldmapCellType.empty then
             -- 如果目标地块是空地，更改状态
             fleet:set_status(IDConst.FleetState.stay)
@@ -282,14 +279,15 @@ local procFleetArrived = function(fidx)
         elseif targetTileType == IDConst.WorldmapCellType.fleet then
             -- 有舰队在地块上
             local mapcell = dbworldmap.instanse(index)
-            --//TODO:给玩家发个邮件告知你的舰队为何返航了
             -- 不管是不是自己的舰队，直接返回
             logic.doFleetBack(fleet:get_idx())
+            --给玩家发个邮件告知你的舰队为何返航了
+            utl4mail.sendFleetBack(fleet:get_idx(), IDConst.FleetBackReason.targetTileNotFree)
             if not mapcell:isEmpty() then
                 mapcell:release()
             end
         elseif targetTileType == IDConst.WorldmapCellType.port then
-            -- 如果目标地块是港口，如果没人更改状态，清空沉没时间，如果有人进入战场
+            -- 如果目标地块是港口，如果没人更改状态，清空沉没时间，如果有人返回
             local mapcell = dbworldmap.instanse(index)
             if mapcell:isEmpty() or mapcell:get_cidx() <= 0 then
                 -- 如果没人更改状态，清空沉没时间、同时更改地块数据
@@ -308,9 +306,16 @@ local procFleetArrived = function(fidx)
                 -- 推送地块
                 logic.pushMapCellChg(index)
             else
-                --//TODO:给玩家发个邮件告知你的舰队为何返航了
-                -- 不管是不是自己的舰队，直接返回
-                logic.doFleetBack(fleet:get_idx())
+                if mapcell:get_cidx() == fleet:get_cidx() then
+                    -- 是自己的舰队 直接返回
+                    logic.doFleetBack(fidx)
+                    -- 给玩家发个邮件告知你的舰队为何返航了
+                    utl4mail.sendFleetBack(fidx, IDConst.FleetBackReason.attackTargetIsMine)
+                else
+                    -- 不是自己的舰队,进入战斗
+                    local targetFidx = mapcell:get_fidx()
+                    logic4battle.startAttackFleet(fidx, targetFidx)
+                end
             end
             if not mapcell:isEmpty() then
                 mapcell:release()
@@ -326,46 +331,58 @@ local procFleetArrived = function(fidx)
                 fleet:set_deadtime(nil)
                 fleet:set_curpos(index)
             else
-                --//TODO:给玩家发个邮件告知你的舰队为何返航了
                 -- 直接返回
                 logic.doFleetBack(fleet:get_idx())
+                -- 给玩家发个邮件告知你的舰队为何返航了
+                utl4mail.sendFleetBack(fidx, IDConst.FleetBackReason.targetTileNotFree)
             end
         end
     elseif fleet:get_task() == IDConst.FleetTask.attack then
         -- 是战斗状态
         if targetTileType == IDConst.WorldmapCellType.empty then
             -- 如果目标地块是空地，直接返回
-            --//TODO:给玩家发个邮件告知你的舰队为何返航了
+            -- 给玩家发个邮件告知你的舰队为何返航了
+            utl4mail.sendFleetBack(fidx, IDConst.FleetBackReason.attackTargetTileEmpty)
             -- 直接返回
             logic.doFleetBack(fleet:get_idx())
         elseif targetTileType == IDConst.WorldmapCellType.fleet then
             -- 有舰队在地块上
             local mapcell = dbworldmap.instanse(index)
             if mapcell:get_cidx() == fleet:get_cidx() then
-                --//TODO:给玩家发个邮件告知你的舰队为何返航了
+                -- 给玩家发个邮件告知你的舰队为何返航了
+                utl4mail.sendFleetBack(fidx, IDConst.FleetBackReason.attackTargetIsMine)
                 -- 是自己的舰队，直接返回
                 logic.doFleetBack(fleet:get_idx())
             else
-                --//TODO: 不是自己的舰队,进入战斗
+                -- 不是自己的舰队,进入战斗
+                local targetFidx = mapcell:get_fidx()
+                logic4battle.startAttackFleet(fidx, targetFidx)
             end
             if not mapcell:isEmpty() then
                 mapcell:release()
             end
         elseif targetTileType == IDConst.WorldmapCellType.port then
-            -- 如果目标地块是港口，如果没人更改状态，清空沉没时间，如果有人进入战场
             local mapcell = dbworldmap.instanse(index)
             if mapcell:isEmpty() or mapcell:get_cidx() <= 0 then
-                -- 如果没人更改状态，清空沉没时间、同时更改地块数据
-                -- 直接返回
-                --//TODO:给玩家发个邮件告知你的舰队为何返航了
+                -- 没人直接返回
+                -- 给玩家发个邮件告知你的舰队为何返航了
+                utl4mail.sendFleetBack(fidx, IDConst.FleetBackReason.attackTargetTileEmpty)
                 logic.doFleetBack(fleet:get_idx())
             else
                 if mapcell:get_cidx() == fleet:get_cidx() then
-                    --//TODO:给玩家发个邮件告知你的舰队为何返航了
+                    -- 给玩家发个邮件告知你的舰队为何返航了
+                    utl4mail.sendFleetBack(fidx, IDConst.FleetBackReason.attackTargetIsMine)
                     -- 是自己的舰队，直接返回
                     logic.doFleetBack(fleet:get_idx())
                 else
-                    --//TODO: 如果有人且不是自己,进入战斗
+                    -- 如果有人且不是自己,进入战斗
+                    local targetFidx = mapcell:get_fidx()
+                    if targetFidx and targetFidx > 0 then
+                        logic4battle.startAttackFleet(fidx, targetFidx)
+                    else
+                        utl4mail.sendFleetBack(fidx, IDConst.FleetBackReason.attackTargetTileEmpty)
+                        logic.doFleetBack(fleet:get_idx())
+                    end
                 end
             end
             if not mapcell:isEmpty() then
@@ -380,7 +397,6 @@ local procFleetArrived = function(fidx)
                 logic.doFleetBack(fidx)
             else
                 -- 进入攻击岛屿的战斗
-                fleet:set_status(IDConst.FleetState.fightingIsland)
                 logic4battle.startAttackIsland(fidx)
             end
         end
@@ -404,7 +420,7 @@ local procFleetArrived = function(fidx)
     return true
 end
 
----@public 舰队是否沉没
+---public 舰队是否沉没
 ---@param fleet dbfleet
 ---@return boolean true:表示已经沉没
 local procFleetDead = function(fleet)
@@ -414,6 +430,9 @@ local procFleetDead = function(fleet)
     local fidx = fleet:get_idx()
     local diff = fleet:get_deadtime() - dateEx.nowMS()
     if diff <= 0 then
+        -- 发沉没邮件
+        utl4mail.sendFleetSinkedMail(fidx)
+
         logic4fleet.delete(fidx)
         logic.onFleetDead(fidx)
         return true
@@ -423,7 +442,7 @@ end
 
 -- 需要轮询处理的舰队
 local needPollingFleets = {}
----@public 舰队轮询处理（只处理在移动中、停在海面的舰队）
+---public 舰队轮询处理（只处理在移动中、停在海面的舰队）
 local fleetPolling = function()
     ---@type dbfleet
     local fleet
@@ -470,8 +489,17 @@ end
 --============================================
 --============================================
 --============================================
----@public 初始化
+---public 初始化
 logic.init = function()
+    --==========================================================
+    -- 加载本地空闲屏的信息
+    currIdelScreen = {}
+    local str = fileEx.readAll(CLUtl.combinePath(rootPath, "currIdelScreen.json"))
+    if str then
+        currIdelScreen = json.decode(str) or {}
+    end
+    currIdelScreen.currIndex = currIdelScreen.currIndex or 1 -- 当前屏的下标
+    currIdelScreen.numOfEachScreen = currIdelScreen.numOfEachScreen or 1 -- 每屏允许的人数
     --==========================================================
     -- 初始为每一屏
     local center
@@ -484,9 +512,17 @@ logic.init = function()
             center = grid:GetCellIndex(x, y)
             cells = grid:getCells(center, screenSize)
             screenCells[center] = cells
-            table.insert(screenCneterIndexs, center)
+            table.insert(screenCenterIndexs, center)
         end
     end
+    -- 把所有屏的坐标进行排序，离地图中心越近的排在前面，方便在取得空闲位置时，玩家可以比较集中在一起
+    local mapCenter = grid:GetCellIndex(numEx.getIntPart(gridSize / 2) - 1, numEx.getIntPart(gridSize / 2) - 1)
+    table.sort(
+        screenCenterIndexs,
+        function(a, b)
+            return logic.getDistance(a, mapCenter) < logic.getDistance(b, mapCenter)
+        end
+    )
     --==========================================================
     -- 加载地图配置
     loadCfgData()
@@ -527,28 +563,48 @@ logic.init = function()
     end
 end
 
----@public 取得两个网格之间的距离
+logic.release = function(killself)
+    -- 保存之前的世界聊天信息
+    local str = json.encode(currIdelScreen)
+    fileEx.createDir(rootPath)
+    fileEx.writeAll(CLUtl.combinePath(rootPath, "currIdelScreen.json"), str)
+    if killself then
+        skynet.exit()
+    end
+end
+
+---public 取得两个网格之间的距离
 logic.getDistance = function(index1, index2)
     local v1 = grid:GetCellCenter(index1)
     local v2 = grid:GetCellCenter(index2)
     return Vector3.Distance(v1, v2) / cellSize
 end
 
----@public 取得空闲位置的index
-logic.getIdleIdx = function(creenIdx)
-    --if screenOrder then
-    --    currScreenOrder = screenOrder
-    --end
-    if creenIdx == nil then
-        local i = numEx.nextInt(1, #screenCneterIndexs)
-        creenIdx = screenCneterIndexs[i]
+---public 顺序取得空闲位置的index
+logic.getIdleIdxByOrder = function()
+    if currIdelScreen.currIndex > #screenCenterIndexs then
+        -- 说明已经执行了一轮了，则增加每屏的人数
+        currIdelScreen.numOfEachScreen = currIdelScreen.numOfEachScreen + 1
+        if currIdelScreen.numOfEachScreen > 70 then
+            currIdelScreen.numOfEachScreen = 2
+            -- 那就随机取一个吧
+            return logic.getIdleIdxByRandom()
+        end
+        currIdelScreen.currIndex = 1
     end
-
+    local creenIdx = screenCenterIndexs[currIdelScreen.currIndex]
+    local list = dbworldmap.getListBypageIdx(creenIdx)
+    if #list >= currIdelScreen.numOfEachScreen then
+        -- 说明该屏的人数满了，取得下一屏
+        currIdelScreen.currIndex = currIdelScreen.currIndex + 1
+        return logic.getIdleIdxByOrder()
+    end
     local cells = screenCells[creenIdx]
     local index = numEx.nextInt(1, #cells)
     local pos = cells[index]
     local mapCell = dbworldmap.instanse(pos)
     if mapCell:isEmpty() and (not haveBaseData(index)) then
+        mapCell:release()
         -- 该位置是可用
         return pos
     else
@@ -563,6 +619,7 @@ logic.getIdleIdx = function(creenIdx)
             local pos = cells[i]
             local mapCell = dbworldmap.instanse(pos)
             if mapCell:isEmpty() then
+                mapCell:release()
                 -- 该位置是可用
                 return pos
             end
@@ -573,10 +630,53 @@ logic.getIdleIdx = function(creenIdx)
             end
         end
         -- 仍然没有找到
-        return logic.getIdleIdx()
+        currIdelScreen.currIndex = currIdelScreen.currIndex + 1
+        return logic.getIdleIdxByOrder()
     end
 end
----@public 取得地块的配置表
+
+---public 随机取得空闲位置的index
+logic.getIdleIdxByRandom = function(creenIdx)
+    if creenIdx == nil then
+        local i = numEx.nextInt(1, #screenCenterIndexs)
+        creenIdx = screenCenterIndexs[i]
+    end
+
+    local cells = screenCells[creenIdx]
+    local index = numEx.nextInt(1, #cells)
+    local pos = cells[index]
+    local mapCell = dbworldmap.instanse(pos)
+    if mapCell:isEmpty() and (not haveBaseData(index)) then
+        mapCell:release()
+        -- 该位置是可用
+        return pos
+    else
+        if not mapCell:isEmpty() then
+            mapCell:release()
+        end
+        local i = index + 1
+        if i > #cells then
+            i = 1
+        end
+        while i ~= index do
+            local pos = cells[i]
+            local mapCell = dbworldmap.instanse(pos)
+            if mapCell:isEmpty() then
+                mapCell:release()
+                -- 该位置是可用
+                return pos
+            end
+            mapCell:release()
+            i = i + 1
+            if i > #cells then
+                i = 1
+            end
+        end
+        -- 仍然没有找到
+        return logic.getIdleIdxByRandom()
+    end
+end
+---public 取得地块的配置表
 logic.getTileAttr = function(index)
     local id = mapBaseData[index]
     if id then
@@ -585,7 +685,7 @@ logic.getTileAttr = function(index)
     return nil
 end
 
----@public 取得地块类型
+---public 取得地块类型
 logic.getTileType = function(index)
     local cell = dbworldmap.instanse(index)
     if cell:isEmpty() then
@@ -614,7 +714,14 @@ logic.getTileType = function(index)
     end
 end
 
----@public 占用一个格子
+---public 给新玩家取得一个地图
+---[[]]
+logic.getFreeCell4NewPlayer = function(cidx)
+    local index = logic.getIdleIdxByOrder()
+    return logic.occupyMapCell(index, cidx, IDConst.WorldmapCellType.user, 7, 0)
+end
+
+---public 占用一个格子
 ---@param idx number 网格index
 ---@param cidx number 城市idx
 ---@param type number 类型
@@ -622,7 +729,7 @@ end
 ---@param fidx number 舰队idx
 logic.occupyMapCell = function(idx, cidx, type, attrid, fidx)
     if idx == nil or idx <= 0 then
-        idx = logic.getIdleIdx()
+        idx = logic.getIdleIdxByRandom()
     end
     local mapCell = dbworldmap.instanse(idx)
     local cellData = {}
@@ -638,15 +745,12 @@ logic.occupyMapCell = function(idx, cidx, type, attrid, fidx)
     return ret
 end
 
----@public 推送有变化的数据
+---public 推送有变化的数据
 logic.pushMapCellChg = function(index, isRemove)
     ---@type NetProtoIsland.ST_mapCell
     local d
     local cell = dbworldmap.instanse(index)
     if isRemove or cell:isEmpty() then
-        if not cell:isEmpty() then
-            cell:release()
-        end
         isRemove = true
         d = {}
         d.idx = index
@@ -655,27 +759,26 @@ logic.pushMapCellChg = function(index, isRemove)
     else
         d = logic.getMapCell(index)
     end
-    if not cell:isEmpty() then
-        cell:release()
-    end
+    cell:release()
     --推送给在线的客户端
-    local mapcell = pkg4Client({cmd = "onMapCellChg"}, {code = Errcode.ok}, d, isRemove)
-    logic.addPushPkg(index, mapcell)
+    local pkg = pkg4Client({cmd = "onMapCellChg"}, {code = Errcode.ok}, d, isRemove)
+    logic.addPushPkg(index, pkg)
 end
 
----@public 推送有变化的数据
+---public 推送有变化的数据
 logic.addPushPkg = function(index, msgPkg)
     needPushPkgQueue:enQueue({index = index, pkg = msgPkg})
 end
----@public 移除用户
+---public 移除用户
 logic.rmPlayerCurrLook4WorldPage = function(agent)
     agentsInCurrPage[agent] = nil
 end
 
----@public 取得舰队当前的真实位置
+---public 取得舰队当前的真实位置
 logic.getFleetRealCurPos = function(fidx)
     local fleet = dbfleet.instanse(fidx)
     if fleet:isEmpty() then
+        fleet:release()
         return -1
     end
     if fleet:get_status() == IDConst.FleetState.moving then
@@ -691,7 +794,8 @@ logic.getFleetRealCurPos = function(fidx)
         local to = grid:GetCellCenter(fleet:get_topos())
         ---@type Vector3
         local dir = to - from
-        local curPos = from + dir * persent
+        local dis = Vector3.Distance(to, from)
+        local curPos = from + dir:Normalize() * dis * persent
         return grid:GetCellIndexByPos(curPos), curPos
     else
         local curPos = grid:GetCellCenter(fleet:get_curpos())
@@ -699,11 +803,12 @@ logic.getFleetRealCurPos = function(fidx)
     end
 end
 
----@public 出征
+---public 出征
 ---@param fromPosV3 Vector3
 ---@param fromPos number
 ---@param toPos number
 ---@return boolean 成功出征
+---@return NetProtoIsland.ST_retInfor 成功出征
 logic.fleetMoveTo = function(fidx, toPos, task, agent)
     ---@type NetProtoIsland.ST_retInfor
     local ret = {}
@@ -711,6 +816,7 @@ logic.fleetMoveTo = function(fidx, toPos, task, agent)
     ---@type dbfleet
     local fleet = dbfleet.instanse(fidx)
     if fleet:isEmpty() then
+        fleet:release()
         ret.code = Errcode.fleetIsNil
         ret.msg = "舰队不存在"
         return false, ret
@@ -723,7 +829,7 @@ logic.fleetMoveTo = function(fidx, toPos, task, agent)
     end
 
     -- 如果当前位置与目标坐标在一起不可操作
-    if _curPos == toPos then
+    if _curPos == toPos and fleet:get_status() ~= IDConst.FleetState.moving then
         fleet:release()
         ret.code = Errcode.toposisCurPos
         ret.msg = "目标坐标与当前坐标一致"
@@ -734,8 +840,7 @@ logic.fleetMoveTo = function(fidx, toPos, task, agent)
     local tileattr = logic.getTileAttr(toPos)
     if
         tileattr and
-            (tileattr.GID == IDConst.WorldmapCellType.occupy or
-                tileattr.GID == IDConst.WorldmapCellType.decorate)
+            (tileattr.GID == IDConst.WorldmapCellType.occupy or tileattr.GID == IDConst.WorldmapCellType.decorate)
      then
         fleet:release()
         ret.code = Errcode.fleetCannotMoveTo
@@ -751,9 +856,7 @@ logic.fleetMoveTo = function(fidx, toPos, task, agent)
         ret.msg = "舰队不能到达"
         return false, ret
     end
-    if not toCell:isEmpty() then
-        toCell:release()
-    end
+    toCell:release()
 
     local fromPosV3 = grid:GetCellCenter(fleet:get_curpos())
     if fleet:get_task() == IDConst.FleetTask.idel and agent ~= nil then
@@ -794,7 +897,7 @@ logic.fleetMoveTo = function(fidx, toPos, task, agent)
                     mapcell:get_type() == IDConst.WorldmapCellType.port
              then
                 mapcell:delete()
-                logic.pushMapCellChg(fleet:get_curpos(), false)
+                logic.pushMapCellChg(fleet:get_curpos(), true)
             end
         elseif fleet:get_status() == IDConst.FleetState.moving then
             -- 需要重新计算当前坐标
@@ -802,8 +905,15 @@ logic.fleetMoveTo = function(fidx, toPos, task, agent)
             fromPosV3 = realPos
             fleet:set_curpos(curPos)
         end
-    elseif fleet:get_task() == IDConst.FleetTask.attack then
-    --//TODO: 正在战斗
+    elseif
+        fleet:get_status() == IDConst.FleetState.fightingFleet or
+            fleet:get_status() == IDConst.FleetState.fightingIsland
+     then
+        -- 正在战斗
+        fleet:release()
+        ret.code = Errcode.fleetIsFighting
+        ret.msg = "舰队正在战斗中，不可操作"
+        return false, ret
     end
 
     if fleet:get_status() == IDConst.FleetState.stay then
@@ -838,29 +948,34 @@ logic.fleetMoveTo = function(fidx, toPos, task, agent)
     return true, ret
 end
 
----@public 舰队返回
+---public 舰队返回
 logic.doFleetBack = function(fidx)
     local fleet = dbfleet.instanse(fidx)
     if fleet:isEmpty() then
+        fleet:release()
         local ret = {}
         ret.code = Errcode.fleetIsNil
         ret.msg = "舰队不存在"
         return false, ret
     end
     local city = dbcity.instanse(fleet:get_cidx())
-    local seccess, ret = logic.fleetMoveTo(fleet:get_idx(), city:get_pos(), IDConst.FleetTask.back, nil)
+    local success, ret = logic.fleetMoveTo(fleet:get_idx(), city:get_pos(), IDConst.FleetTask.back, nil)
+    if not success then
+        printe(ret.code, ret.msg)
+    end
     city:release()
     fleet:release()
-    return seccess, ret
+    return success, ret
 end
 
----@public 推送舰队变化
+---public 推送舰队变化
 logic.pushFleetChg = function(fidx)
     local fleet = dbfleet.instanse(fidx)
     ---@type NetProtoIsland.ST_fleetinfor
     local fdata
     local isRemove = false
     if fleet:isEmpty() then
+        fleet:release()
         -- 说明是舰队已经沉没
         isRemove = true
         fdata = {}
@@ -878,14 +993,14 @@ logic.pushFleetChg = function(fidx)
     end
 end
 
----@public 有舰队出征了
+---public 有舰队出征了
 logic.onFleetDepart = function(fidx)
     setFleetPassScreen(fidx)
     needPollingFleets[fidx] = fidx
     logic.pushFleetChg(fidx)
 end
 
----@public 当舰队到达目标
+---public 当舰队到达目标
 logic.onFleetArrived = function(fidx)
     -- 先推送再清空
     logic.pushFleetChg(fidx)
@@ -899,14 +1014,14 @@ logic.onFleetArrived = function(fidx)
         cleanFleetPassScreen(fidx)
     end
 end
----@public 当舰队沉没时
+---public 当舰队沉没时
 logic.onFleetDead = function(fidx)
     -- 先推送再清空
     logic.pushFleetChg(fidx)
     cleanFleetPassScreen(fidx)
     needPollingFleets[fidx] = nil
 end
----@public 取得世界地块数据
+---public 取得世界地块数据
 logic.getMapCell = function(index)
     local cell = dbworldmap.instanse(index)
     ---@type NetProtoIsland.ST_mapCell
@@ -920,10 +1035,10 @@ logic.getMapCell = function(index)
                 d.name = player:get_name()
                 d.lev = player:get_lev()
                 d.state = city:get_status()
-                player:release()
             end
-            city:release()
+            player:release()
         end
+        city:release()
     end
     return d
 end
@@ -932,7 +1047,7 @@ logic.onFinishBattle = function(fidx)
     logic4battle.onFinishBattle(fidx)
 end
 
----@public 当有玩家离线时
+---public 当有玩家离线时
 ---@param pidx number 玩家idx
 logic.onPlayerOffline = function(pidx, fd, agent)
     if pidx == nil or pidx == 0 then
@@ -946,7 +1061,7 @@ end
 --============================================================
 --============================================================
 --============================================================
----@public 取得一屏数据
+---public 取得一屏数据
 CMD.getMapDataByPageIdx = function(map, fd, agent)
     pauseFork = true
     local pageIdx = map.pageIdx
@@ -983,7 +1098,7 @@ CMD.getMapDataByPageIdx = function(map, fd, agent)
     return pkg4Client(map, {code = Errcode.ok}, mapPage, fleets)
 end
 
----@public 搬迁
+---public 搬迁
 ---@param map NetProtoIsland.RC_moveCity
 CMD.moveCity = function(map, fd, agent)
     ---@type NetProtoIsland.ST_retInfor
@@ -1005,6 +1120,7 @@ CMD.moveCity = function(map, fd, agent)
 
     local city = dbcity.instanse(cidx)
     if city:isEmpty() then
+        city:release()
         ret.code = Errcode.cityIsNil
         return pkg4Client(map, ret)
     end
@@ -1066,6 +1182,7 @@ CMD.saveFleet = function(map, fd, agent)
     if map.idx > 0 then
         fleet = dbfleet.instanse(map.idx)
         if fleet:isEmpty() then
+            fleet:release()
             ret.code = Errcode.fleetIsNil
             ret.msg = "舰队已经不存在！"
             return pkg4Client(map, ret, nil)
@@ -1083,6 +1200,7 @@ CMD.saveFleet = function(map, fd, agent)
     end
     local city = dbcity.instanse(map.cidx)
     if city:isEmpty() then
+        city:release()
         if fleet then
             fleet:release()
         end
@@ -1181,28 +1299,22 @@ CMD.fleetAttackFleet = function(map, fd, agent)
         end
         ret.code = Errcode.fleetIsNil
         ret.msg = "舰队不存在"
-        return pkg4Client(map, ret, nil, nil, nil)
+        return pkg4Client(map, ret)
     end
-    if not logic4fleet.isMyFleet(map.__session__, map.idx) then
+    if not logic4fleet.isMyFleet(map.__session__, map.fidx) then
         local ret = {}
+        mapcell:release()
         ret.code = Errcode.fleetIsNotMine
         ret.msg = "舰队不是自己的，不可操作"
-        return pkg4Client(map, ret, nil, nil, nil)
+        return pkg4Client(map, ret)
     end
 
     local success, ret = logic.fleetMoveTo(map.fidx, map.targetPos, IDConst.FleetTask.attack, agent)
     local result
     if success then
-        result =
-            pkg4Client(
-            map,
-            ret,
-            logic.getMapCell(map.targetPos),
-            logic4fleet.getFleet(mapcell:get_fidx()),
-            logic4fleet.getFleet(map.fidx)
-        )
+        result = pkg4Client(map, ret)
     else
-        result = pkg4Client(map, ret, nil, nil, nil)
+        result = pkg4Client(map, ret)
     end
     mapcell:release()
     return result
@@ -1214,9 +1326,18 @@ CMD.fleetAttackIsland = function(map, fd, agent)
     ---@type NetProtoIsland.ST_resInfor
     local ret = {}
 
-    --//TODO:为了控制pvp的次数，每个玩家第天只能pvp3次
+    -- 为了控制pvp的次数，每个玩家第天只能pvp3次, 超过3次考虑用钻石
+    local pidx = logic4fleet.getPlayerIdx(map.fidx)
+    local player = dbplayer.instanse(pidx)
+    if player:get_pvptimesTody() >= 3 then
+        ret.code = Errcode.overofPvPTimes
+        ret.msg = "今日的攻击的次数已经用完"
+        return pkg4Client(map, ret, nil, nil, nil, nil)
+    end
+
     local fleet = dbfleet.instanse(map.fidx)
     if fleet:isEmpty() then
+        fleet:release()
         ret.code = Errcode.fleetIsNil
         ret.msg = "舰队不存在"
         return pkg4Client(map, ret, nil, nil, nil, nil)
@@ -1234,6 +1355,7 @@ CMD.fleetAttackIsland = function(map, fd, agent)
     local cell = dbworldmap.instanse(toPos)
     if cell:isEmpty() then
         fleet:release()
+        cell:release()
         ret.code = Errcode.notFoundInWorld
         ret.msg = "世界地图中没找到玩家城"
         return pkg4Client(map, ret, nil, nil, nil, nil)
@@ -1282,6 +1404,8 @@ CMD.fleetAttackIsland = function(map, fd, agent)
     local success, ret = logic.fleetMoveTo(map.fidx, toPos, IDConst.FleetTask.attack, agent)
     if success then
         logic4battle.prepareAttackIsland(map.fidx)
+        -- 设置pvp次数
+        player:set_pvptimesTody(player:get_pvptimesTody() + 1)
     end
 
     local retMsg = pkg4Client(map, ret, logic4fleet.getFleet(map.fidx))
@@ -1289,6 +1413,7 @@ CMD.fleetAttackIsland = function(map, fd, agent)
     targetCity:release()
     targetPlayer:release()
     fleet:release()
+    player:release()
     return retMsg
 end
 ---@param map NetProtoIsland.RC_quitIslandBattle
@@ -1298,6 +1423,7 @@ CMD.quitIslandBattle = function(map, fd, agent)
 
     local fleet = dbfleet.instanse(map.fidx)
     if fleet:isEmpty() then
+        fleet:release()
         ret.code = Errcode.fleetIsNil
         ret.msg = "舰队不存在"
         return pkg4Client(map, ret, nil, nil, nil, nil)

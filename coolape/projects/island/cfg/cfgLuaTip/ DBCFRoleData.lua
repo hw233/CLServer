@@ -9,15 +9,10 @@
 ---@field public BuildTimeS
 ---@field public BuildRscType
 ---@field public BuildCost
----@field public BuildTimeM
----@field public BuildRscType2
----@field public UpCost
----@field public TechCenterLevel
 ---@field public MaxProductNum
 ---@field public SpaceSize
 ---@field public ArsenalLev
----@field public TechTypeID
----@field public TechlevLimit
+---@field public TechID
 ---@field public DamageMin
 ---@field public DamageMax
 ---@field public DamageCurve

@@ -369,9 +369,14 @@ do
                         local isList = isArray(v[1])
                         if isList then
                             stName = nil
-                            stName = getKeyByVal(defProtocol.structs, v[1][1])
-                            if stName then
-                                add(ret, "            r[" .. getKeyCode(k) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(stName) .. ", m." .. k .. ")  // " .. (v[2] or ""))
+                            if type(v[1][1]) == "table" then
+                                stName = getKeyByVal(defProtocol.structs, v[1][1])
+                                if stName then
+                                    add(ret, "            r[" .. getKeyCode(k) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(stName) .. ", m." .. k .. ")  // " .. (v[2] or ""))
+                                else
+                                    assert(stName, "get key by val is null!!!!!!!!!!!!!!注意定义的先后顺序！key==" .. k)
+                                    add(ret, "            r[" .. getKeyCode(k) .. "] = m." .. k .. "  // " .. (v[2] or ""))
+                                end
                             else
                                 add(ret, "            r[" .. getKeyCode(k) .. "] = m." .. k .. "  // " .. (v[2] or ""))
                             end
@@ -422,9 +427,14 @@ do
                         local isList = isArray(v[1])
                         if isList then
                             stName = nil
-                            stName = getKeyByVal(defProtocol.structs, v[1][1])
-                            if stName then
-                                add(ret, "            r." .. k .. " = " .. defProtocol.name .. "._parseList(" .. getStName(stName) .. ", m[" .. getKeyCode(k) .. "])  // " .. (v[2] or ""))
+                            if type(v[1][1]) == "table" then
+                                stName = getKeyByVal(defProtocol.structs, v[1][1])
+                                if stName then
+                                    add(ret, "            r." .. k .. " = " .. defProtocol.name .. "._parseList(" .. getStName(stName) .. ", m[" .. getKeyCode(k) .. "])  // " .. (v[2] or ""))
+                                else
+                                    assert(stName, "get key by val is null!!!!!!!!!!!!!!注意定义的先后顺序！key==" .. k)
+                                    add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] // " .. " " .. typeName )
+                                end
                             else
                                 add(ret, "            r." .. k .. " = m[" .. getKeyCode(k) .. "] // " .. " " .. typeName )
                             end
@@ -548,8 +558,6 @@ do
         add(strsClientJS, "        localStorage.removeItem(\"" .. defProtocol.name .. ".__sessionID\")")
         add(strsClientJS, "    }")
 
-        add(strsClient, "do")
-        add(strsServer, "do")
         add(strsClient, "    ---@class " .. defProtocol.name .. " 网络协议")
         add(strsServer, "    ---@class " .. defProtocol.name .. " 网络协议")
         add(strsClient, "    " .. defProtocol.name .. " = {}")
@@ -567,17 +575,7 @@ do
         add(strsClient, "    local __callbackInfor = {} -- 回调信息")
         add(strsClient, "    local __callTimes = 1")
 
-        add(strsClient, "    ---@public 设计回调信息")
-        add(strsClient, "    local setCallback = function (callback, orgs, ret)")
-        add(strsClient, "       if callback then")
-        add(strsClient, "           local callbackKey = os.time() + __callTimes")
-        add(strsClient, "           __callTimes = __callTimes + 1")
-        add(strsClient, "           __callbackInfor[callbackKey] = {callback, orgs}")
-        add(strsClient, "           ret[3] = callbackKey")
-        add(strsClient, "        end")
-        add(strsClient, "    end")
-
-        add(strsClient, "    ---@public 处理回调")
+        add(strsClient, "    ---public 处理回调")
         add(strsClient, "    local doCallback = function(map, result)")
         add(strsClient, "        local callbackKey = map[3]")
         add(strsClient, "        if callbackKey then")
@@ -586,6 +584,25 @@ do
         add(strsClient, "                pcall(cbinfor[1], cbinfor[2], result)")
         add(strsClient, "            end")
         add(strsClient, "            __callbackInfor[callbackKey] = nil")
+        add(strsClient, "        end")
+        add(strsClient, "    end")
+
+        add(strsClient, "    ---public 超时处理")
+        add(strsClient, "    local timeOutCallback = function(param)")
+        add(strsClient, "        doCallback(param, {retInfor={}})")
+        add(strsClient, "    end")
+
+
+        add(strsClient, "    ---public 设计回调信息")
+        add(strsClient, "    local setCallback = function (callback, orgs, ret, timeOutSec)")
+        add(strsClient, "       if callback then")
+        add(strsClient, "           local callbackKey = os.time() + __callTimes")
+        add(strsClient, "           __callTimes = __callTimes + 1")
+        add(strsClient, "           __callbackInfor[callbackKey] = {callback, orgs}")
+        add(strsClient, "           ret[3] = callbackKey")
+        add(strsClient, "        end")
+        add(strsClient, "        if timeOutSec and timeOutSec > 0 then")
+        add(strsClient, "            InvokeEx.invokeByUpdate(timeOutCallback, ret, timeOutSec)")
         add(strsClient, "        end")
         add(strsClient, "    end")
 
@@ -664,7 +681,7 @@ do
                                 local type2 = type(v2[1])
                                 if type2 == "table" then
                                     pname = getKeyByVal(defProtocol.structs, v2[1])
-                                    assert(pname, "get key by val is null==" .. i .. "===="..CLUtl.dump(v2[1]))
+                                    assert(pname, "get key by val is null！！！注意定义的先后顺序！==" .. i .. "====".. CLUtl.dump(v2[1]))
                                     paramName = getParamName(pname.. "s")
                                     add(toMapStrClient, "        ret[" .. getKeyCode(paramName) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. paramName .. ")  -- " .. (inputDesList[i] or ""))
                                     add(toMapStrClientJS, "        ret[" .. getKeyCode(paramName) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. paramName .. ")  // " .. (inputDesList[i] or ""))
@@ -732,7 +749,7 @@ do
                                 local type2 = type(v2[1])
                                 if type2 == "table" then
                                     pname = getKeyByVal(defProtocol.structs, v2[1])
-                                    assert(pname, "get key by val is null==" .. i .. "==" .. CLUtl.dump(v2[1]))
+                                    assert(pname, "get key by val is null！！！注意定义的先后顺序！==" .. i .. "==" .. CLUtl.dump(v2[1]))
                                     paramName = getParamName(pname .. "s")
                                     add(toMapStrServer, "        ret[" .. getKeyCode(paramName) .. "] = " .. defProtocol.name .. "._toList(" .. getStName(pname) .. ", " .. paramName .. ")  -- " .. (inputDesList[i] or ""))
                                 else
@@ -790,10 +807,10 @@ do
 
             if #inputParams == 0 then
                 -- 没有入参数
-                add(clientSend, "    " .. cmd .. " = function(__callback, __orgs) -- __callback:接口回调, __orgs:回调参数")
+                add(clientSend, "    " .. cmd .. " = function(__callback, __orgs, __timeoutSec) -- __callback:接口回调, __orgs:回调参数, __timeoutSec:超时的秒数")
                 add(clientSendJS, "    " .. cmd .. " : function(callback) {")
             else
-                add(clientSend, "    " .. cmd .. " = function(" .. table.concat(inputParams, ", ") .. ", __callback, __orgs) -- __callback:接口回调, __orgs:回调参数")
+                add(clientSend, "    " .. cmd .. " = function(" .. table.concat(inputParams, ", ") .. ", __callback, __orgs, __timeoutSec) -- __callback:接口回调, __orgs:回调参数, __timeoutSec:超时的秒数")
                 add(clientSendJS, "    " .. cmd .. " : function(" .. table.concat(inputParams, ", ") .. ", callback) {")
             end
 
@@ -822,7 +839,7 @@ do
                 add(serverSend, table.concat(toMapStrServer, "\n"))
             end
 
-            add(clientSend, "        setCallback(__callback, __orgs, ret)")
+            add(clientSend, "        setCallback(__callback, __orgs, ret, __timeoutSec)")
             add(clientSend, "        return ret")
             add(clientSendJS, "        " .. defProtocol.name .. ".call(ret, callback, " .. (cfg.httpType and  "\"" .. cfg.httpType .. "\"" or "null") .. ")")
             add(serverSend, "        return ret")
@@ -992,8 +1009,8 @@ do
         add(strsServer, "    ")
         add(strsServer, "        skynet.register \"" .. defProtocol.name .. "\"")
         add(strsServer, "    end)")
-        add(strsClient, "end\n")
-        add(strsServer, "end\n")
+        add(strsClient, "\n")
+        add(strsServer, "\n")
 
         --for k,v in pairs(requires) do
         --    table.insert(strsServer, 4, "    local " .. k .. " = require(\"logic.".. k .. "\")")

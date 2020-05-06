@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="cn">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>database</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../../../3rd/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <!-- <link href="../../dashboard.css" rel="stylesheet"> -->
+</head>
+
+<body>
+    <div class="container-fluid">
+        <!-- <main role="main" class="col-md-auto ml-sm-auto col-lg-auto px-4" id="contentRoot"> -->
+        <div class="form-group row">
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="playerIdx" placeholder="输入玩家的idx">
+            </div>
+            <button type="button" class="btn btn-info" onclick="getResInfor()">查询</button>
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-warning">玩家名:</span>
+            </div>
+            <label type="text" class="form-control bg-secondary text-light" id="playerName"
+                aria-describedby="basic-addon3"></label>
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-warning">钻石:</span>
+            </div>
+            <label type="text" class="form-control bg-secondary text-light" id="diamVal"
+                aria-describedby="basic-addon3"></label>
+
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-warning">增加:</span>
+            </div>
+            <input class='form-control text-danger' id='addDiamVal' type='text' />
+            <button type="button" class="btn btn-danger" onclick="addDiam()">添加玩家钻石</button>
+        </div>
+
+        <div class="table-responsive " id="tablecontent">
+            <table class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>资源名</th>
+                        <th>原始数量</th>
+                        <th>增加值</th>
+                    </tr>
+                </thead>
+                <tbody id="contents">
+                    <tr>
+                        <td><label class=' text-secondary' id='resName'>粮食</label></td>
+                        <td><label class=' text-secondary' id='foodVal'></label></td>
+                        <td><input class='form-control text-danger' id='addFoodVal' type='text'></td>
+                    </tr>
+                    <tr>
+                        <td><label class='text-secondary' id='resName'>金币</label></td>
+                        <td><label class='text-secondary' id='goldVal'></label></td>
+                        <td><input class='form-control text-danger' id='addGoldVal' type='text'></td>
+                    </tr>
+                    <tr>
+                        <td><label class='text-secondary' id='resName'>石油</label></td>
+                        <td><label class='text-secondary' id='oilVal'></label></td>
+                        <td><input class='form-control text-danger' id='addOilVal' type='text'></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" class="btn btn-danger" onclick="addRes()">添加玩家资源</button>
+        </div>
+        <!-- </main> -->
+    </div>
+
+    <!-- Bootstrap core JavaScript
+================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../../../../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script> -->
+    <script src="../../../../3rd/jquery/jquery-3.4.1.min.js"></script>
+    <!-- Icons -->
+    <script src="../../../../3rd/feather-icons/dist/feather.min.js"></script>
+
+    <script src="../../../../3rd/popper/dist/umd/popper.min.js"></script>
+    <script src="../../../../3rd/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="../../../../3rd/Bootstrap-Confirmation/dist/bootstrap-confirmation.js"></script>
+    <script src="../../js/jquery.url.js"></script>
+
+    <!-- tab 处理-->
+    <script src="js/glcfg.js"></script>
+    <script src="../../js/myutl.js"></script>
+    <script src="../../js/tabEx.js"></script>
+
+    <script>
+        // console.log($.url.param("id"))
+        // var projectName = $.url.param("name")
+        var baseUrl = $.url.param("url")
+        var mData = null;
+
+        function refreshContent() {
+            $("#playerName").text(mData.player.name);
+            $("#diamVal").text(mData.player.diam);
+            $("#foodVal").text(resInfor.food.stored);
+            $("#goldVal").text(resInfor.gold.stored);
+            $("#oilVal").text(resInfor.oil.stored);
+
+            feather.replace();
+        }
+
+        function getResInfor() {
+            var pidx = $("#playerIdx").val();
+            if (pidx == null || pidx == "") {
+                return;
+            }
+
+            var params = { cmd: "getResInfor", pidx: pidx, uid: "000" };
+            myutl.ajaxJSONP(baseUrl, params,
+                function (result, status, xhr) {  //成功的回调函数
+                    var code = parseInt(result.code)
+                    if (code == 18) {
+                        alert("玩家取得为空");
+                        return
+                    } else if (code != 1) {
+                        alert("取得信息失败");
+                        return
+                    }
+                    mData = result;
+                    resInfor = result.res;
+                    refreshContent();
+                    feather.replace();
+                },
+                function (jqXHR, textStatus, errorThrown) {
+                    alert("error:" + textStatus);
+                }
+            );
+        }
+
+        function addDiam() {
+            var pidx = $("#playerIdx").val();
+            if (pidx == null || pidx == "") {
+                return;
+            }
+            var diam = parseInt($("#addDiamVal").val());
+            var params = { cmd: "addPlayerDiam", pidx: pidx, diam: diam };
+            myutl.ajaxJSONP(baseUrl, params,
+                function (result, status, xhr) {  //成功的回调函数
+                    if (result.code == 18) {
+                        alert("玩家取得为空");
+                        return
+                    } else if (result.code != 1) {
+                        alert("取得信息失败");
+                        return
+                    } else {
+                        alert("添加成功！");
+                    }
+
+                    $("#addDiamVal").val(0);
+                    getResInfor();
+                    feather.replace();
+                },
+                function (jqXHR, textStatus, errorThrown) {
+                    alert("error:" + textStatus);
+                }
+            );
+        }
+
+        function addRes() {
+            var pidx = $("#playerIdx").val();
+            if (pidx == null || pidx == "") {
+                return;
+            }
+
+            var food = -1 * parseInt($("#addFoodVal").val());
+            var gold = -1 * parseInt($("#addGoldVal").val());
+            var oil = -1 * parseInt($("#addOilVal").val());
+
+            var params = {
+                cmd: "consumePlayerRes", pidx: pidx, food: food, gold: gold, oil: oil
+            };
+            myutl.ajaxJSONP(baseUrl, params,
+                function (result, status, xhr) {  //成功的回调函数
+                    if (result.code == 18) {
+                        alert("玩家取得为空");
+                        return
+                    } else if (result.code != 1) {
+                        alert("取得信息失败");
+                        return
+                    } else {
+                        alert("添加成功！");
+                    }
+
+                    $("#addFoodVal").val(0);
+                    $("#addGoldVal").val(0);
+                    $("#addOilVal").val(0);
+                    getResInfor();
+                    feather.replace();
+                },
+                function (jqXHR, textStatus, errorThrown) {
+                    alert("error:" + textStatus);
+                }
+            );
+        }
+
+        function init() {
+            $("#playerIdx").focus();
+            $("#addDiamVal").val(0);
+            $("#addFoodVal").val(0);
+            $("#addGoldVal").val(0);
+            $("#addOilVal").val(0);
+        }
+
+        $(document).ready(init)
+    </script>
+
+</body>
+
+</html>

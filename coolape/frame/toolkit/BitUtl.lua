@@ -33,32 +33,32 @@ local __base = function(left, right, op) --对每一位进行op运算，然后�
     return res
 end
 
----@public 与
+---public 与
 function BitUtl.andOp(left, right)
     return __base(left, right, __andBit)
 end
 
----@public 或
+---public 或
 function BitUtl.orOp(left, right)
     return __base(left, right, __orBit)
 end
 
----@public 异或
+---public 异或
 function BitUtl.xorOp(left, right)
     return __base(left, right, __xorBit)
 end
 
----@public 非
+---public 非
 function BitUtl.notOp(left)
     return left > 0 and -(left + 1) or -left - 1
 end
 
----@public left左移num位
+---public left左移num位
 function BitUtl.lShiftOp(left, num)
     return left * (2 ^ num)
 end
 
----@public right右移num位
+---public right右移num位
 function BitUtl.rShiftOp(left, num)
     return math.floor(left / (2 ^ num))
 end
